@@ -33,28 +33,30 @@ function Hero() {
   return (
     <section
       className="relative overflow-hidden min-h-[580px] flex items-center"
-      style={{
-        background: "radial-gradient(ellipse at 25% 60%, #3b1f72 0%, #1e0d4a 35%, #090418 100%)",
-      }}
     >
-      {/* Stable star field */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {STARS.map((s) => (
-          <motion.div
-            key={s.id}
-            className="absolute rounded-full bg-white"
-            style={{ width: s.w, height: s.w, top: `${s.top}%`, left: `${s.left}%` }}
-            animate={{ opacity: [s.opacity, s.opacity * 2.5, s.opacity] }}
-            transition={{ duration: s.dur, delay: s.delay, repeat: Infinity, ease: "easeInOut" }}
-          />
-        ))}
-      </div>
+      {/* Background photo */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(https://upload.wikimedia.org/wikipedia/commons/8/8e/RO_HR_Miercurea_Ciuc_center_1.jpg)`,
+        }}
+      />
 
-      {/* Glow orbs */}
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(232,121,160,0.12) 0%, transparent 70%)" }} />
-      <div className="absolute top-1/3 right-1/3 w-64 h-64 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(139,92,246,0.10) 0%, transparent 70%)" }} />
+      {/* Dark overlay – heavier on left for text legibility, lighter on right */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(to right, rgba(5,15,8,0.88) 0%, rgba(5,15,8,0.70) 50%, rgba(5,15,8,0.45) 100%)",
+        }}
+      />
+
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+        style={{ background: "linear-gradient(to bottom, transparent, rgba(5,15,8,0.6))" }} />
+
+      {/* Subtle green tint overlay */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse at 20% 60%, rgba(34,100,60,0.18) 0%, transparent 65%)" }} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
         {/* Left: text with staggered entrance */}
