@@ -38,7 +38,7 @@ function Hero() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url(https://upload.wikimedia.org/wikipedia/commons/f/f5/Miercurea_Ciuc-2022-2.jpg)`,
+          backgroundImage: `url(https://upload.wikimedia.org/wikipedia/commons/b/b9/RO_HR_Miercurea_Ciuc_Miko_castle.jpg)`,
         }}
       />
 
