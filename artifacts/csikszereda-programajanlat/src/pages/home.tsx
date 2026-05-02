@@ -240,88 +240,6 @@ function Hero() {
   );
 }
 
-// ─── PICKS ──────────────────────────────────────────────────────────────────
-
-function Picks() {
-  const { data, isLoading } = useListFeaturedEvents();
-  const events = (data?.events ?? []).slice(0, 3);
-
-  return (
-    <section id="picks" className="py-16" style={{ background: "linear-gradient(180deg, #faf8f5 0%, #f0ebe3 100%)" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-xs font-bold text-primary uppercase tracking-widest">Hamarosan érkezik</span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-            Programok, amit nem szabad kihagyni
-          </h2>
-          <p className="text-muted-foreground max-w-lg mx-auto">
-            Kuráltan kiválasztott események — koncert, irodalom, humor és közösségi élmények egy kattintásra.
-          </p>
-        </div>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[0,1,2].map(i => <Skeleton key={i} className="h-96 rounded-2xl" />)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {events.map((event, i) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1, duration: 0.4 }}
-              >
-                <Link href={`/esemeny/${event.id}`}>
-                  <div className="group cursor-pointer bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-card-border">
-                    <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-                      <img
-                        src={event.imageUrl}
-                        alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                      <span
-                        className="absolute top-3 left-3 text-[11px] font-black px-2.5 py-1 rounded-full text-white"
-                        style={{ backgroundColor: "#22c55e" }}
-                      >
-                        #{i + 1} PICK
-                      </span>
-                      {event.category && (
-                        <span
-                          className="absolute top-3 right-3 text-[11px] font-semibold px-2.5 py-1 rounded-full text-white"
-                          style={{ backgroundColor: event.category.color }}
-                        >
-                          {event.category.name}
-                        </span>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <div className="flex gap-3 text-xs text-muted-foreground mb-2">
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatShortDate(event.startDate)}</span>
-                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{event.location}</span>
-                      </div>
-                      <h3 className="font-bold text-base text-foreground leading-snug mb-3 group-hover:text-primary transition-colors">
-                        {event.title}
-                      </h3>
-                      <div className="flex items-center gap-1 text-primary text-sm font-semibold">
-                        Részletek <ArrowRight className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 // ─── WEEKLY CALENDAR ────────────────────────────────────────────────────────
 
 function WeeklyCalendar() {
@@ -468,22 +386,36 @@ function WeeklyCalendar() {
 // ─── UPCOMING EVENTS ────────────────────────────────────────────────────────
 
 function UpcomingEvents() {
-  const { data, isLoading } = useListUpcomingEvents({ limit: 9 });
-  const events = data?.events ?? [];
+  const { data, isLoading } = useListUpcomingEvents({ limit: 12 });
+  const rawEvents = data?.events ?? [];
+  // Featured events first, then the rest by date
+  const events = [
+    ...rawEvents.filter(e => e.featured),
+    ...rawEvents.filter(e => !e.featured),
+  ];
+  const featuredCount = events.filter(e => e.featured).length;
 
   return (
     <section id="kozelgo" className="py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-2">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-3 h-3 rounded-full bg-primary" />
-            <span className="text-xs font-bold text-primary uppercase tracking-widest">Minden program</span>
+        {/* Section header */}
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-xs font-bold text-primary uppercase tracking-widest">Közelgő programok</span>
+            </div>
+            <h2 className="text-3xl font-bold text-foreground">Hamarosan Csíkszeredában</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {events.length} program · {featuredCount > 0 && <span className="font-medium text-amber-600">{featuredCount} kihagyhatatlan</span>}
+            </p>
           </div>
-          <h2 className="text-3xl font-bold text-foreground mb-0.5">Közelgő események</h2>
-          <p className="text-sm text-muted-foreground">{events.length} esemény a forrásból: csikszereda-programajanlat.ro</p>
+          <a href="#naptar" className="hidden md:flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
+            Naptár nézet <ArrowRight className="w-3.5 h-3.5" />
+          </a>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {isLoading
             ? Array.from({length: 6}).map((_,i) => <Skeleton key={i} className="h-80 rounded-2xl" />)
             : events.map((event, i) => (
@@ -491,10 +423,14 @@ function UpcomingEvents() {
                 key={event.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.4 }}
+                transition={{ delay: i * 0.05, duration: 0.38 }}
               >
                 <Link href={`/esemeny/${event.id}`}>
-                  <div className="group cursor-pointer bg-card rounded-2xl overflow-hidden border border-card-border hover:shadow-lg transition-all duration-300">
+                  <div className={`group cursor-pointer bg-card rounded-2xl overflow-hidden border transition-all duration-300 hover:shadow-xl h-full flex flex-col ${
+                    event.featured
+                      ? "border-amber-300/60 shadow-md shadow-amber-100 ring-1 ring-amber-200/50"
+                      : "border-card-border hover:border-primary/20"
+                  }`}>
                     {/* Image */}
                     <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
                       <img
@@ -502,42 +438,44 @@ function UpcomingEvents() {
                         alt={event.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      {/* Category badges (multiple) */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                      {/* Top badges */}
                       <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                        {event.featured && (
+                          <span className="flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
+                            style={{ background: "linear-gradient(135deg, #f59e0b, #f97316)" }}>
+                            <Sparkles className="w-2.5 h-2.5" /> Kihagyhatatlan
+                          </span>
+                        )}
                         {event.category && (
-                          <span
-                            className="text-[11px] font-bold px-2.5 py-1 rounded-full text-white"
-                            style={{ backgroundColor: event.category.color }}
-                          >
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                            style={{ backgroundColor: event.category.color }}>
                             {event.category.name}
                           </span>
                         )}
                       </div>
-                      {event.price && (
-                        <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/95 rounded-lg px-2 py-1">
+                      {event.price && event.price !== "Ingyenes" && (
+                        <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/95 rounded-lg px-2 py-1 shadow-sm">
                           <Ticket className="w-3 h-3 text-muted-foreground" />
                           <span className="text-[11px] font-semibold text-foreground">{event.price}</span>
                         </div>
                       )}
                     </div>
                     {/* Body */}
-                    <div className="p-4">
+                    <div className="p-4 flex flex-col flex-1">
                       <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatShortDate(event.startDate)}</span>
-                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{event.location}</span>
+                        <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" /><span className="truncate">{event.location?.split("–")[0].trim()}</span></span>
                       </div>
-                      <h3 className="font-bold text-base text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      <h3 className="font-bold text-base text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors flex-1">
                         {event.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{event.description}</p>
-                      <div className="flex items-center justify-between">
-                        {event.price === "Ingyenes" || !event.price ? (
-                          <span className="text-xs text-muted-foreground">Ingyenes részvétel</span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">{event.price}</span>
-                        )}
-                        <span className="flex items-center gap-1 text-primary text-sm font-semibold">
-                          Részletek <ExternalLink className="w-3.5 h-3.5" />
+                      <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
+                        <span className="text-xs text-muted-foreground">
+                          {!event.price || event.price === "Ingyenes" ? "Ingyenes" : event.price}
+                        </span>
+                        <span className="flex items-center gap-1 text-primary text-xs font-bold">
+                          Részletek <ArrowRight className="w-3 h-3" />
                         </span>
                       </div>
                     </div>
@@ -1092,7 +1030,6 @@ export default function Home() {
   return (
     <div>
       <Hero />
-      <Picks />
       <WeeklyCalendar />
       <UpcomingEvents />
       <MonthHighlight />
