@@ -248,6 +248,7 @@ function WeeklyCalendar() {
   const { data, isLoading } = useListThisWeekEvents();
   const { data: catData } = useListCategories();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedCat, setSelectedCat] = useState<number | null>(null);
   const days = data?.days ?? [];
   const today = new Date().toISOString().slice(0, 10);
   const activeDay = selectedDay ?? today;
@@ -265,6 +266,12 @@ function WeeklyCalendar() {
       }
     });
   }
+
+  const filteredDayEvents = selectedDayData
+    ? (selectedCat
+        ? selectedDayData.events.filter(ev => ev.categoryId === selectedCat)
+        : selectedDayData.events)
+    : [];
 
   // Week label
   const weekLabel = (() => {
@@ -342,9 +349,13 @@ function WeeklyCalendar() {
             <p className="text-muted-foreground text-sm w-full text-center">
               Ezen a napon nincs regisztrált esemény. Próbálj másik napot!
             </p>
+          ) : filteredDayEvents.length === 0 ? (
+            <p className="text-muted-foreground text-sm w-full text-center">
+              Nincs ilyen kategóriájú esemény ezen a napon.
+            </p>
           ) : (
             <div className="w-full space-y-2">
-              {selectedDayData.events.map(ev => (
+              {filteredDayEvents.map(ev => (
                 <Link key={ev.id} href={`/esemeny/${ev.id}`}>
                   <div className="flex items-center gap-3 hover:bg-background/60 rounded-xl p-2 cursor-pointer transition-colors">
                     <img src={ev.imageUrl} alt={ev.title} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
@@ -367,16 +378,27 @@ function WeeklyCalendar() {
         {/* Category filter pills */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mr-1">Szűrés:</span>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-foreground text-white">
-            Mind <span className="text-white/70 text-xs">{totalCount}</span>
+          <button
+            onClick={() => setSelectedCat(null)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              selectedCat === null ? "bg-foreground text-white" : "border border-border bg-card text-foreground hover:border-primary/30"
+            }`}
+          >
+            Mind <span className={`text-xs ${selectedCat === null ? "text-white/70" : "text-muted-foreground"}`}>{totalCount}</span>
           </button>
-          {categories.map(cat => (
+          {categories.filter(cat => (catCounts[cat.id] ?? 0) > 0).map(cat => (
             <button
               key={cat.id}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-border bg-card text-foreground hover:border-primary/30 transition-colors"
+              onClick={() => setSelectedCat(selectedCat === cat.id ? null : cat.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                selectedCat === cat.id
+                  ? "text-white"
+                  : "border border-border bg-card text-foreground hover:border-primary/30"
+              }`}
+              style={selectedCat === cat.id ? { backgroundColor: cat.color } : {}}
             >
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
-              {cat.name} <span className="text-muted-foreground text-xs">{catCounts[cat.id] ?? 0}</span>
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: selectedCat === cat.id ? "rgba(255,255,255,0.7)" : cat.color }} />
+              {cat.name} <span className={`text-xs ${selectedCat === cat.id ? "text-white/70" : "text-muted-foreground"}`}>{catCounts[cat.id] ?? 0}</span>
             </button>
           ))}
         </div>
@@ -388,20 +410,31 @@ function WeeklyCalendar() {
 // ─── UPCOMING EVENTS ────────────────────────────────────────────────────────
 
 function UpcomingEvents() {
-  const { data, isLoading } = useListUpcomingEvents({ limit: 12 });
+  const { data, isLoading } = useListUpcomingEvents({ limit: 50 });
+  const { data: catData } = useListCategories();
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const rawEvents = data?.events ?? [];
+  const categories = catData?.categories ?? [];
+
   // Featured events first, then the rest by date
-  const events = [
+  const sorted = [
     ...rawEvents.filter(e => e.featured),
     ...rawEvents.filter(e => !e.featured),
   ];
-  const featuredCount = events.filter(e => e.featured).length;
+  const events = selectedCategoryId
+    ? sorted.filter(e => e.categoryId === selectedCategoryId)
+    : sorted;
+  const featuredCount = sorted.filter(e => e.featured).length;
+
+  // Count per category
+  const catCounts: Record<number, number> = {};
+  rawEvents.forEach(e => { if (e.categoryId) catCounts[e.categoryId] = (catCounts[e.categoryId] ?? 0) + 1; });
 
   return (
     <section id="kozelgo" className="py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
-        <div className="flex items-end justify-between mb-8">
+        <div className="flex items-end justify-between mb-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-4 h-4 text-primary" />
@@ -409,12 +442,39 @@ function UpcomingEvents() {
             </div>
             <h2 className="text-3xl font-bold text-foreground">Hamarosan Csíkszeredában</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {events.length} program · {featuredCount > 0 && <span className="font-medium text-amber-600">{featuredCount} kihagyhatatlan</span>}
+              {sorted.length} program · {featuredCount > 0 && <span className="font-medium text-amber-600">{featuredCount} kihagyhatatlan</span>}
             </p>
           </div>
           <a href="#naptar" className="hidden md:flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
             Naptár nézet <ArrowRight className="w-3.5 h-3.5" />
           </a>
+        </div>
+
+        {/* Category filter pills */}
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          <button
+            onClick={() => setSelectedCategoryId(null)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              selectedCategoryId === null ? "bg-foreground text-white" : "border border-border bg-card text-foreground hover:border-primary/30"
+            }`}
+          >
+            Összes <span className={`text-xs ${selectedCategoryId === null ? "text-white/70" : "text-muted-foreground"}`}>{sorted.length}</span>
+          </button>
+          {categories.filter(cat => (catCounts[cat.id] ?? 0) > 0).map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategoryId(selectedCategoryId === cat.id ? null : cat.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                selectedCategoryId === cat.id ? "text-white" : "border border-border bg-card text-foreground hover:border-primary/30"
+              }`}
+              style={selectedCategoryId === cat.id ? { backgroundColor: cat.color } : {}}
+            >
+              <span className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: selectedCategoryId === cat.id ? "rgba(255,255,255,0.7)" : cat.color }} />
+              {cat.name}
+              <span className={`text-xs ${selectedCategoryId === cat.id ? "text-white/70" : "text-muted-foreground"}`}>{catCounts[cat.id]}</span>
+            </button>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
