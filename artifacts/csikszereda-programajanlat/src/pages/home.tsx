@@ -130,79 +130,110 @@ function Hero() {
           </motion.div>
         </div>
 
-        {/* Right: floating event cards */}
-        <div className="relative hidden md:block h-[360px]">
-          {/* Glow behind cards */}
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at 55% 50%, rgba(167,139,250,0.18) 0%, transparent 65%)" }} />
-
-          {!isLoading && events.slice(0, 3).map((event, i) => {
-            const rotations = [-7, 5, -1];
-            const positions = [
-              { top: "2%",  left: "5%",  zIndex: 1 },
-              { top: "3%",  left: "44%", zIndex: 2 },
-              { top: "38%", left: "25%", zIndex: 3 },
-            ];
-            const sizes   = [190, 185, 220];
-            const imgH    = [160, 150, 165];
-            const floatAmp  = [9, 13, 7];
-            const floatDur  = [4.4, 3.7, 5.3];
-            const floatDel  = [0, 1.1, 2.5];
-            return (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 50, scale: 0.92 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  y: [0, -floatAmp[i], 0, floatAmp[i] * 0.55, 0],
-                }}
-                transition={{
-                  opacity: { duration: 0.6, delay: i * 0.18 },
-                  scale:   { duration: 0.6, delay: i * 0.18 },
-                  y: { duration: floatDur[i], delay: floatDel[i], repeat: Infinity, ease: "easeInOut" },
-                }}
-                className="absolute rounded-2xl overflow-hidden"
-                style={{
-                  ...positions[i],
-                  width: sizes[i],
-                  rotate: rotations[i],
-                  boxShadow: i === 2
-                    ? "0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.1)"
-                    : "0 12px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.07)",
-                }}
-              >
+        {/* Right: featured event card + upcoming mini-list */}
+        <div className="hidden md:flex flex-col gap-3">
+          {/* Big featured card – gently floats */}
+          {!isLoading && events[0] && (
+            <motion.div
+              initial={{ opacity: 0, y: 32, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -8, 0, 5, 0] }}
+              transition={{
+                opacity: { duration: 0.6, delay: 0.3 },
+                scale:   { duration: 0.6, delay: 0.3 },
+                y: { duration: 5.5, delay: 0.8, repeat: Infinity, ease: "easeInOut" },
+              }}
+              className="rounded-2xl overflow-hidden"
+              style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.1)" }}
+            >
+              {/* Cover image */}
+              <div className="relative h-44 overflow-hidden">
                 <img
-                  src={event.imageUrl}
-                  alt={event.title}
-                  className="w-full object-cover"
-                  style={{ height: imgH[i] }}
+                  src={events[0].imageUrl}
+                  alt={events[0].title}
+                  className="w-full h-full object-cover"
                 />
-                {i === 2 && (
-                  <div className="bg-white p-3.5">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                      <span className="text-[10px] font-bold text-primary uppercase tracking-wide">Most ajánljuk</span>
-                      {event.price && (
-                        <span className="ml-auto text-[10px] font-medium text-muted-foreground">{event.price}</span>
-                      )}
-                    </div>
-                    <p className="text-xs font-bold text-foreground line-clamp-2 mb-1 leading-snug">{event.title}</p>
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <MapPin className="w-2.5 h-2.5 shrink-0" />
-                      {event.location?.split("–")[0].trim()}
-                    </p>
-                  </div>
+                <div className="absolute inset-0"
+                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)" }} />
+                {events[0].category && (
+                  <span
+                    className="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full text-white uppercase tracking-wide"
+                    style={{ backgroundColor: events[0].category.color ?? "#166534" }}
+                  >
+                    {events[0].category.name}
+                  </span>
                 )}
-                {i !== 2 && (
-                  <div className="absolute bottom-0 inset-x-0 p-2.5"
-                    style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)" }}>
-                    <p className="text-[11px] font-semibold text-white line-clamp-2 leading-snug">{event.title}</p>
-                  </div>
+                <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-semibold text-white bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                  Kiemelt
+                </span>
+              </div>
+              {/* Card body */}
+              <div className="bg-white p-4">
+                <p className="font-bold text-sm text-foreground leading-snug mb-1.5 line-clamp-2">
+                  {events[0].title}
+                </p>
+                <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-3">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3 text-primary" />
+                    {formatShortDate(events[0].startDate)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-primary" />
+                    {events[0].location?.split("–")[0].trim()}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-primary">
+                    {events[0].price ?? "Ingyenes"}
+                  </span>
+                  <a href={events[0].ticketUrl ?? "#"} target="_blank" rel="noopener noreferrer">
+                    <button className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full text-white transition-colors"
+                      style={{ background: "hsl(148 45% 22%)" }}>
+                      Részletek <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Mini upcoming strip – next 3 events */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.65 }}
+            className="rounded-2xl overflow-hidden divide-y"
+            style={{
+              background: "rgba(255,255,255,0.07)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              divideColor: "rgba(255,255,255,0.08)",
+            }}
+          >
+            {!isLoading && events.slice(1, 4).map((ev, i) => (
+              <motion.div
+                key={ev.id}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.35, delay: 0.75 + i * 0.1 }}
+                className="flex items-center gap-3 px-3.5 py-2.5"
+              >
+                <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0">
+                  <img src={ev.imageUrl} alt={ev.title} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-white leading-snug line-clamp-1">{ev.title}</p>
+                  <p className="text-[10px] text-white/50 mt-0.5">{formatShortDate(ev.startDate)}</p>
+                </div>
+                {ev.category && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white shrink-0"
+                    style={{ backgroundColor: (ev.category.color ?? "#166534") + "99" }}>
+                    {ev.category.name}
+                  </span>
                 )}
               </motion.div>
-            );
-          })}
+            ))}
+          </motion.div>
         </div>
       </div>
     </section>
