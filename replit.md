@@ -27,17 +27,25 @@ pnpm workspace monorepo using TypeScript. This project is a Hungarian-language c
 
 ## Features
 
-- Hero carousel with featured events
+- Hero section with featured event card + upcoming mini-list
 - Weekly calendar strip (Hungarian day names)
+- Upcoming events grid with "Kihagyhatatlan" badge for featured events
 - Month highlight cinematic section
-- Upcoming events grid with category filters
 - Event detail page with related events
+- Public event submission form at /bekuldese (status=pending, awaits admin approval)
+- Admin dashboard at /admin (password-protected, default: csikadmin2024)
 - All text in Hungarian
 
 ## Database Schema
 
 - `categories` table: id, name, slug, color
-- `events` table: id, title, description, image_url, start_date, end_date, location, location_address, category_id, featured, month_highlight, ticket_url, price, tags[], created_at
+- `events` table: id, title, description, image_url, start_date, end_date, location, location_address, category_id, featured, month_highlight, ticket_url, price, tags[], status (published|pending|rejected), submitter_name, submitter_email, created_at
+
+## Admin
+
+- URL: /admin
+- Default password: csikadmin2024 (change via ADMIN_PASSWORD env var)
+- Features: approve/reject pending events, toggle featured/month_highlight, delete events
 
 ## Key Commands
 

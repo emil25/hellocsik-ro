@@ -1000,13 +1000,13 @@ function AddEventSection() {
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-3">Van saját programod?</h2>
           <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-            Töltsd fel saját programodat egy kattintással. A bejegyzés a böngészőben tárolódik, és azonnal megjelenik a naptárban, a hétvégi ajánlóban és a programlistában.
+            Küldd be programodat és mi átnézük, majd közzétesszük az oldalon. Az esemény megjelenik a naptárban, a hétvégi ajánlóban és a programlistában.
           </p>
           <ul className="space-y-2 mb-8 text-left max-w-sm mx-auto">
             {[
               "Lejárt események automatikusan eltűnnek a felületről.",
               "Kategóriák és helyszín szerint szűrhető.",
-              "Részletek modálban nyílnak meg, mint a többi esemény.",
+              "Jóváhagyás után azonnal megjelenik a főoldalon.",
             ].map(item => (
               <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
                 <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
@@ -1014,10 +1014,12 @@ function AddEventSection() {
               </li>
             ))}
           </ul>
-          <button className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-white font-bold rounded-xl hover:bg-foreground/90 transition-colors">
-            <Plus className="w-4 h-4" />
-            Esemény hozzáadása
-          </button>
+          <Link href="/bekuldese">
+            <button className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors shadow-md shadow-primary/20">
+              <Plus className="w-4 h-4" />
+              Program beküldése
+            </button>
+          </Link>
         </div>
       </div>
     </section>

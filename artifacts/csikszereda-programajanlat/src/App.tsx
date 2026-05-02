@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,18 +6,27 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import Home from "@/pages/home";
 import EventDetail from "@/pages/event-detail";
+import SubmitPage from "@/pages/submit";
+import AdminPage from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     },
   },
 });
 
 function Router() {
+  const [location] = useLocation();
+  const isAdmin = location === "/admin";
+
+  if (isAdmin) {
+    return <AdminPage />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -25,6 +34,7 @@ function Router() {
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/esemeny/:id" component={EventDetail} />
+          <Route path="/bekuldese" component={SubmitPage} />
           <Route component={NotFound} />
         </Switch>
       </main>

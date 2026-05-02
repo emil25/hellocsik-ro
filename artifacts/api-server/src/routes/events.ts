@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, eventsTable, categoriesTable } from "@workspace/db";
-import { eq, and, gte, lte, desc, asc } from "drizzle-orm";
+import { eq, and, gte, lte, desc, asc, ne } from "drizzle-orm";
 import {
   ListEventsQueryParams,
   CreateEventBody,
@@ -81,10 +81,45 @@ router.get("/events", async (req, res) => {
   }
 });
 
+router.post("/events/submit", async (req, res) => {
+  try {
+    const body = req.body ?? {};
+    const required = ["title", "description", "imageUrl", "startDate", "location"];
+    for (const f of required) {
+      if (!body[f]) { res.status(400).json({ error: `${f} kötelező` }); return; }
+    }
+    const [event] = await db
+      .insert(eventsTable)
+      .values({
+        title: body.title,
+        description: body.description,
+        imageUrl: body.imageUrl || "https://placehold.co/800x450/e2e8f0/64748b?text=Program",
+        startDate: new Date(body.startDate),
+        endDate: body.endDate ? new Date(body.endDate) : null,
+        location: body.location,
+        locationAddress: body.locationAddress ?? null,
+        categoryId: body.categoryId ? Number(body.categoryId) : null,
+        ticketUrl: body.ticketUrl ?? null,
+        price: body.price ?? null,
+        tags: [],
+        featured: false,
+        monthHighlight: false,
+        status: "pending",
+        submitterName: body.submitterName ?? null,
+        submitterEmail: body.submitterEmail ?? null,
+      })
+      .returning();
+    res.status(201).json({ ok: true, id: event.id });
+  } catch (err) {
+    req.log.error({ err }, "Failed to submit event");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.get("/events/featured", async (req, res) => {
   try {
     const rows = await getEventsWithCategories(
-      [eq(eventsTable.featured, true)],
+      [eq(eventsTable.featured, true), eq(eventsTable.status, "published")],
       asc(eventsTable.startDate)
     );
     res.json({ events: rows.map((r) => formatEvent(r.event, r.category)) });
@@ -108,7 +143,7 @@ router.get("/events/this-week", async (req, res) => {
     const hunDayNames = ["V", "H", "K", "Sze", "Cs", "P", "Szo"];
 
     const rows = await getEventsWithCategories(
-      [gte(eventsTable.startDate, monday), lte(eventsTable.startDate, sunday)],
+      [gte(eventsTable.startDate, monday), lte(eventsTable.startDate, sunday), eq(eventsTable.status, "published")],
       asc(eventsTable.startDate)
     );
 
@@ -141,7 +176,7 @@ router.get("/events/upcoming", async (req, res) => {
     const limit = parsed.success ? (parsed.data.limit ?? 9) : 9;
 
     const rows = await getEventsWithCategories(
-      [gte(eventsTable.startDate, new Date())],
+      [gte(eventsTable.startDate, new Date()), eq(eventsTable.status, "published")],
       asc(eventsTable.startDate),
       limit
     );
