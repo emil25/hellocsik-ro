@@ -27,11 +27,12 @@ export function Navbar() {
                 <path d="M9 1.5C9 1.5 14.5 7.2 14.5 10.5C14.5 13.5 12 16 9 16C6 16 3.5 13.5 3.5 10.5C3.5 7.2 9 1.5 9 1.5Z" stroke="white" strokeOpacity="0.7" strokeWidth="1.2" fill="none"/>
               </svg>
             </div>
-            <div className="flex flex-col leading-none gap-0.5">
+            <div className="flex flex-col leading-none gap-[3px]">
               <div className="flex items-baseline gap-0">
-                <span className="font-extrabold text-[17px] tracking-tight" style={{ color: "hsl(148 45% 22%)" }}>csikki</span>
+                <span className="font-black text-[18px] tracking-tight" style={{ color: "hsl(148 45% 22%)" }}>csik</span>
+                <span className="font-black text-[18px] tracking-tight text-foreground">.city</span>
               </div>
-              <span className="text-[10px] text-muted-foreground font-medium tracking-wide">programajánló</span>
+              <span className="text-[9.5px] font-semibold tracking-[0.08em] uppercase" style={{ color: "hsl(148 45% 38%)" }}>csiki programajánló</span>
             </div>
           </Link>
 
