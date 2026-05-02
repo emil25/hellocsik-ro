@@ -95,17 +95,31 @@ function Hero() {
               { top: "5%", left: "45%", zIndex: 2 },
               { top: "35%", left: "28%", zIndex: 3 },
             ];
+            const floatAmplitude = [10, 14, 8];
+            const floatDuration = [4.2, 3.6, 5.1];
+            const floatDelay = [0, 1.2, 2.4];
             return (
               <motion.div
                 key={event.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.15, duration: 0.5 }}
+                initial={{ opacity: 0, y: 40 }}
+                animate={{
+                  opacity: 1,
+                  y: [0, -floatAmplitude[i], 0, floatAmplitude[i] * 0.6, 0],
+                }}
+                transition={{
+                  opacity: { duration: 0.5, delay: i * 0.2 },
+                  y: {
+                    duration: floatDuration[i],
+                    delay: floatDelay[i],
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
                 className="absolute rounded-2xl overflow-hidden shadow-2xl"
                 style={{
                   ...positions[i],
                   width: i === 2 ? "210px" : "180px",
-                  transform: `rotate(${rotations[i]}deg)`,
+                  rotate: rotations[i],
                 }}
               >
                 <img src={event.imageUrl} alt={event.title} className="w-full h-40 object-cover" />
@@ -113,7 +127,7 @@ function Hero() {
                   <div className="bg-white p-3">
                     <div className="flex items-center gap-1 mb-1">
                       <span className="text-[10px] font-bold text-primary">● Most ajánljuk</span>
-                      <span className="text-[10px] text-muted-foreground ml-1">Ingyenes</span>
+                      <span className="text-[10px] text-muted-foreground ml-1">{event.price ?? "Ingyenes"}</span>
                     </div>
                     <p className="text-xs font-bold text-foreground line-clamp-2">{event.title}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">{formatShortDate(event.startDate)} · {event.location}</p>
