@@ -587,6 +587,117 @@ function CinemaSection() {
   );
 }
 
+// ─── BOOK FAIR GUESTS ───────────────────────────────────────────────────────
+
+const BOOK_FAIR_GUESTS = [
+  {
+    name: "Ferenczes István",
+    role: "erdélyi magyar költő",
+    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Ferenczes_Istvan-scaled-e1681813619647.jpg",
+    url: "https://csikszeredaikonyvvasar.ro/ferenczes-istvan/",
+    gradient: "from-violet-500 to-purple-700",
+  },
+  {
+    name: "Zalán Tibor",
+    role: "költő, író, dramaturg",
+    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Zalan_Tibor-scaled-e1681813693770.jpg",
+    url: "https://csikszeredaikonyvvasar.ro/zalan-tibor/",
+    gradient: "from-blue-500 to-indigo-700",
+  },
+  {
+    name: "Lackfi János",
+    role: "költő, műfordító",
+    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Lackfi_Janos-scaled.jpg",
+    url: "https://csikszeredaikonyvvasar.ro/lackfi-janos/",
+    gradient: "from-emerald-500 to-teal-700",
+  },
+  {
+    name: "André Ferenc",
+    role: "erdélyi magyar prózaíró",
+    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Andre_Ferenc-scaled-e1681813769730.jpg",
+    url: "https://csikszeredaikonyvvasar.ro/andre-ferenc/",
+    gradient: "from-amber-500 to-orange-700",
+  },
+  {
+    name: "László Noémi",
+    role: "erdélyi magyar költő",
+    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Laszlo_Noemi-scaled-e1681813715348.jpg",
+    url: "https://csikszeredaikonyvvasar.ro/laszlo-noemi/",
+    gradient: "from-rose-500 to-pink-700",
+  },
+  {
+    name: "Tasi Katalin",
+    role: "irodalomtörténész, kritikus",
+    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Tasi_Kata-scaled.jpg",
+    url: "https://csikszeredaikonyvvasar.ro/tasi-katalin/",
+    gradient: "from-cyan-500 to-sky-700",
+  },
+];
+
+function BookFairGuests() {
+  return (
+    <section className="py-16" style={{ background: "linear-gradient(135deg, #1a1040 0%, #0d0620 100%)" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Csíkszeredai Könyvvásár</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">A könyvvásár sztárjai</h2>
+            <p className="text-white/50 text-sm mt-2">Meghívott szerzők, akikkel idén találkozhatsz</p>
+          </div>
+          <a
+            href="https://csikszeredaikonyvvasar.ro/meghivottak/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
+          >
+            Összes meghívott <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          {BOOK_FAIR_GUESTS.map((guest, i) => (
+            <motion.a
+              key={guest.name}
+              href={guest.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.07, duration: 0.4 }}
+              className="group flex flex-col items-center text-center"
+            >
+              <div className={`relative w-full aspect-square rounded-2xl overflow-hidden mb-3 bg-gradient-to-br ${guest.gradient} ring-2 ring-white/10 group-hover:ring-white/40 transition-all duration-300`}>
+                <img
+                  src={guest.img}
+                  alt={guest.name}
+                  className="w-full h-full object-cover object-top mix-blend-luminosity opacity-90 group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              </div>
+              <p className="font-bold text-sm text-white leading-tight">{guest.name}</p>
+              <p className="text-xs text-white/50 mt-0.5">{guest.role}</p>
+            </motion.a>
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-8 md:hidden">
+          <a
+            href="https://csikszeredaikonyvvasar.ro/meghivottak/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
+          >
+            Összes meghívott <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── FEATURED COUNTDOWN ─────────────────────────────────────────────────────
 
 function useCountdown(targetDate: string | null) {
@@ -819,6 +930,7 @@ export default function Home() {
       <WeeklyCalendar />
       <UpcomingEvents />
       <MonthHighlight />
+      <BookFairGuests />
       <FeaturedCountdown />
       <CinemaSection />
       <VenuesSection />
