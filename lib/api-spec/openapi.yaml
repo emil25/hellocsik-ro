@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Csíkszereda Programajánló API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: events
+    description: Event operations
+  - name: categories
+    description: Category operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,212 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List events
+      description: Returns paginated list of events with optional filters
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Event"
+                  total:
+                    type: integer
+                required:
+                  - events
+                  - total
+
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventBody"
+      responses:
+        "201":
+          description: Created event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/featured:
+    get:
+      operationId: listFeaturedEvents
+      tags: [events]
+      summary: Get featured/highlighted events for the hero section
+      responses:
+        "200":
+          description: Featured events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Event"
+                required:
+                  - events
+
+  /events/this-week:
+    get:
+      operationId: listThisWeekEvents
+      tags: [events]
+      summary: Get events for the current week calendar view
+      responses:
+        "200":
+          description: This week events grouped by date
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  days:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        dayName:
+                          type: string
+                        events:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Event"
+                      required:
+                        - date
+                        - dayName
+                        - events
+                required:
+                  - days
+
+  /events/upcoming:
+    get:
+      operationId: listUpcomingEvents
+      tags: [events]
+      summary: Get upcoming events
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 9
+      responses:
+        "200":
+          description: Upcoming events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Event"
+                required:
+                  - events
+
+  /events/month-highlight:
+    get:
+      operationId: getMonthHighlight
+      tags: [events]
+      summary: Get the highlighted event of the month
+      responses:
+        "200":
+          description: Month highlight event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Not found
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List event categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+                required:
+                  - categories
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +244,124 @@ components:
       required:
         - status
 
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        color:
+          type: string
+      required:
+        - id
+        - name
+        - slug
+        - color
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        location:
+          type: string
+        locationAddress:
+          type: string
+          nullable: true
+        categoryId:
+          type: integer
+          nullable: true
+        category:
+          $ref: "#/components/schemas/Category"
+          nullable: true
+        featured:
+          type: boolean
+        monthHighlight:
+          type: boolean
+        ticketUrl:
+          type: string
+          nullable: true
+        price:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - description
+        - imageUrl
+        - startDate
+        - location
+        - featured
+        - monthHighlight
+        - tags
+        - createdAt
+
+    CreateEventBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        location:
+          type: string
+        locationAddress:
+          type: string
+          nullable: true
+        categoryId:
+          type: integer
+          nullable: true
+        featured:
+          type: boolean
+          default: false
+        monthHighlight:
+          type: boolean
+          default: false
+        ticketUrl:
+          type: string
+          nullable: true
+        price:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+      required:
+        - title
+        - description
+        - imageUrl
+        - startDate
+        - location
