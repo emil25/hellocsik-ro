@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink, Plus, CheckCircle2, Building2 } from "lucide-react";
 import { Link } from "wouter";
@@ -16,121 +16,188 @@ import { formatDate, formatTime, formatShortDate } from "@/utils/date-format";
 
 // ─── HERO ───────────────────────────────────────────────────────────────────
 
+const STARS = Array.from({ length: 55 }, (_, i) => ({
+  id: i,
+  w: (((i * 7 + 3) % 20) / 10 + 0.8),
+  top: ((i * 37 + 11) % 100),
+  left: ((i * 53 + 17) % 100),
+  opacity: ((i * 19 + 5) % 50) / 100 + 0.08,
+  delay: ((i * 11) % 30) / 10,
+  dur: ((i * 7) % 25) / 10 + 2.5,
+}));
+
 function Hero() {
   const { data, isLoading } = useListFeaturedEvents();
   const events = data?.events ?? [];
 
   return (
     <section
-      className="relative overflow-hidden min-h-[540px] flex items-center"
+      className="relative overflow-hidden min-h-[580px] flex items-center"
       style={{
-        background: "radial-gradient(ellipse at 30% 50%, #2d1b5e 0%, #1a0a3e 40%, #0d0620 100%)",
+        background: "radial-gradient(ellipse at 25% 60%, #3b1f72 0%, #1e0d4a 35%, #090418 100%)",
       }}
     >
-      {/* Star dots */}
+      {/* Stable star field */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 40 }).map((_, i) => (
-          <div
-            key={i}
+        {STARS.map((s) => (
+          <motion.div
+            key={s.id}
             className="absolute rounded-full bg-white"
-            style={{
-              width: Math.random() * 2 + 1 + "px",
-              height: Math.random() * 2 + 1 + "px",
-              top: Math.random() * 100 + "%",
-              left: Math.random() * 100 + "%",
-              opacity: Math.random() * 0.5 + 0.1,
-            }}
+            style={{ width: s.w, height: s.w, top: `${s.top}%`, left: `${s.left}%` }}
+            animate={{ opacity: [s.opacity, s.opacity * 2.5, s.opacity] }}
+            transition={{ duration: s.dur, delay: s.delay, repeat: Infinity, ease: "easeInOut" }}
           />
         ))}
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-20 grid md:grid-cols-2 gap-10 items-center">
-        {/* Left: text */}
+      {/* Glow orbs */}
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(232,121,160,0.12) 0%, transparent 70%)" }} />
+      <div className="absolute top-1/3 right-1/3 w-64 h-64 rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(139,92,246,0.10) 0%, transparent 70%)" }} />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+        {/* Left: text with staggered entrance */}
         <div>
-          <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full border border-white/20 bg-white/10">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">Élő · Csíkszereda Események</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="inline-flex items-center gap-2 mb-6 px-3.5 py-1.5 rounded-full border border-white/15 bg-white/8"
+            style={{ backdropFilter: "blur(8px)" }}
+          >
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-sm shadow-green-400/50" />
+            <span className="text-xs font-semibold text-white/75 uppercase tracking-wider">Élő · Csíkszereda Események</span>
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.22 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-5"
+          >
             Mi újság{" "}
             <span
               className="block italic"
-              style={{ color: "#e879a0", fontFamily: "'Playfair Display', serif" }}
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                background: "linear-gradient(90deg, #f472b6 0%, #c084fc 60%, #e879a0 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
             >
               Csíkszereda?
             </span>
-          </h1>
-          <p className="text-white/65 text-base leading-relaxed mb-8 max-w-md">
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.36 }}
+            className="text-white/60 text-base leading-relaxed mb-9 max-w-md"
+          >
             Koncertek, fesztiválok, színház, kiállítások és közösségi programok –
             minden, amit a városban érdemes megnézni, egy helyen, friss információkkal.
-          </p>
-          <div className="flex flex-wrap gap-3">
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="flex flex-wrap gap-3"
+          >
             <a href="#kozelgo">
-              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-foreground font-semibold text-sm hover:bg-white/90 transition-colors">
+              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-foreground font-semibold text-sm hover:bg-white/92 transition-all shadow-lg shadow-white/10">
                 Böngészd a programokat
                 <ArrowRight className="w-4 h-4" />
               </button>
             </a>
             <a href="#hetvege">
-              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 border border-white/20 text-white font-semibold text-sm hover:bg-white/20 transition-colors">
+              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/25 text-white font-semibold text-sm hover:bg-white/12 transition-all"
+                style={{ backdropFilter: "blur(6px)", background: "rgba(255,255,255,0.07)" }}>
                 <Sparkles className="w-4 h-4" />
                 Ezen a hétvégén
               </button>
             </a>
             <a href="#picks">
-              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full text-foreground font-semibold text-sm hover:opacity-90 transition-opacity" style={{ backgroundColor: "#f5a623" }}>
+              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm text-white transition-all hover:opacity-90 shadow-lg"
+                style={{ background: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)", boxShadow: "0 4px 14px rgba(245,158,11,0.35)" }}>
                 <Calendar className="w-4 h-4" />
                 Közelgők
               </button>
             </a>
-          </div>
+          </motion.div>
         </div>
 
         {/* Right: floating event cards */}
-        <div className="relative hidden md:block h-80">
+        <div className="relative hidden md:block h-[360px]">
+          {/* Glow behind cards */}
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at 55% 50%, rgba(167,139,250,0.18) 0%, transparent 65%)" }} />
+
           {!isLoading && events.slice(0, 3).map((event, i) => {
-            const rotations = [-8, 4, -2];
+            const rotations = [-7, 5, -1];
             const positions = [
-              { top: "0%", left: "10%", zIndex: 1 },
-              { top: "5%", left: "45%", zIndex: 2 },
-              { top: "35%", left: "28%", zIndex: 3 },
+              { top: "2%",  left: "5%",  zIndex: 1 },
+              { top: "3%",  left: "44%", zIndex: 2 },
+              { top: "38%", left: "25%", zIndex: 3 },
             ];
-            const floatAmplitude = [10, 14, 8];
-            const floatDuration = [4.2, 3.6, 5.1];
-            const floatDelay = [0, 1.2, 2.4];
+            const sizes   = [190, 185, 220];
+            const imgH    = [160, 150, 165];
+            const floatAmp  = [9, 13, 7];
+            const floatDur  = [4.4, 3.7, 5.3];
+            const floatDel  = [0, 1.1, 2.5];
             return (
               <motion.div
                 key={event.id}
-                initial={{ opacity: 0, y: 40 }}
+                initial={{ opacity: 0, y: 50, scale: 0.92 }}
                 animate={{
                   opacity: 1,
-                  y: [0, -floatAmplitude[i], 0, floatAmplitude[i] * 0.6, 0],
+                  scale: 1,
+                  y: [0, -floatAmp[i], 0, floatAmp[i] * 0.55, 0],
                 }}
                 transition={{
-                  opacity: { duration: 0.5, delay: i * 0.2 },
-                  y: {
-                    duration: floatDuration[i],
-                    delay: floatDelay[i],
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
+                  opacity: { duration: 0.6, delay: i * 0.18 },
+                  scale:   { duration: 0.6, delay: i * 0.18 },
+                  y: { duration: floatDur[i], delay: floatDel[i], repeat: Infinity, ease: "easeInOut" },
                 }}
-                className="absolute rounded-2xl overflow-hidden shadow-2xl"
+                className="absolute rounded-2xl overflow-hidden"
                 style={{
                   ...positions[i],
-                  width: i === 2 ? "210px" : "180px",
+                  width: sizes[i],
                   rotate: rotations[i],
+                  boxShadow: i === 2
+                    ? "0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.1)"
+                    : "0 12px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.07)",
                 }}
               >
-                <img src={event.imageUrl} alt={event.title} className="w-full h-40 object-cover" />
+                <img
+                  src={event.imageUrl}
+                  alt={event.title}
+                  className="w-full object-cover"
+                  style={{ height: imgH[i] }}
+                />
                 {i === 2 && (
-                  <div className="bg-white p-3">
-                    <div className="flex items-center gap-1 mb-1">
-                      <span className="text-[10px] font-bold text-primary">● Most ajánljuk</span>
-                      <span className="text-[10px] text-muted-foreground ml-1">{event.price ?? "Ingyenes"}</span>
+                  <div className="bg-white p-3.5">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-wide">Most ajánljuk</span>
+                      {event.price && (
+                        <span className="ml-auto text-[10px] font-medium text-muted-foreground">{event.price}</span>
+                      )}
                     </div>
-                    <p className="text-xs font-bold text-foreground line-clamp-2">{event.title}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{formatShortDate(event.startDate)} · {event.location}</p>
+                    <p className="text-xs font-bold text-foreground line-clamp-2 mb-1 leading-snug">{event.title}</p>
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <MapPin className="w-2.5 h-2.5 shrink-0" />
+                      {event.location?.split("–")[0].trim()}
+                    </p>
+                  </div>
+                )}
+                {i !== 2 && (
+                  <div className="absolute bottom-0 inset-x-0 p-2.5"
+                    style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)" }}>
+                    <p className="text-[11px] font-semibold text-white line-clamp-2 leading-snug">{event.title}</p>
                   </div>
                 )}
               </motion.div>

@@ -16,19 +16,23 @@ export function Navbar() {
   const [location] = useLocation();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/96 backdrop-blur-lg border-b border-gray-100/80 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group shrink-0">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1L8.5 5.5H13L9.5 8.5L11 13L7 10L3 13L4.5 8.5L1 5.5H5.5L7 1Z" fill="white" fillOpacity="0.9"/>
+          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30 group-hover:shadow-primary/50 transition-shadow">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <circle cx="9" cy="9" r="3.5" fill="white" fillOpacity="0.95"/>
+                <path d="M9 1.5C9 1.5 14.5 7.2 14.5 10.5C14.5 13.5 12 16 9 16C6 16 3.5 13.5 3.5 10.5C3.5 7.2 9 1.5 9 1.5Z" stroke="white" strokeOpacity="0.7" strokeWidth="1.2" fill="none"/>
               </svg>
             </div>
-            <div className="flex flex-col leading-none">
-              <span className="font-bold text-sm text-foreground tracking-tight">csík.online</span>
-              <span className="text-[10px] text-muted-foreground font-medium">a város élete</span>
+            <div className="flex flex-col leading-none gap-0.5">
+              <div className="flex items-baseline gap-0">
+                <span className="font-extrabold text-[15px] tracking-tight" style={{ color: "hsl(148 45% 22%)" }}>csík</span>
+                <span className="font-bold text-[15px] text-foreground tracking-tight">.online</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium tracking-wide">a város élete</span>
             </div>
           </Link>
 
@@ -50,12 +54,12 @@ export function Navbar() {
           </nav>
 
           {/* Right actions */}
-          <div className="hidden md:flex items-center gap-2">
-            <button className="p-2 rounded-full text-muted-foreground hover:bg-muted transition-colors">
-              <Search className="w-4 h-4" />
+          <div className="hidden md:flex items-center gap-1.5">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+              <Search className="w-3.5 h-3.5" />
+              <span>Keresés...</span>
             </button>
-            <span className="text-sm text-muted-foreground">Keresés...</span>
-            <button className="ml-2 px-4 py-1.5 rounded-full bg-foreground text-white text-sm font-semibold hover:bg-foreground/90 transition-colors">
+            <button className="ml-1 px-4 py-2 rounded-full bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20">
               Csatlakozz
             </button>
           </div>
