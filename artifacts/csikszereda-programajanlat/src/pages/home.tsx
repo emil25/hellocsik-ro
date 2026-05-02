@@ -9,6 +9,7 @@ import {
   useGetMonthHighlight,
   useListCategories,
   useListEvents,
+  useGetEvent,
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatTime, formatShortDate } from "@/utils/date-format";
@@ -587,7 +588,7 @@ function CinemaSection() {
   );
 }
 
-// ─── BOOK FAIR GUESTS ───────────────────────────────────────────────────────
+// ─── BOOK FAIR SECTION (event + countdown + guests) ─────────────────────────
 
 const BOOK_FAIR_GUESTS = [
   {
@@ -634,72 +635,6 @@ const BOOK_FAIR_GUESTS = [
   },
 ];
 
-function BookFairGuests() {
-  return (
-    <section className="py-16" style={{ background: "linear-gradient(135deg, #1a1040 0%, #0d0620 100%)" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Csíkszeredai Könyvvásár</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white">A könyvvásár sztárjai</h2>
-            <p className="text-white/50 text-sm mt-2">Meghívott szerzők, akikkel idén találkozhatsz</p>
-          </div>
-          <a
-            href="https://csikszeredaikonyvvasar.ro/meghivottak/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden md:flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
-          >
-            Összes meghívott <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-          {BOOK_FAIR_GUESTS.map((guest, i) => (
-            <motion.a
-              key={guest.name}
-              href={guest.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07, duration: 0.4 }}
-              className="group flex flex-col items-center text-center"
-            >
-              <div className={`relative w-full aspect-square rounded-2xl overflow-hidden mb-3 bg-gradient-to-br ${guest.gradient} ring-2 ring-white/10 group-hover:ring-white/40 transition-all duration-300`}>
-                <img
-                  src={guest.img}
-                  alt={guest.name}
-                  className="w-full h-full object-cover object-top mix-blend-luminosity opacity-90 group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              </div>
-              <p className="font-bold text-sm text-white leading-tight">{guest.name}</p>
-              <p className="text-xs text-white/50 mt-0.5">{guest.role}</p>
-            </motion.a>
-          ))}
-        </div>
-
-        <div className="flex justify-center mt-8 md:hidden">
-          <a
-            href="https://csikszeredaikonyvvasar.ro/meghivottak/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
-          >
-            Összes meghívott <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── FEATURED COUNTDOWN ─────────────────────────────────────────────────────
-
 function useCountdown(targetDate: string | null) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   useEffect(() => {
@@ -721,91 +656,150 @@ function useCountdown(targetDate: string | null) {
   return timeLeft;
 }
 
-function FeaturedCountdown() {
-  const { data: event, isLoading } = useGetMonthHighlight();
+function BookFairSection() {
+  const { data: event, isLoading } = useGetEvent("2");
   const timeLeft = useCountdown(event?.startDate ?? null);
-
-  if (isLoading) return (
-    <section className="py-16 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Skeleton className="h-72 rounded-3xl" />
-      </div>
-    </section>
-  );
-  if (!event) return null;
-
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <section className="py-16 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden shadow-xl border border-card-border">
-          {/* Left: white card */}
-          <div className="bg-white p-8 md:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(135deg, #fffbf5 0%, #fff8ee 100%)" }}>
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-secondary/30 bg-secondary/10 mb-6">
-                <Ticket className="w-3.5 h-3.5 text-secondary" />
-                <span className="text-xs font-bold text-secondary uppercase tracking-wider">Kiemelt esemény</span>
+    <section style={{ background: "linear-gradient(180deg, #f0f6ff 0%, #dbeafe 40%, #1e3a6e 100%)" }}>
+      {/* ── Event card ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-0">
+        {isLoading ? (
+          <Skeleton className="h-72 rounded-3xl mb-0" />
+        ) : event ? (
+          <div className="grid md:grid-cols-2 gap-0 rounded-t-3xl overflow-hidden shadow-2xl">
+            {/* Left: details + countdown */}
+            <div className="p-8 md:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(135deg, #fffdf7 0%, #fff8ed 100%)" }}>
+              <div>
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5" style={{ background: "#fff3cd", border: "1px solid #f59e0b44" }}>
+                  <Sparkles className="w-3.5 h-3.5" style={{ color: "#d97706" }} />
+                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#d97706" }}>
+                    Kiemelt program · {new Date(event.startDate).getFullYear()}
+                  </span>
+                </div>
+                {/* Title in könyvvásár style */}
+                <div className="mb-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Csíkszeredai</p>
+                  <h2 className="text-4xl md:text-5xl font-black leading-none" style={{ color: "#d97706" }}>
+                    Könyvvásár
+                  </h2>
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed mb-5">{event.description}</p>
+                <div className="flex flex-wrap gap-4 text-xs text-slate-500 mb-6">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                    {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                    {event.location}
+                  </span>
+                  {event.price && (
+                    <span className="flex items-center gap-1.5">
+                      <Ticket className="w-3.5 h-3.5 text-blue-600" />
+                      {event.price}
+                    </span>
+                  )}
+                </div>
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-4">
-                <span className="text-foreground">{event.title.split("–")[0]}</span>
-                {event.title.includes("–") && (
-                  <span className="block text-secondary">{event.title.split("–")[1]}</span>
-                )}
-              </h2>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-5">{event.description}</p>
-              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mb-6">
-                <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-primary" />{formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}</span>
-                <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" />{event.location}</span>
-                {event.price && <span className="flex items-center gap-1.5"><Ticket className="w-3.5 h-3.5 text-primary" />{event.price}</span>}
-              </div>
-            </div>
-
-            {/* Countdown */}
-            <div>
-              <div className="grid grid-cols-4 gap-2 mb-6">
-                {[
-                  { value: pad(timeLeft.days), label: "NAP" },
-                  { value: pad(timeLeft.hours), label: "ÓRA" },
-                  { value: pad(timeLeft.minutes), label: "PERC" },
-                  { value: pad(timeLeft.seconds), label: "MP" },
-                ].map(({ value, label }) => (
-                  <div key={label} className="flex flex-col items-center justify-center bg-foreground text-white rounded-xl py-3">
-                    <span className="text-xl font-bold leading-none">{value}</span>
-                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">{label}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <Link href={`/esemeny/${event.id}`}>
-                  <button className="flex items-center gap-1.5 px-4 py-2.5 bg-secondary text-foreground font-bold text-sm rounded-xl hover:bg-secondary/90 transition-colors">
-                    Teljes program <ArrowRight className="w-4 h-4" />
-                  </button>
-                </Link>
-                {event.ticketUrl && (
-                  <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
-                    <button className="px-4 py-2.5 border border-border text-foreground font-semibold text-sm rounded-xl hover:bg-muted transition-colors">
+              {/* Countdown */}
+              <div>
+                <div className="grid grid-cols-4 gap-2 mb-5">
+                  {[
+                    { value: pad(timeLeft.days), label: "NAP" },
+                    { value: pad(timeLeft.hours), label: "ÓRA" },
+                    { value: pad(timeLeft.minutes), label: "PERC" },
+                    { value: pad(timeLeft.seconds), label: "MP" },
+                  ].map(({ value, label }) => (
+                    <div key={label} className="flex flex-col items-center justify-center rounded-xl py-3" style={{ background: "#1e3a6e" }}>
+                      <span className="text-xl font-bold leading-none text-white">{value}</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest mt-1" style={{ color: "#93c5fd" }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <Link href={`/esemeny/${event.id}`}>
+                    <button className="flex items-center gap-1.5 px-5 py-2.5 font-bold text-sm rounded-xl text-white transition-colors" style={{ background: "#d97706" }}>
+                      Teljes program <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </Link>
+                  <a href="https://csikszeredaikonyvvasar.ro" target="_blank" rel="noopener noreferrer">
+                    <button className="px-5 py-2.5 border border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition-colors">
                       Hivatalos oldal
                     </button>
                   </a>
-                )}
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Right: poster */}
-          <div className="relative min-h-[320px]">
-            <img src={event.imageUrl} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-            <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
+            {/* Right: poster */}
+            <div className="relative min-h-[320px]">
+              <img src={event.imageUrl} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(30,58,110,0.5) 0%, transparent 60%)" }} />
               {event.category && (
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
-                  {event.category.name}
-                </span>
+                <div className="absolute top-4 left-4">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
+                    {event.category.name}
+                  </span>
+                </div>
               )}
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/90 text-foreground">Közösségi</span>
             </div>
           </div>
+        ) : null}
+      </div>
+
+      {/* ── Guests ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span className="text-xs font-bold text-amber-300 uppercase tracking-widest">Meghívott vendégek</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">A könyvvásár sztárjai</h2>
+          </div>
+          <a
+            href="https://csikszeredaikonyvvasar.ro/meghivottak/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:flex items-center gap-1.5 text-sm text-blue-200 hover:text-white transition-colors"
+          >
+            Összes részlet <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          {BOOK_FAIR_GUESTS.map((guest, i) => (
+            <motion.a
+              key={guest.name}
+              href={guest.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.07, duration: 0.4 }}
+              className="group flex flex-col items-center text-center"
+            >
+              <div className={`relative w-full aspect-square rounded-2xl overflow-hidden mb-3 bg-gradient-to-br ${guest.gradient} ring-2 ring-white/10 group-hover:ring-white/40 transition-all duration-300`}>
+                <img
+                  src={guest.img}
+                  alt={guest.name}
+                  className="w-full h-full object-cover object-top mix-blend-luminosity opacity-85 group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              </div>
+              <p className="font-bold text-sm text-white leading-tight">{guest.name}</p>
+              <p className="text-xs mt-0.5" style={{ color: "#93c5fd" }}>{guest.role}</p>
+            </motion.a>
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-6 md:hidden">
+          <a href="https://csikszeredaikonyvvasar.ro/meghivottak/" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm text-blue-200 hover:text-white transition-colors">
+            Összes részlet <ExternalLink className="w-3.5 h-3.5" />
+          </a>
         </div>
       </div>
     </section>
@@ -930,8 +924,7 @@ export default function Home() {
       <WeeklyCalendar />
       <UpcomingEvents />
       <MonthHighlight />
-      <BookFairGuests />
-      <FeaturedCountdown />
+      <BookFairSection />
       <CinemaSection />
       <VenuesSection />
       <AddEventSection />
