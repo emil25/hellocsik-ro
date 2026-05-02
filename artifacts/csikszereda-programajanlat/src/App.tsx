@@ -20,26 +20,24 @@ const queryClient = new QueryClient({
 });
 
 function Router() {
-  const [location] = useLocation();
-  const isAdmin = location === "/admin";
-
-  if (isAdmin) {
-    return <AdminPage />;
-  }
-
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow pt-16">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/esemeny/:id" component={EventDetail} />
-          <Route path="/bekuldese" component={SubmitPage} />
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-      <Footer />
-    </div>
+    <Switch>
+      <Route path="/admin" component={AdminPage} />
+      <Route>
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-grow pt-16">
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/esemeny/:id" component={EventDetail} />
+              <Route path="/bekuldese" component={SubmitPage} />
+              <Route component={NotFound} />
+            </Switch>
+          </main>
+          <Footer />
+        </div>
+      </Route>
+    </Switch>
   );
 }
 
