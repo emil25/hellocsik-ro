@@ -29,10 +29,9 @@ export function Navbar() {
             </div>
             <div className="flex flex-col leading-none gap-0.5">
               <div className="flex items-baseline gap-0">
-                <span className="font-extrabold text-[15px] tracking-tight" style={{ color: "hsl(148 45% 22%)" }}>csikiprogramok</span>
-                <span className="font-bold text-[15px] text-foreground tracking-tight">.ro</span>
+                <span className="font-extrabold text-[17px] tracking-tight" style={{ color: "hsl(148 45% 22%)" }}>csikki</span>
               </div>
-              <span className="text-[10px] text-muted-foreground font-medium tracking-wide">Csík térsége programajánlója</span>
+              <span className="text-[10px] text-muted-foreground font-medium tracking-wide">programajánló</span>
             </div>
           </Link>
 
