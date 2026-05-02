@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink } from "lucide-react";
+import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink, Plus, CheckCircle2, Building2 } from "lucide-react";
 import { Link } from "wouter";
 import {
   useListFeaturedEvents,
@@ -587,6 +587,228 @@ function CinemaSection() {
   );
 }
 
+// ─── FEATURED COUNTDOWN ─────────────────────────────────────────────────────
+
+function useCountdown(targetDate: string | null) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  useEffect(() => {
+    if (!targetDate) return;
+    const tick = () => {
+      const diff = new Date(targetDate).getTime() - Date.now();
+      if (diff <= 0) { setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 }); return; }
+      setTimeLeft({
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff % 86400000) / 3600000),
+        minutes: Math.floor((diff % 3600000) / 60000),
+        seconds: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [targetDate]);
+  return timeLeft;
+}
+
+function FeaturedCountdown() {
+  const { data: event, isLoading } = useGetMonthHighlight();
+  const timeLeft = useCountdown(event?.startDate ?? null);
+
+  if (isLoading) return (
+    <section className="py-16 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Skeleton className="h-72 rounded-3xl" />
+      </div>
+    </section>
+  );
+  if (!event) return null;
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return (
+    <section className="py-16 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden shadow-xl border border-card-border">
+          {/* Left: white card */}
+          <div className="bg-white p-8 md:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(135deg, #fffbf5 0%, #fff8ee 100%)" }}>
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-secondary/30 bg-secondary/10 mb-6">
+                <Ticket className="w-3.5 h-3.5 text-secondary" />
+                <span className="text-xs font-bold text-secondary uppercase tracking-wider">Kiemelt esemény</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-4">
+                <span className="text-foreground">{event.title.split("–")[0]}</span>
+                {event.title.includes("–") && (
+                  <span className="block text-secondary">{event.title.split("–")[1]}</span>
+                )}
+              </h2>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-5">{event.description}</p>
+              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mb-6">
+                <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-primary" />{formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}</span>
+                <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" />{event.location}</span>
+                {event.price && <span className="flex items-center gap-1.5"><Ticket className="w-3.5 h-3.5 text-primary" />{event.price}</span>}
+              </div>
+            </div>
+
+            {/* Countdown */}
+            <div>
+              <div className="grid grid-cols-4 gap-2 mb-6">
+                {[
+                  { value: pad(timeLeft.days), label: "NAP" },
+                  { value: pad(timeLeft.hours), label: "ÓRA" },
+                  { value: pad(timeLeft.minutes), label: "PERC" },
+                  { value: pad(timeLeft.seconds), label: "MP" },
+                ].map(({ value, label }) => (
+                  <div key={label} className="flex flex-col items-center justify-center bg-foreground text-white rounded-xl py-3">
+                    <span className="text-xl font-bold leading-none">{value}</span>
+                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">{label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <Link href={`/esemeny/${event.id}`}>
+                  <button className="flex items-center gap-1.5 px-4 py-2.5 bg-secondary text-foreground font-bold text-sm rounded-xl hover:bg-secondary/90 transition-colors">
+                    Teljes program <ArrowRight className="w-4 h-4" />
+                  </button>
+                </Link>
+                {event.ticketUrl && (
+                  <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
+                    <button className="px-4 py-2.5 border border-border text-foreground font-semibold text-sm rounded-xl hover:bg-muted transition-colors">
+                      Hivatalos oldal
+                    </button>
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: poster */}
+          <div className="relative min-h-[320px]">
+            <img src={event.imageUrl} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
+              {event.category && (
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
+                  {event.category.name}
+                </span>
+              )}
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/90 text-foreground">Közösségi</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── VENUES MAP ─────────────────────────────────────────────────────────────
+
+const VENUES = [
+  { name: "Csíki Játékszín", color: "#e879f9", categories: "fesztivál, tánc, zene", events: ["Tánc Világnapja – Gálaest", "Kórustalálkozó"] },
+  { name: "Csíki Székely Múzeum", color: "#60a5fa", categories: "kiállítás, kultúra", events: ["Cobe Sights – Csodálatos Látványok", "Sík Múzeum Vasárnapokon"] },
+  { name: "Csíkszeredai Városközpont", color: "#4ade80", categories: "fesztivál, közösségi", events: ["Csíki Majális – A családok hétvégéje"] },
+  { name: "Vákár Lajos Sportpálya", color: "#fbbf24", categories: "sport", events: ["Nyújtón a Sólyom – Sportnapok"] },
+];
+
+function VenuesSection() {
+  return (
+    <section id="helyszinek" className="py-16 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <MapPin className="w-4 h-4 text-primary" />
+            <span className="text-xs font-bold text-primary uppercase tracking-widest">Helyszínek</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Hol történik?</h2>
+          <p className="text-muted-foreground text-sm">A város legfontosabb kulturális helyszínei egy pillantásra.</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 items-start">
+          {/* Map embed */}
+          <div className="rounded-2xl overflow-hidden border border-card-border shadow-sm" style={{ height: "420px" }}>
+            <iframe
+              title="Csíkszereda térkép"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=25.7800%2C46.3500%2C25.8300%2C46.3900&layer=mapnik&marker=46.3690%2C25.8020"
+              className="w-full h-full"
+              style={{ border: 0 }}
+              loading="lazy"
+            />
+          </div>
+
+          {/* Venue list */}
+          <div className="space-y-3">
+            {VENUES.map((venue, i) => (
+              <motion.div
+                key={venue.name}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.08, duration: 0.4 }}
+                className="bg-card border border-card-border rounded-2xl p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: venue.color + "22" }}>
+                    <Building2 className="w-4 h-4" style={{ color: venue.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                      <h3 className="font-bold text-sm text-foreground">{venue.name}</h3>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">{venue.events.length} program</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">{venue.categories}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {venue.events.map(ev => (
+                        <span key={ev} className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground line-clamp-1 max-w-[180px]">
+                          {ev}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── ADD EVENT ───────────────────────────────────────────────────────────────
+
+function AddEventSection() {
+  return (
+    <section id="hozzaadas" className="py-16 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-card border border-card-border rounded-3xl p-8 md:p-12 max-w-2xl mx-auto text-center">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
+            <Plus className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-3">Van saját programod?</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+            Töltsd fel saját programodat egy kattintással. A bejegyzés a böngészőben tárolódik, és azonnal megjelenik a naptárban, a hétvégi ajánlóban és a programlistában.
+          </p>
+          <ul className="space-y-2 mb-8 text-left max-w-sm mx-auto">
+            {[
+              "Lejárt események automatikusan eltűnnek a felületről.",
+              "Kategóriák és helyszín szerint szűrhető.",
+              "Részletek modálban nyílnak meg, mint a többi esemény.",
+            ].map(item => (
+              <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                {item}
+              </li>
+            ))}
+          </ul>
+          <button className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-white font-bold rounded-xl hover:bg-foreground/90 transition-colors">
+            <Plus className="w-4 h-4" />
+            Esemény hozzáadása
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── PAGE ────────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -597,7 +819,10 @@ export default function Home() {
       <WeeklyCalendar />
       <UpcomingEvents />
       <MonthHighlight />
+      <FeaturedCountdown />
       <CinemaSection />
+      <VenuesSection />
+      <AddEventSection />
     </div>
   );
 }
