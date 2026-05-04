@@ -60,6 +60,18 @@ router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
     if (typeof body.featured === "boolean") patch.featured = body.featured;
     if (typeof body.monthHighlight === "boolean") patch.monthHighlight = body.monthHighlight;
     if (["published", "pending", "rejected"].includes(body.status)) patch.status = body.status;
+    if (typeof body.title === "string" && body.title.trim()) patch.title = body.title.trim();
+    if (typeof body.description === "string") patch.description = body.description.trim();
+    if (typeof body.location === "string" && body.location.trim()) patch.location = body.location.trim();
+    if (typeof body.locationAddress === "string") patch.locationAddress = body.locationAddress.trim() || null;
+    if (typeof body.imageUrl === "string" && body.imageUrl.trim()) patch.imageUrl = body.imageUrl.trim();
+    if (typeof body.ticketUrl === "string") patch.ticketUrl = body.ticketUrl.trim() || null;
+    if (typeof body.price === "string") patch.price = body.price.trim() || null;
+    if (body.startDate) { const d = new Date(body.startDate); if (!isNaN(d.getTime())) patch.startDate = d; }
+    if (body.endDate) { const d = new Date(body.endDate); if (!isNaN(d.getTime())) patch.endDate = d; }
+    if (body.endDate === null) patch.endDate = null;
+    if (body.categoryId === null) patch.categoryId = null;
+    else if (typeof body.categoryId === "number") patch.categoryId = body.categoryId;
     if (Object.keys(patch).length === 0) { res.status(400).json({ error: "No valid fields" }); return; }
 
     const [updated] = await db

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  CheckCircle2, XCircle, Trash2, Star, Crown, Eye, EyeOff,
-  LogOut, RefreshCw, Clock, Users, CalendarCheck, AlertCircle, Settings, List
+  CheckCircle2, XCircle, Trash2, Star, Crown, EyeOff,
+  LogOut, RefreshCw, Clock, CalendarCheck, AlertCircle, Settings, Pencil, X
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -74,19 +74,206 @@ function LoginScreen({ onLogin }: { onLogin: (t: string) => void }) {
 }
 
 type EventRow = {
-  id: number; title: string; location: string; startDate: string; status: string;
-  featured: boolean; monthHighlight: boolean; submitterName?: string; submitterEmail?: string;
-  imageUrl: string; createdAt: string; category?: { name: string; color: string } | null;
+  id: number; title: string; description: string; location: string; locationAddress?: string;
+  startDate: string; endDate?: string; status: string; featured: boolean; monthHighlight: boolean;
+  submitterName?: string; submitterEmail?: string; imageUrl: string; ticketUrl?: string;
+  price?: string; createdAt: string; categoryId?: number;
+  category?: { id: number; name: string; color: string } | null;
 };
 
+type Category = { id: number; name: string; color: string; slug: string };
+
 type Tab = "pending" | "published" | "all";
+
+// ─── EDIT MODAL ──────────────────────────────────────────────────────────────
+
+function toDatetimeLocal(iso: string) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+type EditForm = {
+  title: string; description: string; location: string; locationAddress: string;
+  startDate: string; endDate: string; price: string; ticketUrl: string;
+  imageUrl: string; categoryId: string;
+};
+
+function EditModal({
+  ev, categories, token, onSaved, onClose
+}: {
+  ev: EventRow; categories: Category[]; token: string;
+  onSaved: () => void; onClose: () => void;
+}) {
+  const [form, setForm] = useState<EditForm>({
+    title: ev.title,
+    description: ev.description,
+    location: ev.location,
+    locationAddress: ev.locationAddress ?? "",
+    startDate: toDatetimeLocal(ev.startDate),
+    endDate: ev.endDate ? toDatetimeLocal(ev.endDate) : "",
+    price: ev.price ?? "",
+    ticketUrl: ev.ticketUrl ?? "",
+    imageUrl: ev.imageUrl,
+    categoryId: ev.categoryId ? String(ev.categoryId) : "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  function set(field: keyof EditForm, val: string) {
+    setForm(f => ({ ...f, [field]: val }));
+  }
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const body: Record<string, unknown> = {
+        title: form.title,
+        description: form.description,
+        location: form.location,
+        locationAddress: form.locationAddress || null,
+        imageUrl: form.imageUrl,
+        price: form.price || null,
+        ticketUrl: form.ticketUrl || null,
+        startDate: form.startDate,
+        endDate: form.endDate || null,
+        categoryId: form.categoryId ? Number(form.categoryId) : null,
+      };
+      const res = await fetch(`${API}/admin/events/${ev.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? "Hiba történt.");
+        return;
+      }
+      onSaved();
+    } catch {
+      setError("Hálózati hiba.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const inputCls = "w-full px-3 py-2 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-background";
+  const labelCls = "block text-xs font-semibold text-muted-foreground mb-1";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 16 }}
+        className="relative bg-card border border-card-border rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
+          <div>
+            <h2 className="text-base font-bold text-foreground">Esemény szerkesztése</h2>
+            <p className="text-xs text-muted-foreground line-clamp-1">{ev.title}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={save} className="px-6 py-5 space-y-4">
+          <div>
+            <label className={labelCls}>Cím *</label>
+            <input required value={form.title} onChange={e => set("title", e.target.value)} className={inputCls} />
+          </div>
+
+          <div>
+            <label className={labelCls}>Leírás</label>
+            <textarea rows={3} value={form.description} onChange={e => set("description", e.target.value)}
+              className={inputCls + " resize-none"} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Kezdés *</label>
+              <input required type="datetime-local" value={form.startDate} onChange={e => set("startDate", e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Befejezés</label>
+              <input type="datetime-local" value={form.endDate} onChange={e => set("endDate", e.target.value)} className={inputCls} />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Helyszín *</label>
+            <input required value={form.location} onChange={e => set("location", e.target.value)} className={inputCls} />
+          </div>
+
+          <div>
+            <label className={labelCls}>Cím / pontos helyszín</label>
+            <input value={form.locationAddress} onChange={e => set("locationAddress", e.target.value)} className={inputCls} placeholder="pl. Főtér 1." />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Ár</label>
+              <input value={form.price} onChange={e => set("price", e.target.value)} className={inputCls} placeholder="pl. 500 RON / Ingyenes" />
+            </div>
+            <div>
+              <label className={labelCls}>Kategória</label>
+              <select value={form.categoryId} onChange={e => set("categoryId", e.target.value)} className={inputCls}>
+                <option value="">— nincs —</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Kép URL</label>
+            <input value={form.imageUrl} onChange={e => set("imageUrl", e.target.value)} className={inputCls} />
+            {form.imageUrl && (
+              <img src={form.imageUrl} alt="előnézet" className="mt-2 h-28 w-full object-cover rounded-xl border border-border" />
+            )}
+          </div>
+
+          <div>
+            <label className={labelCls}>Jegy / részletek URL</label>
+            <input type="url" value={form.ticketUrl} onChange={e => set("ticketUrl", e.target.value)} className={inputCls} placeholder="https://..." />
+          </div>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
+              Mégsem
+            </button>
+            <button type="submit" disabled={saving}
+              className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-60">
+              {saving ? "Mentés..." : "Mentés"}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── MAIN PAGE ───────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
   const { token, login, logout } = useAdminToken();
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<Tab>("pending");
   const [actionId, setActionId] = useState<number | null>(null);
+  const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
 
   const fetchEvents = useCallback(async (status: Tab) => {
     if (!token) return;
@@ -105,6 +292,13 @@ export default function AdminPage() {
   }, [token]);
 
   useEffect(() => { fetchEvents(tab); }, [tab, fetchEvents]);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API}/categories`)
+      .then(r => r.json())
+      .then(d => setCategories(d.categories ?? []));
+  }, [token]);
 
   async function patch(id: number, body: object) {
     setActionId(id);
@@ -141,6 +335,19 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-muted/20">
+      {/* Edit modal */}
+      <AnimatePresence>
+        {editingEvent && (
+          <EditModal
+            ev={editingEvent}
+            categories={categories}
+            token={token!}
+            onSaved={() => { setEditingEvent(null); fetchEvents(tab); }}
+            onClose={() => setEditingEvent(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Top bar */}
       <div className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -261,13 +468,17 @@ export default function AdminPage() {
                         <EyeOff className="w-3 h-3" /> Elrejt
                       </button>
                     )}
+                    <button onClick={() => setEditingEvent(ev)}
+                      className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
+                      <Pencil className="w-3 h-3" /> Szerkeszt
+                    </button>
                     <button onClick={() => patch(ev.id, { featured: !ev.featured })} disabled={actionId === ev.id}
                       className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors ${ev.featured ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
                       <Star className="w-3 h-3" /> {ev.featured ? "Kiemelt" : "Kiemel"}
                     </button>
                     <button onClick={() => patch(ev.id, { monthHighlight: !ev.monthHighlight })} disabled={actionId === ev.id}
                       className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors ${ev.monthHighlight ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
-                      <Crown className="w-3 h-3" /> {ev.monthHighlight ? "Hó ajánlata" : "Hó ajánlata"}
+                      <Crown className="w-3 h-3" /> Hó ajánlata
                     </button>
                     <button onClick={() => del(ev.id)} disabled={actionId === ev.id}
                       className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
