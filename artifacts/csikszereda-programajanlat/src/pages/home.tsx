@@ -32,7 +32,7 @@ function Hero() {
 
   return (
     <section
-      className="relative overflow-hidden min-h-[580px] flex items-center"
+      className="relative overflow-x-hidden min-h-[700px] flex items-center"
     >
       {/* Background photo */}
       <div
