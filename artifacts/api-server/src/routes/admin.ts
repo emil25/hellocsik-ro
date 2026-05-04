@@ -50,6 +50,41 @@ router.get("/admin/events", requireAdmin, async (req, res) => {
   }
 });
 
+router.post("/admin/events", requireAdmin, async (req, res) => {
+  try {
+    const body = req.body ?? {};
+    if (!body.title?.trim()) { res.status(400).json({ error: "A cím kötelező" }); return; }
+    if (!body.startDate) { res.status(400).json({ error: "A kezdési dátum kötelező" }); return; }
+    if (!body.location?.trim()) { res.status(400).json({ error: "A helyszín kötelező" }); return; }
+
+    const startDate = new Date(body.startDate);
+    if (isNaN(startDate.getTime())) { res.status(400).json({ error: "Érvénytelen dátum" }); return; }
+
+    const endDate = body.endDate ? new Date(body.endDate) : null;
+
+    const [created] = await db.insert(eventsTable).values({
+      title: body.title.trim(),
+      description: (body.description ?? "").trim(),
+      location: body.location.trim(),
+      locationAddress: body.locationAddress?.trim() || null,
+      imageUrl: body.imageUrl?.trim() || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800",
+      startDate,
+      endDate,
+      price: body.price?.trim() || null,
+      ticketUrl: body.ticketUrl?.trim() || null,
+      categoryId: body.categoryId ? Number(body.categoryId) : null,
+      status: "published",
+      featured: body.featured === true,
+      monthHighlight: body.monthHighlight === true,
+    }).returning();
+
+    res.status(201).json({ ...created, startDate: created.startDate.toISOString(), createdAt: created.createdAt.toISOString() });
+  } catch (err) {
+    req.log.error({ err }, "Admin: failed to create event");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);

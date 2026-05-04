@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  CheckCircle2, XCircle, Trash2, Star, Crown, EyeOff,
-  LogOut, RefreshCw, Clock, CalendarCheck, AlertCircle, Settings, Pencil, X
+  CheckCircle2, XCircle, Trash2, Crown, EyeOff,
+  LogOut, RefreshCw, Clock, CalendarCheck, AlertCircle, Settings, Pencil, X,
+  Plus, LayoutDashboard, Star
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -85,7 +86,7 @@ type Category = { id: number; name: string; color: string; slug: string };
 
 type Tab = "pending" | "published" | "all";
 
-// ─── EDIT MODAL ──────────────────────────────────────────────────────────────
+// ─── SHARED FORM FIELDS ───────────────────────────────────────────────────────
 
 function toDatetimeLocal(iso: string) {
   if (!iso) return "";
@@ -94,11 +95,207 @@ function toDatetimeLocal(iso: string) {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-type EditForm = {
+type EventForm = {
   title: string; description: string; location: string; locationAddress: string;
   startDate: string; endDate: string; price: string; ticketUrl: string;
-  imageUrl: string; categoryId: string;
+  imageUrl: string; categoryId: string; featured: boolean; monthHighlight: boolean;
 };
+
+const emptyForm = (): EventForm => ({
+  title: "", description: "", location: "", locationAddress: "",
+  startDate: "", endDate: "", price: "", ticketUrl: "",
+  imageUrl: "", categoryId: "", featured: false, monthHighlight: false,
+});
+
+const inputCls = "w-full px-3 py-2 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-background";
+const labelCls = "block text-xs font-semibold text-muted-foreground mb-1";
+
+function EventFormFields({
+  form, set
+}: {
+  form: EventForm;
+  set: (field: keyof EventForm, val: string | boolean) => void;
+}) {
+  return (
+    <>
+      <div>
+        <label className={labelCls}>Cím *</label>
+        <input required value={form.title} onChange={e => set("title", e.target.value)} className={inputCls} placeholder="Esemény neve" />
+      </div>
+
+      <div>
+        <label className={labelCls}>Leírás</label>
+        <textarea rows={3} value={form.description} onChange={e => set("description", e.target.value)}
+          className={inputCls + " resize-none"} placeholder="Rövid leírás..." />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Kezdés *</label>
+          <input required type="datetime-local" value={form.startDate} onChange={e => set("startDate", e.target.value)} className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Befejezés</label>
+          <input type="datetime-local" value={form.endDate} onChange={e => set("endDate", e.target.value)} className={inputCls} />
+        </div>
+      </div>
+
+      <div>
+        <label className={labelCls}>Helyszín *</label>
+        <input required value={form.location} onChange={e => set("location", e.target.value)} className={inputCls} placeholder="pl. Mikó-vár" />
+      </div>
+
+      <div>
+        <label className={labelCls}>Pontos cím</label>
+        <input value={form.locationAddress} onChange={e => set("locationAddress", e.target.value)} className={inputCls} placeholder="pl. Főtér 1." />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Ár</label>
+          <input value={form.price} onChange={e => set("price", e.target.value)} className={inputCls} placeholder="pl. 500 RON / Ingyenes" />
+        </div>
+        <div>
+          <label className={labelCls}>Kategória</label>
+          <select value={form.categoryId} onChange={e => set("categoryId", e.target.value)} className={inputCls}>
+            <option value="">— nincs —</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className={labelCls}>Kép URL</label>
+        <input value={form.imageUrl} onChange={e => set("imageUrl", e.target.value)} className={inputCls} placeholder="https://..." />
+        {form.imageUrl && (
+          <img src={form.imageUrl} alt="előnézet" className="mt-2 h-28 w-full object-cover rounded-xl border border-border" />
+        )}
+      </div>
+
+      <div>
+        <label className={labelCls}>Jegy / részletek URL</label>
+        <input type="url" value={form.ticketUrl} onChange={e => set("ticketUrl", e.target.value)} className={inputCls} placeholder="https://..." />
+      </div>
+
+      <div className="flex gap-3">
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <div
+            onClick={() => set("featured", !form.featured)}
+            className={`w-10 h-5 rounded-full relative transition-colors ${form.featured ? "bg-amber-500" : "bg-border"}`}
+          >
+            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.featured ? "translate-x-5" : "translate-x-0.5"}`} />
+          </div>
+          <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <LayoutDashboard className="w-3 h-3" /> Megjelenik a Heróban
+          </span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <div
+            onClick={() => set("monthHighlight", !form.monthHighlight)}
+            className={`w-10 h-5 rounded-full relative transition-colors ${form.monthHighlight ? "bg-green-600" : "bg-border"}`}
+          >
+            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.monthHighlight ? "translate-x-5" : "translate-x-0.5"}`} />
+          </div>
+          <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            <Crown className="w-3 h-3" /> Hó ajánlata
+          </span>
+        </label>
+      </div>
+    </>
+  );
+}
+
+// ─── CREATE MODAL ──────────────────────────────────────────────────────────────
+
+function CreateModal({
+  categories, token, onSaved, onClose
+}: {
+  categories: Category[]; token: string;
+  onSaved: () => void; onClose: () => void;
+}) {
+  const [form, setForm] = useState<EventForm>(emptyForm());
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  function set(field: keyof EventForm, val: string | boolean) {
+    setForm(f => ({ ...f, [field]: val }));
+  }
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const body: Record<string, unknown> = {
+        title: form.title,
+        description: form.description,
+        location: form.location,
+        locationAddress: form.locationAddress || null,
+        imageUrl: form.imageUrl || null,
+        price: form.price || null,
+        ticketUrl: form.ticketUrl || null,
+        startDate: form.startDate,
+        endDate: form.endDate || null,
+        categoryId: form.categoryId ? Number(form.categoryId) : null,
+        featured: form.featured,
+        monthHighlight: form.monthHighlight,
+      };
+      const res = await fetch(`${API}/admin/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? "Hiba történt.");
+        return;
+      }
+      onSaved();
+    } catch {
+      setError("Hálózati hiba.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 16 }}
+        className="relative bg-card border border-card-border rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
+          <div>
+            <h2 className="text-base font-bold text-foreground">Új esemény létrehozása</h2>
+            <p className="text-xs text-muted-foreground">Az esemény azonnal közzéttételre kerül</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <form onSubmit={save} className="px-6 py-5 space-y-4">
+          <CategorySelect form={form} set={set} categories={categories} />
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
+              Mégsem
+            </button>
+            <button type="submit" disabled={saving}
+              className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-60">
+              {saving ? "Létrehozás..." : "Létrehozás"}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── EDIT MODAL ──────────────────────────────────────────────────────────────
 
 function EditModal({
   ev, categories, token, onSaved, onClose
@@ -106,7 +303,7 @@ function EditModal({
   ev: EventRow; categories: Category[]; token: string;
   onSaved: () => void; onClose: () => void;
 }) {
-  const [form, setForm] = useState<EditForm>({
+  const [form, setForm] = useState<EventForm>({
     title: ev.title,
     description: ev.description,
     location: ev.location,
@@ -117,11 +314,13 @@ function EditModal({
     ticketUrl: ev.ticketUrl ?? "",
     imageUrl: ev.imageUrl,
     categoryId: ev.categoryId ? String(ev.categoryId) : "",
+    featured: ev.featured,
+    monthHighlight: ev.monthHighlight,
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  function set(field: keyof EditForm, val: string) {
+  function set(field: keyof EventForm, val: string | boolean) {
     setForm(f => ({ ...f, [field]: val }));
   }
 
@@ -141,6 +340,8 @@ function EditModal({
         startDate: form.startDate,
         endDate: form.endDate || null,
         categoryId: form.categoryId ? Number(form.categoryId) : null,
+        featured: form.featured,
+        monthHighlight: form.monthHighlight,
       };
       const res = await fetch(`${API}/admin/events/${ev.id}`, {
         method: "PATCH",
@@ -160,9 +361,6 @@ function EditModal({
     }
   }
 
-  const inputCls = "w-full px-3 py-2 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-background";
-  const labelCls = "block text-xs font-semibold text-muted-foreground mb-1";
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
@@ -172,7 +370,6 @@ function EditModal({
         exit={{ opacity: 0, scale: 0.95, y: 16 }}
         className="relative bg-card border border-card-border rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
           <div>
             <h2 className="text-base font-bold text-foreground">Esemény szerkesztése</h2>
@@ -183,71 +380,9 @@ function EditModal({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={save} className="px-6 py-5 space-y-4">
-          <div>
-            <label className={labelCls}>Cím *</label>
-            <input required value={form.title} onChange={e => set("title", e.target.value)} className={inputCls} />
-          </div>
-
-          <div>
-            <label className={labelCls}>Leírás</label>
-            <textarea rows={3} value={form.description} onChange={e => set("description", e.target.value)}
-              className={inputCls + " resize-none"} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Kezdés *</label>
-              <input required type="datetime-local" value={form.startDate} onChange={e => set("startDate", e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Befejezés</label>
-              <input type="datetime-local" value={form.endDate} onChange={e => set("endDate", e.target.value)} className={inputCls} />
-            </div>
-          </div>
-
-          <div>
-            <label className={labelCls}>Helyszín *</label>
-            <input required value={form.location} onChange={e => set("location", e.target.value)} className={inputCls} />
-          </div>
-
-          <div>
-            <label className={labelCls}>Cím / pontos helyszín</label>
-            <input value={form.locationAddress} onChange={e => set("locationAddress", e.target.value)} className={inputCls} placeholder="pl. Főtér 1." />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Ár</label>
-              <input value={form.price} onChange={e => set("price", e.target.value)} className={inputCls} placeholder="pl. 500 RON / Ingyenes" />
-            </div>
-            <div>
-              <label className={labelCls}>Kategória</label>
-              <select value={form.categoryId} onChange={e => set("categoryId", e.target.value)} className={inputCls}>
-                <option value="">— nincs —</option>
-                {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className={labelCls}>Kép URL</label>
-            <input value={form.imageUrl} onChange={e => set("imageUrl", e.target.value)} className={inputCls} />
-            {form.imageUrl && (
-              <img src={form.imageUrl} alt="előnézet" className="mt-2 h-28 w-full object-cover rounded-xl border border-border" />
-            )}
-          </div>
-
-          <div>
-            <label className={labelCls}>Jegy / részletek URL</label>
-            <input type="url" value={form.ticketUrl} onChange={e => set("ticketUrl", e.target.value)} className={inputCls} placeholder="https://..." />
-          </div>
-
+          <CategorySelect form={form} set={set} categories={categories} />
           {error && <p className="text-sm text-red-600">{error}</p>}
-
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
               className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
@@ -264,6 +399,114 @@ function EditModal({
   );
 }
 
+// Separate component to inject categories into the select
+function CategorySelect({
+  form, set, categories
+}: {
+  form: EventForm;
+  set: (field: keyof EventForm, val: string | boolean) => void;
+  categories: Category[];
+}) {
+  return (
+    <>
+      <div>
+        <label className={labelCls}>Cím *</label>
+        <input required value={form.title} onChange={e => set("title", e.target.value)} className={inputCls} placeholder="Esemény neve" />
+      </div>
+
+      <div>
+        <label className={labelCls}>Leírás</label>
+        <textarea rows={3} value={form.description} onChange={e => set("description", e.target.value)}
+          className={inputCls + " resize-none"} placeholder="Rövid leírás..." />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Kezdés *</label>
+          <input required type="datetime-local" value={form.startDate} onChange={e => set("startDate", e.target.value)} className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Befejezés</label>
+          <input type="datetime-local" value={form.endDate} onChange={e => set("endDate", e.target.value)} className={inputCls} />
+        </div>
+      </div>
+
+      <div>
+        <label className={labelCls}>Helyszín *</label>
+        <input required value={form.location} onChange={e => set("location", e.target.value)} className={inputCls} placeholder="pl. Mikó-vár" />
+      </div>
+
+      <div>
+        <label className={labelCls}>Pontos cím</label>
+        <input value={form.locationAddress} onChange={e => set("locationAddress", e.target.value)} className={inputCls} placeholder="pl. Főtér 1." />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Ár</label>
+          <input value={form.price} onChange={e => set("price", e.target.value)} className={inputCls} placeholder="pl. 500 RON / Ingyenes" />
+        </div>
+        <div>
+          <label className={labelCls}>Kategória</label>
+          <select value={form.categoryId} onChange={e => set("categoryId", e.target.value)} className={inputCls}>
+            <option value="">— nincs —</option>
+            {categories.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className={labelCls}>Kép URL</label>
+        <input value={form.imageUrl} onChange={e => set("imageUrl", e.target.value)} className={inputCls} placeholder="https://..." />
+        {form.imageUrl && (
+          <img src={form.imageUrl} alt="előnézet" className="mt-2 h-28 w-full object-cover rounded-xl border border-border" />
+        )}
+      </div>
+
+      <div>
+        <label className={labelCls}>Jegy / részletek URL</label>
+        <input type="url" value={form.ticketUrl} onChange={e => set("ticketUrl", e.target.value)} className={inputCls} placeholder="https://..." />
+      </div>
+
+      <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Megjelenési beállítások</p>
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <div
+            onClick={() => set("featured", !form.featured)}
+            className={`w-10 h-5 rounded-full relative transition-colors flex-shrink-0 ${form.featured ? "bg-amber-500" : "bg-border"}`}
+          >
+            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.featured ? "translate-x-5" : "translate-x-0.5"}`} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <LayoutDashboard className="w-3.5 h-3.5 text-amber-500" />
+              Megjelenik a Hero szekcióban
+            </p>
+            <p className="text-xs text-muted-foreground">A főoldal tetején nagy kártyaként jelenik meg</p>
+          </div>
+        </label>
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <div
+            onClick={() => set("monthHighlight", !form.monthHighlight)}
+            className={`w-10 h-5 rounded-full relative transition-colors flex-shrink-0 ${form.monthHighlight ? "bg-green-600" : "bg-border"}`}
+          >
+            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.monthHighlight ? "translate-x-5" : "translate-x-0.5"}`} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <Crown className="w-3.5 h-3.5 text-green-600" />
+              Hónap ajánlata
+            </p>
+            <p className="text-xs text-muted-foreground">Kiemelt megjelenés a havi ajánló szekcióban</p>
+          </div>
+        </label>
+      </div>
+    </>
+  );
+}
+
 // ─── MAIN PAGE ───────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -274,6 +517,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("pending");
   const [actionId, setActionId] = useState<number | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const fetchEvents = useCallback(async (status: Tab) => {
     if (!token) return;
@@ -335,6 +579,18 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-muted/20">
+      {/* Create modal */}
+      <AnimatePresence>
+        {creating && (
+          <CreateModal
+            categories={categories}
+            token={token!}
+            onSaved={() => { setCreating(false); setTab("published"); fetchEvents("published"); }}
+            onClose={() => setCreating(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Edit modal */}
       <AnimatePresence>
         {editingEvent && (
@@ -360,6 +616,12 @@ export default function AdminPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" /> Új esemény
+          </button>
           <Link href="/">
             <button className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">Főoldal</button>
           </Link>
@@ -378,7 +640,7 @@ export default function AdminPage() {
           {[
             { icon: Clock, label: "Várakozó", value: events.filter(e=>e.status==="pending").length, color: "text-amber-600", bg: "bg-amber-50" },
             { icon: CalendarCheck, label: "Közzétett", value: events.filter(e=>e.status==="published").length, color: "text-green-700", bg: "bg-green-50" },
-            { icon: Star, label: "Kiemelt", value: events.filter(e=>e.featured && e.status==="published").length, color: "text-purple-600", bg: "bg-purple-50" },
+            { icon: LayoutDashboard, label: "Hero-ban", value: events.filter(e=>e.featured && e.status==="published").length, color: "text-amber-600", bg: "bg-amber-50" },
           ].map(({ icon: Icon, label, value, color, bg }) => (
             <div key={label} className="bg-card border border-card-border rounded-2xl p-5 flex items-center gap-4">
               <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center`}>
@@ -432,7 +694,9 @@ export default function AdminPage() {
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">Várakozó</span>
                       )}
                       {ev.featured && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">Kiemelt</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex items-center gap-0.5">
+                          <LayoutDashboard className="w-2.5 h-2.5" /> Hero
+                        </span>
                       )}
                       {ev.monthHighlight && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Hó ajánlata</span>
@@ -473,8 +737,8 @@ export default function AdminPage() {
                       <Pencil className="w-3 h-3" /> Szerkeszt
                     </button>
                     <button onClick={() => patch(ev.id, { featured: !ev.featured })} disabled={actionId === ev.id}
-                      className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors ${ev.featured ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
-                      <Star className="w-3 h-3" /> {ev.featured ? "Kiemelt" : "Kiemel"}
+                      className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors ${ev.featured ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
+                      <LayoutDashboard className="w-3 h-3" /> {ev.featured ? "Hero ✓" : "Hero-ba"}
                     </button>
                     <button onClick={() => patch(ev.id, { monthHighlight: !ev.monthHighlight })} disabled={actionId === ev.id}
                       className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors ${ev.monthHighlight ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
