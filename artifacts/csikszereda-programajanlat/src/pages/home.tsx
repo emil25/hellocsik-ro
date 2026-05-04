@@ -83,7 +83,7 @@ function Hero() {
               className="block italic"
               style={{
                 fontFamily: "'Playfair Display', serif",
-                background: "linear-gradient(90deg, #f472b6 0%, #c084fc 60%, #e879a0 100%)",
+                background: "linear-gradient(90deg, #fbbf24 0%, #f59e0b 45%, #fcd34d 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -199,43 +199,44 @@ function Hero() {
             </motion.div>
           )}
 
-          {/* Mini upcoming strip – next 3 events */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.65 }}
-            className="rounded-2xl overflow-hidden divide-y"
-            style={{
-              background: "rgba(255,255,255,0.07)",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              divideColor: "rgba(255,255,255,0.08)",
-            }}
-          >
-            {!isLoading && events.slice(1, 4).map((ev, i) => (
-              <motion.div
-                key={ev.id}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.35, delay: 0.75 + i * 0.1 }}
-                className="flex items-center gap-3 px-3.5 py-2.5"
-              >
-                <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0">
-                  <img src={ev.imageUrl} alt={ev.title} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white leading-snug line-clamp-1">{ev.title}</p>
-                  <p className="text-[10px] text-white/50 mt-0.5">{formatShortDate(ev.startDate)}</p>
-                </div>
-                {ev.category && (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white shrink-0"
-                    style={{ backgroundColor: (ev.category.color ?? "#166534") + "99" }}>
-                    {ev.category.name}
-                  </span>
-                )}
-              </motion.div>
-            ))}
-          </motion.div>
+          {/* 2 mini event cards side by side */}
+          {!isLoading && events.slice(1, 3).length > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              {events.slice(1, 3).map((ev, i) => (
+                <motion.div
+                  key={ev.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.6 + i * 0.12 }}
+                  className="rounded-xl overflow-hidden"
+                  style={{
+                    background: "rgba(255,255,255,0.09)",
+                    backdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255,255,255,0.14)",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  <div className="relative h-24 overflow-hidden">
+                    <img src={ev.imageUrl} alt={ev.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0"
+                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%)" }} />
+                    {ev.category && (
+                      <span className="absolute top-2 left-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
+                        style={{ backgroundColor: (ev.category.color ?? "#166534") + "cc" }}>
+                        {ev.category.name}
+                      </span>
+                    )}
+                  </div>
+                  <div className="px-2.5 py-2">
+                    <p className="text-xs font-bold text-white leading-snug line-clamp-2 mb-1">{ev.title}</p>
+                    <p className="text-[10px] text-white/55 flex items-center gap-1">
+                      <Calendar className="w-2.5 h-2.5" />{formatShortDate(ev.startDate)}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
