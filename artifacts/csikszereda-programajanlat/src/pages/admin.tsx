@@ -399,6 +399,45 @@ function EditModal({
   );
 }
 
+// ─── KNOWN VENUES LOOKUP ──────────────────────────────────────────────────────
+
+const KNOWN_VENUES: Record<string, string> = {
+  "csíki játékszín": "Piața Libertății 16, Csíkszereda",
+  "játékszín": "Piața Libertății 16, Csíkszereda",
+  "csiki jatekszin": "Piața Libertății 16, Csíkszereda",
+  "csíki mozi": "Piața Majláth 1., Csíkszereda",
+  "csiki mozi": "Piața Majláth 1., Csíkszereda",
+  "mozi": "Piața Majláth 1., Csíkszereda",
+  "mikó-vár": "Str. Cetății 2, Csíkszereda",
+  "mikó vár": "Str. Cetății 2, Csíkszereda",
+  "miko-var": "Str. Cetății 2, Csíkszereda",
+  "park hotel": "Str. Olt 2, Csíkszereda",
+  "hotel park": "Str. Olt 2, Csíkszereda",
+  "hámor park": "Hámor Park, Csíkszereda",
+  "hamor park": "Hámor Park, Csíkszereda",
+  "sapientia emte": "Piața Libertății 1, Csíkszereda",
+  "sapientia": "Piața Libertății 1, Csíkszereda",
+  "szabadság tér": "Piața Libertății, Csíkszereda",
+  "szabadsag ter": "Piața Libertății, Csíkszereda",
+  "főtér": "Piața Cetății, Csíkszereda",
+  "foter": "Piața Cetății, Csíkszereda",
+  "csíksomlyó": "Șumuleu Ciuc, Csíksomlyó",
+  "csíksomlyói kegyhely": "Șumuleu Ciuc, Csíksomlyó",
+  "csíki sörgyár": "Str. Harghita 2, Csíkszereda",
+  "csiki sorgyar": "Str. Harghita 2, Csíkszereda",
+  "városi sportcsarnok": "Str. Stadionului, Csíkszereda",
+  "sportcsarnok": "Str. Stadionului, Csíkszereda",
+  "kemenes kultúrpark": "Kemenes Kultúrpark, Csíkszereda",
+};
+
+function lookupVenueAddress(location: string): string | null {
+  const key = location.toLowerCase().trim();
+  for (const [k, v] of Object.entries(KNOWN_VENUES)) {
+    if (key === k || key.includes(k)) return v;
+  }
+  return null;
+}
+
 // Separate component to inject categories into the select
 function CategorySelect({
   form, set, categories
@@ -407,6 +446,20 @@ function CategorySelect({
   set: (field: keyof EventForm, val: string | boolean) => void;
   categories: Category[];
 }) {
+  const [autoFilled, setAutoFilled] = useState(false);
+
+  useEffect(() => {
+    if (form.location && !form.locationAddress) {
+      const found = lookupVenueAddress(form.location);
+      if (found) {
+        set("locationAddress", found);
+        setAutoFilled(true);
+      }
+    } else {
+      setAutoFilled(false);
+    }
+  }, [form.location]);
+
   return (
     <>
       <div>
@@ -437,8 +490,15 @@ function CategorySelect({
       </div>
 
       <div>
-        <label className={labelCls}>Pontos cím</label>
-        <input value={form.locationAddress} onChange={e => set("locationAddress", e.target.value)} className={inputCls} placeholder="pl. Főtér 1." />
+        <label className={labelCls}>
+          Pontos cím
+          {autoFilled && (
+            <span className="ml-2 text-[10px] font-normal text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
+              ✓ auto-kitöltve
+            </span>
+          )}
+        </label>
+        <input value={form.locationAddress} onChange={e => { set("locationAddress", e.target.value); setAutoFilled(false); }} className={inputCls} placeholder="pl. Főtér 1." />
       </div>
 
       <div className="grid grid-cols-2 gap-3">

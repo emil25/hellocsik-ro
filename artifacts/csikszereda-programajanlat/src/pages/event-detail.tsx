@@ -1,10 +1,11 @@
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
-import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar } from "lucide-react";
+import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Newspaper } from "lucide-react";
 import { Link } from "wouter";
 import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatShortDate } from "@/utils/date-format";
+import { useQuery } from "@tanstack/react-query";
 
 function EventCard({ event, index = 0 }: { event: any; index?: number }) {
   return (
@@ -166,6 +167,9 @@ export default function EventDetail() {
           </div>
         </div>
 
+        {/* Related news */}
+        <RelatedNews eventId={id} eventTitle={event.title} />
+
         {related.length > 0 && (
           <div className="mt-14">
             <h2 className="text-xl font-bold mb-5">Hasonló események</h2>
@@ -176,5 +180,79 @@ export default function EventDetail() {
         )}
       </motion.div>
     </div>
+  );
+}
+
+type NewsArticle = { title: string; link: string; pubDate: string; description: string; source: string };
+
+function RelatedNews({ eventId, eventTitle }: { eventId: number; eventTitle: string }) {
+  const { data, isLoading } = useQuery<{ articles: NewsArticle[] }>({
+    queryKey: ["event-news", eventId],
+    queryFn: async () => {
+      const res = await fetch(`/api/events/${eventId}/news`);
+      if (!res.ok) return { articles: [] };
+      return res.json();
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: !!eventId,
+  });
+
+  const articles = data?.articles ?? [];
+
+  if (isLoading) {
+    return (
+      <div className="mt-12">
+        <div className="flex items-center gap-2 mb-4">
+          <Newspaper className="w-5 h-5 text-primary" />
+          <h2 className="text-xl font-bold">Kapcsolódó hírek</h2>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          {[1, 2].map(i => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+        </div>
+      </div>
+    );
+  }
+
+  if (articles.length === 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.2 }}
+      className="mt-12"
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <Newspaper className="w-5 h-5 text-primary" />
+        <h2 className="text-xl font-bold">Kapcsolódó hírek</h2>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-4">
+        {articles.map((article, i) => (
+          <motion.a
+            key={i}
+            href={article.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: i * 0.07 }}
+            className="group bg-card border border-card-border rounded-2xl p-4 hover:shadow-md transition-all duration-200 block"
+          >
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <span className="text-[11px] font-semibold text-primary/80 bg-primary/8 px-2 py-0.5 rounded-full">
+                {article.source}
+              </span>
+              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors leading-snug mb-1.5 line-clamp-2">
+              {article.title}
+            </h3>
+            {article.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{article.description}</p>
+            )}
+          </motion.a>
+        ))}
+      </div>
+    </motion.div>
   );
 }

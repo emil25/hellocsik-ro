@@ -205,6 +205,58 @@ router.get("/events/month-highlight", async (req, res) => {
   }
 });
 
+router.get("/events/:id/news", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+
+    const rows = await getEventsWithCategories([eq(eventsTable.id, id)]);
+    if (rows.length === 0) { res.status(404).json({ error: "Not found" }); return; }
+
+    const event = rows[0].event;
+    const firstWord = event.title
+      .replace(/[–—\-\|()[\]]/g, " ")
+      .split(/\s+/)
+      .find(w => w.length > 3) ?? event.title.split(/\s+/)[0];
+    const query = encodeURIComponent(firstWord) + "+cs%C3%ADkszereda";
+
+    const feedUrl = `https://news.google.com/rss/search?q=${query}&hl=hu&gl=RO&ceid=RO:hu`;
+
+    let articles: { title: string; link: string; pubDate: string; description: string; source: string }[] = [];
+
+    try {
+      const resp = await fetch(feedUrl, {
+        signal: AbortSignal.timeout(6000),
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; NewsReader/1.0)" },
+      });
+      if (resp.ok) {
+        const xml = await resp.text();
+        articles = xml.split("<item>").slice(1).slice(0, 5).map(raw => {
+          const item = raw.split("</item>")[0];
+          const titleRaw = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] ?? "";
+          const title = titleRaw
+            .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').trim()
+            .replace(/\s*-\s*[^-]+$/, "").trim();
+          const linkMatch = item.match(/<link>(https?:\/\/[^\s<]+)<\/link>/);
+          const guidMatch = item.match(/<guid[^>]*>(https?:\/\/[^\s<]+)<\/guid>/);
+          const link = (linkMatch?.[1] ?? guidMatch?.[1] ?? "").trim();
+          const pubDate = (item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "").trim();
+          const rawSource = item.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] ?? "";
+          const source = rawSource.replace(/&amp;/g, "&").trim() || "Google Hírek";
+          return { title, link, pubDate, description: "", source };
+        }).filter(i => i.title && i.link);
+      }
+    } catch (fetchErr) {
+      req.log.error({ fetchErr }, "news fetch error");
+    }
+
+    res.json({ articles: articles.slice(0, 4) });
+  } catch (err) {
+    req.log.error({ err }, "Failed to fetch news for event");
+    res.json({ articles: [] });
+  }
+});
+
 router.get("/events/:id", async (req, res) => {
   try {
     const parsed = GetEventParams.safeParse({ id: Number(req.params.id) });
