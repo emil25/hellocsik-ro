@@ -219,9 +219,20 @@ router.get("/events/:id/news", async (req, res) => {
     // Strip roman numerals, numbers, punctuation — keep meaningful words only
     const ROMAN = /^(I{1,3}|IV|VI{0,3}|IX|XI{0,3}|XIV|XV|XVI{0,3}|XIX|XX{0,3}I?)\.?$/i;
     // Common generic Hungarian words that don't identify an event
-    const GENERIC = new Set(["erdélyi", "erdely", "csíki", "csiki", "éves", "eves", "hazai", "hazai",
+    const GENERIC = new Set([
+      "erdélyi", "erdely", "csíki", "csiki", "éves", "eves", "hazai",
       "magyar", "városi", "helyi", "nagy", "kisebb", "közös", "hatodik", "nyílt", "nyilt",
-      "tavaszi", "nyári", "oszi", "téli", "teli", "nemze", "neves", "együt", "kultu"]);
+      "tavaszi", "nyári", "oszi", "téli", "teli", "nemze", "neves", "együt", "kultu",
+      // generic event-title words
+      "hétvégéje", "hetvegeje", "hétvége", "hetvege", "napja", "napok", "napjai",
+      "előadás", "eloadás", "előadása", "eloadasa", "találkozója", "talalkozoja",
+      "fesztiválja", "fesztival", "fesztivál", "programja", "műsor", "musor",
+      "rendezvény", "rendezveny", "hangverseny", "koncert", "kiállítás", "kiallitas",
+      "felvonulás", "felvonulas", "ünnepség", "unnepseg", "gálája", "galaja",
+      "ünnepe", "unnep", "bemutatója", "bemutatoja", "estje", "estjén",
+      "találkozó", "talalkozó", "verseny", "bajnokság", "bajnoksag",
+      "összejövetel", "osszejovetel", "vetítés", "vetites", "vetítő", "vetito",
+    ]);
 
     const words = event.title
       .replace(/[–—\-\|()[\].!?]/g, " ")
@@ -239,7 +250,7 @@ router.get("/events/:id/news", async (req, res) => {
 
     type Article = { title: string; link: string; pubDate: string; description: string; source: string };
 
-    async function fetchNews(q: string): Promise<Article[]> {
+    async function fetchNews(q: string, mustMatchAll: string[]): Promise<Article[]> {
       const url = `https://news.google.com/rss/search?q=${q}&hl=hu&gl=RO&ceid=RO:hu`;
       const resp = await fetch(url, {
         signal: AbortSignal.timeout(5000),
@@ -247,7 +258,7 @@ router.get("/events/:id/news", async (req, res) => {
       });
       if (!resp.ok) return [];
       const xml = await resp.text();
-      const kws = keyWords.map(w => w.toLowerCase());
+      const kws = mustMatchAll.map(w => w.toLowerCase());
       return xml.split("<item>").slice(1).slice(0, 8).map(raw => {
         const item = raw.split("</item>")[0];
         const titleRaw = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] ?? "";
@@ -260,16 +271,22 @@ router.get("/events/:id/news", async (req, res) => {
         const pubDate = (item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "").trim();
         const rawSource = item.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] ?? "";
         const source = rawSource.replace(/&amp;/g, "&").trim() || "Google Hírek";
-        // Only keep if the article title contains at least one of the key search words
+        // Only keep if the article title contains ALL required keywords
         const at = title.toLowerCase();
-        if (!title || !link || !kws.some(kw => at.includes(kw))) return null;
+        if (!title || !link || !kws.every(kw => at.includes(kw))) return null;
         return { title, link, pubDate, description: "", source };
       }).filter(Boolean) as Article[];
     }
 
     let articles: Article[] = [];
     try {
-      articles = await fetchNews(specificQuery);
+      // First try: require ALL keywords to match (strict)
+      articles = await fetchNews(specificQuery, keyWords);
+      // Fallback: search & filter with only the most specific keyword
+      if (articles.length === 0 && keyWords.length > 1) {
+        const fallbackQuery = encodeURIComponent(keyWords[0]);
+        articles = await fetchNews(fallbackQuery, [keyWords[0]]);
+      }
     } catch (fetchErr) {
       req.log.error({ fetchErr }, "news fetch error");
     }
