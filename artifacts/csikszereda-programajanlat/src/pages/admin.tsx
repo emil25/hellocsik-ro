@@ -32,8 +32,8 @@ function ImageUploadField({
       setUploadError("");
       onBusyChange?.(false);
     },
-    onError: (err) => {
-      setUploadError(err.message || "Feltöltési hiba");
+    onError: () => {
+      setUploadError("Feltöltési hiba. Kérjük próbáld újra.");
       onBusyChange?.(false);
     },
   });
@@ -313,6 +313,7 @@ function CreateModal({
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (imageUploading) return;
     setSaving(true);
     setError("");
     try {
@@ -337,12 +338,12 @@ function CreateModal({
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        setError(d.error ?? "Hiba történt.");
+        setError(d.error ?? "Mentési hiba. Kérjük próbáld újra.");
         return;
       }
       onSaved();
     } catch {
-      setError("Hálózati hiba.");
+      setError("Hálózati hiba. Kérjük próbáld újra.");
     } finally {
       setSaving(false);
     }
@@ -418,6 +419,7 @@ function EditModal({
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (imageUploading) return;
     setSaving(true);
     setError("");
     try {
@@ -442,12 +444,12 @@ function EditModal({
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        setError(d.error ?? "Hiba történt.");
+        setError(d.error ?? "Mentési hiba. Kérjük próbáld újra.");
         return;
       }
       onSaved();
     } catch {
-      setError("Hálózati hiba.");
+      setError("Hálózati hiba. Kérjük próbáld újra.");
     } finally {
       setSaving(false);
     }
