@@ -8,6 +8,7 @@
 
 export * from "./category";
 export * from "./createEventBody";
+export * from "./errorEnvelope";
 export * from "./event";
 export * from "./healthStatus";
 export * from "./listCategories200";
@@ -18,3 +19,5 @@ export * from "./listThisWeekEvents200";
 export * from "./listThisWeekEvents200DaysItem";
 export * from "./listUpcomingEvents200";
 export * from "./listUpcomingEventsParams";
+export * from "./uploadUrlRequest";
+export * from "./uploadUrlResponse";

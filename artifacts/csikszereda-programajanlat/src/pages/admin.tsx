@@ -1,13 +1,100 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2, XCircle, Trash2, Crown, EyeOff,
   LogOut, RefreshCw, Clock, CalendarCheck, AlertCircle, Settings, Pencil, X,
-  Plus, LayoutDashboard, Star
+  Plus, LayoutDashboard, Star, Upload, ImageIcon, Loader2
 } from "lucide-react";
 import { Link } from "wouter";
+import { useUpload } from "@workspace/object-storage-web";
 
 const API = "/api";
+
+// ─── IMAGE UPLOAD FIELD ───────────────────────────────────────────────────────
+
+function ImageUploadField({
+  value, onChange
+}: {
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<"url" | "upload">("url");
+  const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState("");
+
+  const { uploadFile, isUploading, progress } = useUpload({
+    onSuccess: (res) => {
+      const serveUrl = `/api/storage${res.objectPath}`;
+      onChange(serveUrl);
+      setUploadedPreview(serveUrl);
+      setUploadError("");
+    },
+    onError: (err) => {
+      setUploadError(err.message || "Feltöltési hiba");
+    },
+  });
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setUploadError("Csak képfájl tölthető fel."); return; }
+    setUploadError("");
+    await uploadFile(file);
+  }
+
+  const preview = uploadedPreview || value;
+
+  return (
+    <div>
+      <label className={labelCls}>Kép (fotó / plakát)</label>
+      <div className="flex gap-1 mb-2">
+        <button type="button" onClick={() => setTab("url")}
+          className={`text-xs font-semibold px-3 py-1 rounded-lg border transition-colors ${tab === "url" ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:bg-muted"}`}>
+          URL
+        </button>
+        <button type="button" onClick={() => setTab("upload")}
+          className={`text-xs font-semibold px-3 py-1 rounded-lg border transition-colors flex items-center gap-1 ${tab === "upload" ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:bg-muted"}`}>
+          <Upload className="w-3 h-3" /> Feltöltés
+        </button>
+      </div>
+
+      {tab === "url" ? (
+        <input
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className={inputCls}
+          placeholder="https://..."
+        />
+      ) : (
+        <div>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={isUploading}
+            className="w-full h-24 rounded-xl border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center justify-center gap-2 transition-colors bg-muted/30 disabled:opacity-60">
+            {isUploading ? (
+              <>
+                <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                <span className="text-xs text-muted-foreground">{progress}% feltöltve...</span>
+              </>
+            ) : (
+              <>
+                <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Kattints a feltöltéshez (JPG, PNG, WebP)</span>
+              </>
+            )}
+          </button>
+          {uploadError && <p className="text-xs text-red-600 mt-1">{uploadError}</p>}
+        </div>
+      )}
+
+      {preview && (
+        <img src={preview} alt="előnézet" className="mt-2 h-28 w-full object-cover rounded-xl border border-border" />
+      )}
+    </div>
+  );
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
 
 function useAdminToken() {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("admin_token"));
@@ -163,13 +250,10 @@ function EventFormFields({
         </div>
       </div>
 
-      <div>
-        <label className={labelCls}>Kép URL</label>
-        <input value={form.imageUrl} onChange={e => set("imageUrl", e.target.value)} className={inputCls} placeholder="https://..." />
-        {form.imageUrl && (
-          <img src={form.imageUrl} alt="előnézet" className="mt-2 h-28 w-full object-cover rounded-xl border border-border" />
-        )}
-      </div>
+      <ImageUploadField
+        value={form.imageUrl}
+        onChange={url => set("imageUrl", url)}
+      />
 
       <div>
         <label className={labelCls}>Jegy / részletek URL</label>
@@ -517,13 +601,10 @@ function CategorySelect({
         </div>
       </div>
 
-      <div>
-        <label className={labelCls}>Kép URL</label>
-        <input value={form.imageUrl} onChange={e => set("imageUrl", e.target.value)} className={inputCls} placeholder="https://..." />
-        {form.imageUrl && (
-          <img src={form.imageUrl} alt="előnézet" className="mt-2 h-28 w-full object-cover rounded-xl border border-border" />
-        )}
-      </div>
+      <ImageUploadField
+        value={form.imageUrl}
+        onChange={url => set("imageUrl", url)}
+      />
 
       <div>
         <label className={labelCls}>Jegy / részletek URL</label>

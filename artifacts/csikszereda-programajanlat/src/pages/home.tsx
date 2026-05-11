@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink, Plus, CheckCircle2, Building2 } from "lucide-react";
+import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink, Plus, CheckCircle2, Building2, Pencil } from "lucide-react";
 import { Link } from "wouter";
 import {
   useListFeaturedEvents,
@@ -14,6 +14,14 @@ import {
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatTime, formatShortDate } from "@/utils/date-format";
+
+function useIsAdmin() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    setIsAdmin(!!localStorage.getItem("admin_token"));
+  }, []);
+  return isAdmin;
+}
 
 // ─── HERO ───────────────────────────────────────────────────────────────────
 
@@ -416,6 +424,7 @@ function UpcomingEvents() {
   const { data: catData } = useListCategories();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const isAdmin = useIsAdmin();
   const rawEvents = data?.events ?? [];
   const categories = catData?.categories ?? [];
 
@@ -519,6 +528,16 @@ function UpcomingEvents() {
                           </span>
                         )}
                       </div>
+                      {/* Admin edit button */}
+                      {isAdmin && (
+                        <a
+                          href="/admin"
+                          onClick={e => e.stopPropagation()}
+                          className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/70 text-white text-[10px] font-bold hover:bg-black/90 transition-colors"
+                        >
+                          <Pencil className="w-2.5 h-2.5" /> Szerkeszt
+                        </a>
+                      )}
                       {event.price && event.price !== "Ingyenes" && (
                         <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/95 rounded-lg px-2 py-1 shadow-sm">
                           <Ticket className="w-3 h-3 text-muted-foreground" />
