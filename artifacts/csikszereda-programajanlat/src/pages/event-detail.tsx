@@ -1,6 +1,6 @@
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
-import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Newspaper } from "lucide-react";
+import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Newspaper, Share2 } from "lucide-react";
 import { Link } from "wouter";
 import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,18 +15,22 @@ function EventCard({ event, index = 0 }: { event: any; index?: number }) {
       transition={{ duration: 0.4, delay: index * 0.07 }}
     >
       <Link href={`/esemeny/${event.id}`}>
-        <div className="group cursor-pointer bg-card rounded-2xl overflow-hidden border border-card-border hover:shadow-lg transition-all duration-300">
-          <div className="relative overflow-hidden aspect-video">
+        <div className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-stone-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
             <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
             {event.category && (
-              <span className="absolute top-3 left-3 text-[11px] font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
+              <span className="absolute top-3 left-3 text-[11px] font-bold px-2.5 py-1 rounded-full text-white shadow-sm" style={{ backgroundColor: event.category.color }}>
                 {event.category.name}
               </span>
             )}
           </div>
           <div className="p-4">
-            <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1"><Clock className="w-3 h-3" />{formatShortDate(event.startDate)} · {event.location}</p>
-            <h3 className="font-bold text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors">{event.title}</h3>
+            <p className="text-xs text-stone-400 mb-1.5 flex items-center gap-1.5">
+              <Clock className="w-3 h-3" />{formatShortDate(event.startDate)}
+              <span className="text-stone-300">·</span>
+              <MapPin className="w-3 h-3" />{event.location}
+            </p>
+            <h3 className="font-bold text-sm text-stone-800 line-clamp-2 group-hover:text-primary transition-colors leading-snug">{event.title}</h3>
           </div>
         </div>
       </Link>
@@ -50,11 +54,12 @@ export default function EventDetail() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-6">
-        <Skeleton className="h-7 w-28" />
-        <Skeleton className="w-full h-72 rounded-3xl" />
-        <Skeleton className="h-10 w-2/3" />
-        <Skeleton className="h-24 w-full" />
+      <div>
+        <Skeleton className="w-full h-[420px]" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+          <Skeleton className="h-10 w-2/3" />
+          <Skeleton className="h-24 w-full" />
+        </div>
       </div>
     );
   }
@@ -69,124 +74,191 @@ export default function EventDetail() {
     );
   }
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Link href="/">
-        <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
-          <ArrowLeft className="w-4 h-4" /> Vissza
-        </button>
-      </Link>
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: event.title, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+    }
+  };
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <div className="grid md:grid-cols-5 gap-8">
-          {/* Left: image + info */}
-          <div className="md:col-span-3">
-            <div className="relative rounded-2xl overflow-hidden mb-6" style={{ aspectRatio: "16/9" }}>
-              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+  return (
+    <div>
+      {/* ── Hero banner ─────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="relative w-full overflow-hidden"
+        style={{ height: "clamp(300px, 45vw, 500px)" }}
+      >
+        <img
+          src={event.imageUrl}
+          alt={event.title}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)" }} />
+
+        {/* Back button */}
+        <div className="absolute top-5 left-5 sm:left-8">
+          <Link href="/">
+            <button className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3.5 py-2 rounded-full transition-all">
+              <ArrowLeft className="w-3.5 h-3.5" /> Vissza
+            </button>
+          </Link>
+        </div>
+
+        {/* Share button */}
+        <div className="absolute top-5 right-5 sm:right-8">
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3.5 py-2 rounded-full transition-all"
+          >
+            <Share2 className="w-3.5 h-3.5" /> Megosztás
+          </button>
+        </div>
+
+        {/* Bottom overlay content */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 pb-7 pt-16">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
               {event.category && (
-                <span className="absolute top-4 left-4 text-xs font-bold px-3 py-1.5 rounded-full text-white shadow" style={{ backgroundColor: event.category.color }}>
+                <span className="text-xs font-bold px-3 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
                   {event.category.name}
                 </span>
               )}
+              {event.featured && (
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-400 text-amber-900">
+                  ★ Kiemelt
+                </span>
+              )}
               {event.price && (
-                <span className="absolute top-4 right-4 text-xs font-bold px-3 py-1.5 rounded-full bg-white/95 text-foreground shadow flex items-center gap-1.5">
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center gap-1.5">
                   <Ticket className="w-3 h-3" />{event.price}
                 </span>
               )}
             </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight drop-shadow-md max-w-3xl">
+              {event.title}
+            </h1>
+          </div>
+        </div>
+      </motion.div>
 
-            <h1 className="text-3xl font-bold text-foreground mb-4 leading-tight">{event.title}</h1>
-            <div className="text-muted-foreground leading-relaxed text-sm mb-5 space-y-3">
-              {(event.description ?? "").split(/\n\n+/).map((para, i) => (
-                <p key={i}>
-                  {para.split(/\n/).map((line, j, arr) => (
-                    <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
-                  ))}
-                </p>
-              ))}
-            </div>
-
-            {event.tags && event.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {event.tags.map(tag => (
-                  <span key={tag} className="flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full bg-muted text-muted-foreground">
-                    <Tag className="w-3 h-3" />{tag}
-                  </span>
+      {/* ── Body ────────────────────────────────────────────────── */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.15 }}
+        >
+          <div className="grid md:grid-cols-5 gap-8 lg:gap-12">
+            {/* Left: description + tags */}
+            <div className="md:col-span-3 order-2 md:order-1">
+              <div className="prose prose-stone prose-sm max-w-none text-stone-600 leading-relaxed space-y-4 mb-8">
+                {(event.description ?? "").split(/\n\n+/).map((para, i) => (
+                  <p key={i} className="text-[15px] leading-relaxed text-stone-600">
+                    {para.split(/\n/).map((line, j, arr) => (
+                      <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
+                    ))}
+                  </p>
                 ))}
               </div>
-            )}
-          </div>
 
-          {/* Right: details card */}
-          <div className="md:col-span-2 space-y-4">
-            <div className="bg-card border border-card-border rounded-2xl p-5 space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Calendar className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Időpont</p>
-                  <p className="font-semibold text-sm text-foreground">{formatDate(event.startDate)}</p>
-                  {event.endDate && (
-                    <p className="text-xs text-muted-foreground mt-0.5">– {formatDate(event.endDate)}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t border-border pt-4 flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <MapPin className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Helyszín</p>
-                  <p className="font-semibold text-sm text-foreground">{event.location}</p>
-                  {event.locationAddress && (
-                    <p className="text-xs text-muted-foreground mt-0.5">{event.locationAddress}</p>
-                  )}
-                </div>
-              </div>
-
-              {event.price && (
-                <div className="border-t border-border pt-4 flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Ticket className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Belépő</p>
-                    <p className="font-semibold text-sm text-foreground">{event.price}</p>
-                  </div>
+              {event.tags && event.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {event.tags.map(tag => (
+                    <span key={tag} className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 transition-colors">
+                      <Tag className="w-3 h-3" />{tag}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
 
-            {event.ticketUrl && (
-              <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer" className="block">
-                <button className="w-full py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
-                  <Ticket className="w-4 h-4" /> Jegyvasárlás <ExternalLink className="w-3.5 h-3.5" />
-                </button>
-              </a>
-            )}
+            {/* Right: info card */}
+            <div className="md:col-span-2 order-1 md:order-2">
+              <div className="sticky top-6 space-y-3">
+                {/* Details card */}
+                <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                  {/* Date row */}
+                  <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #fef3c7, #fde68a)" }}>
+                      <Calendar className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Időpont</p>
+                      <p className="font-semibold text-sm text-stone-800">{formatDate(event.startDate)}</p>
+                      {event.endDate && (
+                        <p className="text-xs text-stone-400 mt-0.5">– {formatDate(event.endDate)}</p>
+                      )}
+                    </div>
+                  </div>
 
-            <Link href="/" className="block">
-              <button className="w-full py-3 border border-border text-foreground font-semibold rounded-xl hover:bg-muted transition-colors text-sm">
-                Vissza az összes programhoz
-              </button>
-            </Link>
-          </div>
-        </div>
+                  {/* Location row */}
+                  <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #dcfce7, #bbf7d0)" }}>
+                      <MapPin className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Helyszín</p>
+                      <p className="font-semibold text-sm text-stone-800 leading-snug">{event.location}</p>
+                      {event.locationAddress && (
+                        <p className="text-xs text-stone-400 mt-0.5">{event.locationAddress}</p>
+                      )}
+                    </div>
+                  </div>
 
-        {/* Related news */}
-        <RelatedNews eventId={id} eventTitle={event.title} />
+                  {/* Price row */}
+                  {event.price && (
+                    <div className="flex items-start gap-4 px-5 py-4">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #fce7f3, #fbcfe8)" }}>
+                        <Ticket className="w-4 h-4 text-pink-500" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Belépő</p>
+                        <p className="font-semibold text-sm text-stone-800">{event.price}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-        {related.length > 0 && (
-          <div className="mt-14">
-            <h2 className="text-xl font-bold mb-5">Hasonló események</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {related.map((ev, i) => <EventCard key={ev.id} event={ev} index={i} />)}
+                {/* CTA buttons */}
+                {event.ticketUrl && (
+                  <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer" className="block">
+                    <button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2"
+                      style={{ background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black))" }}>
+                      <Ticket className="w-4 h-4" /> Jegyvásárlás <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                    </button>
+                  </a>
+                )}
+
+                <Link href="/" className="block">
+                  <button className="w-full py-3 border border-stone-200 text-stone-600 font-semibold rounded-xl hover:bg-stone-50 transition-colors text-sm">
+                    ← Összes program
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
-        )}
-      </motion.div>
+
+          {/* Related news */}
+          <RelatedNews eventId={id} eventTitle={event.title} />
+
+          {/* Related events */}
+          {related.length > 0 && (
+            <div className="mt-16 pt-10 border-t border-stone-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-6 w-1 rounded-full bg-primary" />
+                <h2 className="text-xl font-bold text-stone-800">Hasonló események</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {related.map((ev, i) => <EventCard key={ev.id} event={ev} index={i} />)}
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </div>
     </div>
   );
 }
@@ -209,10 +281,10 @@ function RelatedNews({ eventId, eventTitle }: { eventId: number; eventTitle: str
 
   if (isLoading) {
     return (
-      <div className="mt-12">
-        <div className="flex items-center gap-2 mb-4">
+      <div className="mt-12 pt-8 border-t border-stone-100">
+        <div className="flex items-center gap-3 mb-5">
           <Newspaper className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-bold">Kapcsolódó hírek</h2>
+          <h2 className="text-xl font-bold text-stone-800">Kapcsolódó hírek</h2>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           {[1, 2].map(i => <Skeleton key={i} className="h-28 rounded-2xl" />)}
@@ -228,11 +300,11 @@ function RelatedNews({ eventId, eventTitle }: { eventId: number; eventTitle: str
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
-      className="mt-12"
+      className="mt-16 pt-10 border-t border-stone-100"
     >
-      <div className="flex items-center gap-2 mb-4">
-        <Newspaper className="w-5 h-5 text-primary" />
-        <h2 className="text-xl font-bold">Kapcsolódó hírek</h2>
+      <div className="flex items-center gap-3 mb-5">
+        <div className="h-6 w-1 rounded-full bg-primary" />
+        <h2 className="text-xl font-bold text-stone-800">Kapcsolódó hírek</h2>
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
         {articles.map((article, i) => (
@@ -244,19 +316,19 @@ function RelatedNews({ eventId, eventTitle }: { eventId: number; eventTitle: str
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: i * 0.07 }}
-            className="group bg-card border border-card-border rounded-2xl p-4 hover:shadow-md transition-all duration-200 block"
+            className="group bg-white border border-stone-100 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 block"
           >
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <span className="text-[11px] font-semibold text-primary/80 bg-primary/8 px-2 py-0.5 rounded-full">
+            <div className="flex items-start justify-between gap-2 mb-2.5">
+              <span className="text-[11px] font-bold text-primary/80 bg-primary/8 px-2.5 py-0.5 rounded-full">
                 {article.source}
               </span>
-              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ExternalLink className="w-3.5 h-3.5 text-stone-300 flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors leading-snug mb-1.5 line-clamp-2">
+            <h3 className="font-semibold text-sm text-stone-800 group-hover:text-primary transition-colors leading-snug mb-1.5 line-clamp-2">
               {article.title}
             </h3>
             {article.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{article.description}</p>
+              <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed">{article.description}</p>
             )}
           </motion.a>
         ))}
