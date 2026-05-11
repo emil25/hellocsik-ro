@@ -24,7 +24,7 @@ function formatEvent(event: any, category: any) {
   };
 }
 
-async function getEventsWithCategories(conditions: any[] = [], orderBy?: any, limit?: number, offset?: number) {
+async function getEventsWithCategories(conditions: any[] = [], orderBy?: any | any[], limit?: number, offset?: number) {
   let query = db
     .select({
       event: eventsTable,
@@ -39,7 +39,7 @@ async function getEventsWithCategories(conditions: any[] = [], orderBy?: any, li
   }
 
   if (orderBy) {
-    query = query.orderBy(orderBy);
+    query = Array.isArray(orderBy) ? query.orderBy(...orderBy) : query.orderBy(orderBy);
   }
 
   if (limit !== undefined) {
@@ -118,9 +118,10 @@ router.post("/events/submit", async (req, res) => {
 
 router.get("/events/featured", async (req, res) => {
   try {
+    const now = new Date();
     const rows = await getEventsWithCategories(
-      [eq(eventsTable.featured, true), eq(eventsTable.status, "published")],
-      asc(eventsTable.startDate)
+      [eq(eventsTable.featured, true), eq(eventsTable.status, "published"), gte(eventsTable.startDate, now)],
+      [desc(eventsTable.monthHighlight), asc(eventsTable.startDate)]
     );
     res.json({ events: rows.map((r) => formatEvent(r.event, r.category)) });
   } catch (err) {
