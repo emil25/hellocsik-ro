@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
+import hellocsikLogo from "@assets/hellocsik1_1778510931467.png";
 
 export function Footer() {
   const [email, setEmail] = useState("");
@@ -44,19 +45,11 @@ export function Footer() {
       {/* Bottom links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1L8.5 5.5H13L9.5 8.5L11 13L7 10L3 13L4.5 8.5L1 5.5H5.5L7 1Z" fill="white"/>
-              </svg>
-            </div>
-            <div>
-              <span className="font-bold text-sm">csík.online</span>
-              <span className="text-xs text-muted-foreground ml-1">· a város élete</span>
-            </div>
-          </div>
+          <Link href="/">
+            <img src={hellocsikLogo} alt="hellocsík" className="h-7 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity" />
+          </Link>
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Csíkszereda Programajánló · Miercurea Ciuc
+            &copy; {new Date().getFullYear()} hellocsík · Programok · Helyek · Élmények · Miercurea Ciuc
           </p>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Menu, X, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchModal } from "@/components/SearchModal";
+import hellocsikLogo from "@assets/hellocsik1_1778510931467.png";
 
 const navLinks = [
   { href: "/#hetvege", label: "Hétvége" },
@@ -24,20 +25,13 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/30 group-hover:shadow-primary/50 transition-shadow">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <circle cx="9" cy="9" r="3.5" fill="white" fillOpacity="0.95"/>
-                  <path d="M9 1.5C9 1.5 14.5 7.2 14.5 10.5C14.5 13.5 12 16 9 16C6 16 3.5 13.5 3.5 10.5C3.5 7.2 9 1.5 9 1.5Z" stroke="white" strokeOpacity="0.7" strokeWidth="1.2" fill="none"/>
-                </svg>
-              </div>
-              <div className="flex flex-col leading-none gap-[3px]">
-                <div className="flex items-baseline gap-0">
-                  <span className="font-black text-[18px] tracking-tight" style={{ color: "hsl(148 45% 22%)" }}>csik</span>
-                  <span className="font-black text-[18px] tracking-tight text-foreground">.city</span>
-                </div>
-                <span className="text-[9.5px] font-semibold tracking-[0.08em] uppercase" style={{ color: "hsl(148 45% 38%)" }}>csiki programajánló</span>
-              </div>
+            <Link href="/" className="flex items-center shrink-0 group">
+              <img
+                src={hellocsikLogo}
+                alt="hellocsík"
+                className="h-9 w-auto object-contain transition-opacity group-hover:opacity-85"
+                style={{ maxWidth: 160 }}
+              />
             </Link>
 
             {/* Nav pills */}

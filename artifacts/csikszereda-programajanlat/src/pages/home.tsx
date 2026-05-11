@@ -10,6 +10,7 @@ import {
   useListCategories,
   useListEvents,
   useGetEvent,
+  type Event as ApiEvent,
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatTime, formatShortDate } from "@/utils/date-format";
@@ -785,185 +786,230 @@ function useCountdown(targetDate: string | null) {
   return timeLeft;
 }
 
+// ── Individual highlight event card (terracotta theme, image right) ──────────
+function HighlightSectionTerracotta({ event }: { event: ApiEvent }) {
+  const timeLeft = useCountdown(event.startDate);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    <section style={{ background: "linear-gradient(135deg, #1c0a04 0%, #3b0f06 35%, #7c2d12 70%, #431407 100%)" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+          {/* Left: content */}
+          <motion.div
+            initial={{ opacity: 0, x: -32 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col gap-6"
+          >
+            {/* Badge */}
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-700/50" style={{ background: "rgba(255,160,50,0.12)" }}>
+                <Sparkles className="w-3 h-3 text-amber-300" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Kiemelt program · {new Date(event.startDate).getFullYear()}</span>
+              </div>
+              {event.category && (
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
+                  {event.category.name}
+                </span>
+              )}
+            </div>
+
+            {/* Title */}
+            <div>
+              <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-3">{event.title}</h2>
+              <p className="text-sm text-orange-100/75 leading-relaxed">{event.description}</p>
+            </div>
+
+            {/* Meta */}
+            <div className="flex flex-wrap gap-4 text-sm text-orange-200/80">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-amber-400" />
+                {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-amber-400" />
+                {event.location}
+              </span>
+              {event.price && (
+                <span className="flex items-center gap-1.5">
+                  <Ticket className="w-4 h-4 text-amber-400" />
+                  {event.price}
+                </span>
+              )}
+            </div>
+
+            {/* Countdown */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400/70 mb-2">Visszaszámláló</p>
+              <div className="grid grid-cols-4 gap-2 max-w-xs">
+                {[
+                  { value: pad(timeLeft.days), label: "NAP" },
+                  { value: pad(timeLeft.hours), label: "ÓRA" },
+                  { value: pad(timeLeft.minutes), label: "PERC" },
+                  { value: pad(timeLeft.seconds), label: "MP" },
+                ].map(({ value, label }) => (
+                  <div key={label} className="flex flex-col items-center justify-center rounded-xl py-3 px-2" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,160,50,0.2)" }}>
+                    <span className="text-2xl font-black leading-none text-white">{value}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest mt-1 text-amber-400">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex gap-3 flex-wrap">
+              <Link href={`/esemeny/${event.id}`}>
+                <button className="flex items-center gap-2 px-6 py-3 font-bold text-sm rounded-xl text-white transition-all hover:scale-105" style={{ background: "linear-gradient(135deg, #ea580c, #dc2626)" }}>
+                  Teljes program <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+              {event.ticketUrl && (
+                <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
+                  <button className="flex items-center gap-2 px-6 py-3 border border-orange-600/50 text-orange-200 font-semibold text-sm rounded-xl hover:bg-white/10 transition-colors">
+                    <ExternalLink className="w-3.5 h-3.5" /> Hivatalos oldal
+                  </button>
+                </a>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Right: poster image */}
+          <motion.div
+            initial={{ opacity: 0, x: 32 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="relative"
+          >
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/60 aspect-[4/5]">
+              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(30,10,5,0.6) 0%, transparent 50%)" }} />
+            </div>
+            {/* Decorative glow */}
+            <div className="absolute -inset-4 rounded-3xl opacity-30 blur-2xl -z-10" style={{ background: "radial-gradient(ellipse, #ea580c 0%, transparent 70%)" }} />
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Individual highlight event card (forest-green theme, image left) ──────────
+function HighlightSectionGreen({ event }: { event: ApiEvent }) {
+  return (
+    <section style={{ background: "linear-gradient(135deg, #052010 0%, #0a3d1f 40%, #166534 75%, #052e12 100%)" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+          {/* Left: poster image */}
+          <motion.div
+            initial={{ opacity: 0, x: -32 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="relative order-2 md:order-1"
+          >
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/60 aspect-[4/5]">
+              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(5,32,16,0.55) 0%, transparent 50%)" }} />
+              {event.category && (
+                <div className="absolute top-4 left-4">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
+                    {event.category.name}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="absolute -inset-4 rounded-3xl opacity-25 blur-2xl -z-10" style={{ background: "radial-gradient(ellipse, #22c55e 0%, transparent 70%)" }} />
+          </motion.div>
+
+          {/* Right: content */}
+          <motion.div
+            initial={{ opacity: 0, x: 32 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="flex flex-col gap-6 order-1 md:order-2"
+          >
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-green-500/30 self-start" style={{ background: "rgba(34,197,94,0.1)" }}>
+              <Sparkles className="w-3 h-3 text-green-300" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-green-300">Kiemelt program · {new Date(event.startDate).getFullYear()}</span>
+            </div>
+
+            {/* Title */}
+            <div>
+              <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-3">{event.title}</h2>
+              <p className="text-sm text-green-100/75 leading-relaxed">{event.description}</p>
+            </div>
+
+            {/* Meta */}
+            <div className="flex flex-col gap-3 text-sm text-green-200/80">
+              <span className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-green-400 shrink-0" />
+                {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
+              </span>
+              <span className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-green-400 shrink-0" />
+                {event.location}{event.locationAddress ? ` · ${event.locationAddress}` : ""}
+              </span>
+              {event.price && (
+                <span className="flex items-center gap-2">
+                  <Ticket className="w-4 h-4 text-green-400 shrink-0" />
+                  {event.price}
+                </span>
+              )}
+            </div>
+
+            {/* Tags */}
+            {event.tags && event.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {event.tags.map((tag: string) => (
+                  <span key={tag} className="text-xs px-3 py-1 rounded-full font-medium text-green-300 border border-green-600/40" style={{ background: "rgba(34,197,94,0.08)" }}>
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* CTAs */}
+            <div className="flex gap-3 flex-wrap pt-2">
+              <Link href={`/esemeny/${event.id}`}>
+                <button className="flex items-center gap-2 px-6 py-3 font-bold text-sm rounded-xl text-white transition-all hover:scale-105" style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}>
+                  Teljes program <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+              {event.ticketUrl && (
+                <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
+                  <button className="flex items-center gap-2 px-6 py-3 border border-green-600/50 text-green-200 font-semibold text-sm rounded-xl hover:bg-white/10 transition-colors">
+                    <ExternalLink className="w-3.5 h-3.5" /> Jegyvásárlás
+                  </button>
+                </a>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FeaturedProgramSection() {
   const { data, isLoading } = useListFeaturedEvents();
   const highlights = (data?.events ?? []).filter(e => e.monthHighlight).slice(0, 2);
-  const main = highlights[0] ?? null;
-  const secondary = highlights[1] ?? null;
-  const timeLeft = useCountdown(main?.startDate ?? null);
-  const pad = (n: number) => String(n).padStart(2, "0");
 
-  if (!isLoading && !main) return null;
+  if (isLoading) {
+    return (
+      <div className="py-6 space-y-4 px-4">
+        <Skeleton className="h-80 rounded-none" />
+        <Skeleton className="h-80 rounded-none" />
+      </div>
+    );
+  }
+
+  if (!highlights.length) return null;
 
   return (
-    <section style={{ background: "linear-gradient(180deg, #faf7f2 0%, #f0e8d8 35%, #2d1a0e 100%)" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16">
-        {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-4 h-4 text-secondary" />
-            <span className="text-xs font-bold text-secondary uppercase tracking-widest">Nagy programok</span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground">A közelgő kiemelt programok</h2>
-        </div>
-
-        {isLoading ? (
-          <div className="grid md:grid-cols-2 gap-6">
-            <Skeleton className="h-80 rounded-3xl" />
-            <Skeleton className="h-80 rounded-3xl" />
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-6 items-start">
-            {/* ── Main event (large, with countdown) ── */}
-            {main && (
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="rounded-3xl overflow-hidden shadow-2xl"
-              >
-                {/* Image */}
-                <div className="relative h-56 overflow-hidden">
-                  <img src={main.imageUrl} alt={main.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(20,10,5,0.65) 0%, transparent 55%)" }} />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "rgba(180,80,20,0.92)", backdropFilter: "blur(4px)" }}>
-                      <Sparkles className="w-3 h-3 text-amber-200" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-100">Kiemelt program</span>
-                    </div>
-                  </div>
-                  {main.category && (
-                    <div className="absolute top-4 right-4">
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: main.category.color }}>
-                        {main.category.name}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {/* Details */}
-                <div className="p-7 flex flex-col gap-4" style={{ background: "linear-gradient(135deg, #fffdf7 0%, #fff8ed 100%)" }}>
-                  <div>
-                    <h3 className="text-2xl font-black leading-tight mb-2" style={{ color: "#7c2d12" }}>{main.title}</h3>
-                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">{main.description}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-                    <span className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-primary" />
-                      {formatShortDate(main.startDate)}{main.endDate ? ` – ${formatShortDate(main.endDate)}` : ""}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-primary" />
-                      {main.location}
-                    </span>
-                    {main.price && (
-                      <span className="flex items-center gap-1.5">
-                        <Ticket className="w-3.5 h-3.5 text-primary" />
-                        {main.price}
-                      </span>
-                    )}
-                  </div>
-                  {/* Countdown */}
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { value: pad(timeLeft.days), label: "NAP" },
-                      { value: pad(timeLeft.hours), label: "ÓRA" },
-                      { value: pad(timeLeft.minutes), label: "PERC" },
-                      { value: pad(timeLeft.seconds), label: "MP" },
-                    ].map(({ value, label }) => (
-                      <div key={label} className="flex flex-col items-center justify-center rounded-xl py-3" style={{ background: "#7c2d12" }}>
-                        <span className="text-xl font-bold leading-none text-white">{value}</span>
-                        <span className="text-[9px] font-bold uppercase tracking-widest mt-1 text-orange-200">{label}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-3">
-                    <Link href={`/esemeny/${main.id}`}>
-                      <button className="flex items-center gap-1.5 px-5 py-2.5 font-bold text-sm rounded-xl text-white transition-colors" style={{ background: "#7c2d12" }}>
-                        Részletek <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </Link>
-                    {main.ticketUrl && (
-                      <a href={main.ticketUrl} target="_blank" rel="noopener noreferrer">
-                        <button className="px-5 py-2.5 border border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition-colors">
-                          Hivatalos oldal
-                        </button>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ── Secondary event ── */}
-            {secondary && (
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.12 }}
-                className="rounded-3xl overflow-hidden shadow-2xl"
-              >
-                {/* Image – taller since no countdown */}
-                <div className="relative h-72 overflow-hidden">
-                  <img src={secondary.imageUrl} alt={secondary.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(20,10,5,0.72) 0%, transparent 50%)" }} />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "rgba(30,90,40,0.90)", backdropFilter: "blur(4px)" }}>
-                      <Sparkles className="w-3 h-3 text-green-200" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-green-100">Kiemelt program</span>
-                    </div>
-                  </div>
-                  {secondary.category && (
-                    <div className="absolute top-4 right-4">
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: secondary.category.color }}>
-                        {secondary.category.name}
-                      </span>
-                    </div>
-                  )}
-                  {/* Title overlay on image */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <h3 className="text-2xl font-black text-white leading-tight mb-1">{secondary.title}</h3>
-                    <div className="flex flex-wrap gap-3 text-xs text-white/80">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {formatShortDate(secondary.startDate)}{secondary.endDate ? ` – ${formatShortDate(secondary.endDate)}` : ""}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5" />
-                        {secondary.location}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {/* Details */}
-                <div className="p-7 flex flex-col gap-4" style={{ background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)" }}>
-                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">{secondary.description}</p>
-                  {secondary.price && (
-                    <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <Ticket className="w-3.5 h-3.5 text-primary" />
-                      {secondary.price}
-                    </span>
-                  )}
-                  <div className="flex gap-3">
-                    <Link href={`/esemeny/${secondary.id}`}>
-                      <button className="flex items-center gap-1.5 px-5 py-2.5 font-bold text-sm rounded-xl text-white transition-colors bg-primary hover:bg-primary/90">
-                        Részletek <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </Link>
-                    {secondary.ticketUrl && (
-                      <a href={secondary.ticketUrl} target="_blank" rel="noopener noreferrer">
-                        <button className="px-5 py-2.5 border border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition-colors">
-                          Hivatalos oldal
-                        </button>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        )}
-      </div>
-    </section>
+    <>
+      <HighlightSectionTerracotta event={highlights[0]} />
+      {highlights[1] && <HighlightSectionGreen event={highlights[1]} />}
+    </>
   );
 }
 
