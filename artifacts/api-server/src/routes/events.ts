@@ -214,38 +214,61 @@ router.get("/events/:id/news", async (req, res) => {
     if (rows.length === 0) { res.status(404).json({ error: "Not found" }); return; }
 
     const event = rows[0].event;
-    const firstWord = event.title
-      .replace(/[–—\-\|()[\]]/g, " ")
+
+    // Strip roman numerals, numbers, punctuation — keep meaningful words only
+    const ROMAN = /^(I{1,3}|IV|VI{0,3}|IX|XI{0,3}|XIV|XV|XVI{0,3}|XIX|XX{0,3}I?)\.?$/i;
+    // Common generic Hungarian words that don't identify an event
+    const GENERIC = new Set(["erdélyi", "erdely", "csíki", "csiki", "éves", "eves", "hazai", "hazai",
+      "magyar", "városi", "helyi", "nagy", "kisebb", "közös", "hatodik", "nyílt", "nyilt",
+      "tavaszi", "nyári", "oszi", "téli", "teli", "nemze", "neves", "együt", "kultu"]);
+
+    const words = event.title
+      .replace(/[–—\-\|()[\].!?]/g, " ")
       .split(/\s+/)
-      .find(w => w.length > 3) ?? event.title.split(/\s+/)[0];
-    const query = encodeURIComponent(firstWord) + "+cs%C3%ADkszereda";
+      .filter(w => w.length > 4 && !ROMAN.test(w) && !/^\d+$/.test(w) && !GENERIC.has(w.toLowerCase()));
 
-    const feedUrl = `https://news.google.com/rss/search?q=${query}&hl=hu&gl=RO&ceid=RO:hu`;
+    // Use the 2 most specific words (longest = most unique)
+    const keyWords = [...words].sort((a, b) => b.length - a.length).slice(0, 2);
+    // If no good words, fall back to first meaningful word
+    if (keyWords.length === 0) {
+      const fallback = event.title.replace(/[–—\-\|()[\].!?]/g, " ").split(/\s+/).find(w => w.length > 2);
+      if (fallback) keyWords.push(fallback);
+    }
+    const specificQuery = encodeURIComponent(keyWords.join(" "));
 
-    let articles: { title: string; link: string; pubDate: string; description: string; source: string }[] = [];
+    type Article = { title: string; link: string; pubDate: string; description: string; source: string };
 
-    try {
-      const resp = await fetch(feedUrl, {
-        signal: AbortSignal.timeout(6000),
+    async function fetchNews(q: string): Promise<Article[]> {
+      const url = `https://news.google.com/rss/search?q=${q}&hl=hu&gl=RO&ceid=RO:hu`;
+      const resp = await fetch(url, {
+        signal: AbortSignal.timeout(5000),
         headers: { "User-Agent": "Mozilla/5.0 (compatible; NewsReader/1.0)" },
       });
-      if (resp.ok) {
-        const xml = await resp.text();
-        articles = xml.split("<item>").slice(1).slice(0, 5).map(raw => {
-          const item = raw.split("</item>")[0];
-          const titleRaw = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] ?? "";
-          const title = titleRaw
-            .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').trim()
-            .replace(/\s*-\s*[^-]+$/, "").trim();
-          const linkMatch = item.match(/<link>(https?:\/\/[^\s<]+)<\/link>/);
-          const guidMatch = item.match(/<guid[^>]*>(https?:\/\/[^\s<]+)<\/guid>/);
-          const link = (linkMatch?.[1] ?? guidMatch?.[1] ?? "").trim();
-          const pubDate = (item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "").trim();
-          const rawSource = item.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] ?? "";
-          const source = rawSource.replace(/&amp;/g, "&").trim() || "Google Hírek";
-          return { title, link, pubDate, description: "", source };
-        }).filter(i => i.title && i.link);
-      }
+      if (!resp.ok) return [];
+      const xml = await resp.text();
+      const kws = keyWords.map(w => w.toLowerCase());
+      return xml.split("<item>").slice(1).slice(0, 8).map(raw => {
+        const item = raw.split("</item>")[0];
+        const titleRaw = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] ?? "";
+        const title = titleRaw
+          .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').trim()
+          .replace(/\s*-\s*[^-]+$/, "").trim();
+        const linkMatch = item.match(/<link>(https?:\/\/[^\s<]+)<\/link>/);
+        const guidMatch = item.match(/<guid[^>]*>(https?:\/\/[^\s<]+)<\/guid>/);
+        const link = (linkMatch?.[1] ?? guidMatch?.[1] ?? "").trim();
+        const pubDate = (item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "").trim();
+        const rawSource = item.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] ?? "";
+        const source = rawSource.replace(/&amp;/g, "&").trim() || "Google Hírek";
+        // Only keep if the article title contains at least one of the key search words
+        const at = title.toLowerCase();
+        if (!title || !link || !kws.some(kw => at.includes(kw))) return null;
+        return { title, link, pubDate, description: "", source };
+      }).filter(Boolean) as Article[];
+    }
+
+    let articles: Article[] = [];
+    try {
+      articles = await fetchNews(specificQuery);
     } catch (fetchErr) {
       req.log.error({ fetchErr }, "news fetch error");
     }
