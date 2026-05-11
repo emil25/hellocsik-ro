@@ -982,7 +982,7 @@ const MAJALIS_HIGHLIGHTS = [
 ];
 
 function MajalisSection() {
-  const { data: event, isLoading } = useGetEvent(45);
+  const { data: event, isLoading } = useGetEvent(3);
   const timeLeft = useCountdown(event?.startDate ?? null);
   const pad = (n: number) => String(n).padStart(2, "0");
 
