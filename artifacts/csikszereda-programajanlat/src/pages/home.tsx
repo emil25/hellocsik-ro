@@ -1076,13 +1076,6 @@ function MajalisSection() {
                     Teljes program <ArrowRight className="w-4 h-4" />
                   </button>
                 </Link>
-                {event.ticketUrl && (
-                  <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
-                    <button className="px-6 py-3 border-2 border-emerald-600 text-emerald-700 font-bold text-sm rounded-xl hover:bg-emerald-50 transition-colors">
-                      Jegyvásárlás
-                    </button>
-                  </a>
-                )}
               </div>
             </div>
           </div>
