@@ -785,11 +785,19 @@ function useCountdown(targetDate: string | null) {
   return timeLeft;
 }
 
-const TEDX_PILLARS = [
-  { label: "Hagyomány", desc: "Erdélyi gyökerek és közösségi értékek", icon: "🌿" },
-  { label: "Innováció", desc: "Jövőbe mutató ötletek és technológia", icon: "💡" },
-  { label: "Felelősség", desc: "Tudatos, fenntartható életmód", icon: "🤝" },
-  { label: "Inspiráció", desc: "Előadók, akik megváltoztatják a nézőpontod", icon: "✨" },
+const TEDX_SPEAKERS = [
+  { name: "Martini Réka",         role: "Energiastratéga · MVM Csoport",   photo: "/tedx-speakers/martini.webp" },
+  { name: "Dr. Munzlinger Attila",role: "Családorvos & asztrofotós",        photo: "/tedx-speakers/munzlinger.webp" },
+  { name: "Vladimir Anton",       role: "Színházi rendező",                  photo: "/tedx-speakers/vladimir.webp" },
+  { name: "Gáll Tímea",           role: "TEDx előadó",                       photo: "/tedx-speakers/gall.webp" },
+  { name: "Hausmann Cecília",     role: "Luster Manufaktúra alapítója",      photo: "/tedx-speakers/hausmann.webp" },
+  { name: "Józsa Csaba",          role: "TEDx előadó",                       photo: "/tedx-speakers/jozsa.webp" },
+  { name: "Dósa Levente",         role: "TEDx előadó",                       photo: "/tedx-speakers/dosa.webp" },
+  { name: "Fröhlich Orsolya",     role: "TEDx előadó",                       photo: "/tedx-speakers/frohlich.webp" },
+  { name: "Füleki László",        role: "TEDx előadó",                       photo: "/tedx-speakers/fuleki.webp" },
+  { name: "Bíró Bíborka Eszter",  role: "TEDx előadó",                       photo: "/tedx-speakers/biro-biborka.webp" },
+  { name: "Bíró Boróka Júlia",    role: "TEDx előadó",                       photo: "/tedx-speakers/biro-boroka.webp" },
+  { name: "Bujtor Zsófia",        role: "Néprajzkutató · ELTE",              photo: "/tedx-speakers/bujtor.webp" },
 ];
 
 function TEDxSection() {
@@ -903,33 +911,43 @@ function TEDxSection() {
         ) : null}
       </div>
 
-      {/* ── Theme pillars ── */}
+      {/* ── Speakers ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
         <div className="flex items-center gap-3 mb-8">
           <div className="h-px w-8" style={{ background: "#E62B1E" }} />
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(230,43,30,0.8)" }}>Az előadás témái</span>
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(230,43,30,0.8)" }}>Meghívott előadók</span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {TEDX_PILLARS.map((pillar, i) => (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 md:gap-6">
+          {TEDX_SPEAKERS.map((speaker, i) => (
             <motion.div
-              key={pillar.label}
-              initial={{ opacity: 0, y: 20 }}
+              key={speaker.name}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08, duration: 0.4 }}
-              className="p-5 rounded-2xl flex flex-col gap-3"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              transition={{ delay: i * 0.05, duration: 0.35 }}
+              className="flex flex-col items-center gap-2.5 text-center"
             >
-              <span className="text-2xl">{pillar.icon}</span>
-              <div>
-                <p className="font-black text-white text-sm mb-1">{pillar.label}</p>
-                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>{pillar.desc}</p>
+              {/* circular photo with TED-red ring */}
+              <div className="relative shrink-0" style={{ width: 76, height: 76 }}>
+                <div className="absolute inset-0 rounded-full" style={{ background: "linear-gradient(135deg, #E62B1E 0%, #8B0000 100%)", padding: 2 }}>
+                  <div className="w-full h-full rounded-full overflow-hidden" style={{ background: "#111" }}>
+                    <img
+                      src={speaker.photo}
+                      alt={speaker.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="w-6 h-0.5 rounded-full mt-auto" style={{ background: "#E62B1E" }} />
+              <div>
+                <p className="text-xs font-bold leading-tight text-white">{speaker.name}</p>
+                <p className="text-[10px] leading-tight mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{speaker.role}</p>
+              </div>
             </motion.div>
           ))}
         </div>
 
-        <div className="mt-8 flex justify-center">
+        <div className="mt-10 flex justify-center">
           <a href="https://www.tedxcsikszereda.ro/" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-70"
             style={{ color: "rgba(255,255,255,0.5)" }}>
