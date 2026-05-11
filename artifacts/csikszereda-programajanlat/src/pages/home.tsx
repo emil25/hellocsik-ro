@@ -786,204 +786,150 @@ function useCountdown(targetDate: string | null) {
   return timeLeft;
 }
 
-// ── Individual highlight event card (terracotta theme, image right) ──────────
-function HighlightSectionTerracotta({ event }: { event: ApiEvent }) {
-  const timeLeft = useCountdown(event.startDate);
+const MAJALIS_HIGHLIGHTS = [
+  { icon: "🎡", label: "Vidámpark & játékok", desc: "Óriáskerék, körhinta, gyerekjátékok" },
+  { icon: "🎶", label: "Élő zene & koncertek", desc: "Helyi és meghívott előadók a színpadon" },
+  { icon: "🍽️", label: "Gasztronómia", desc: "Helyi ételek, street food, csíki finomságok" },
+  { icon: "🎨", label: "Kézművesség", desc: "Erdélyi népi mesterségek és alkotóműhelyek" },
+  { icon: "🏃", label: "Sport & mozgás", desc: "Verseny, torna, aktív programok minden korosztálynak" },
+  { icon: "👨‍👩‍👧", label: "Egész napos program", desc: "Reggeltől estig szórakozás a családnak" },
+];
+
+function MajalisSection() {
+  const { data, isLoading } = useListFeaturedEvents();
+  const event = (data?.events ?? []).filter(e => e.monthHighlight).slice(0, 2)[1] ?? null;
+  const timeLeft = useCountdown(event?.startDate ?? null);
   const pad = (n: number) => String(n).padStart(2, "0");
+
+  if (isLoading) return <Skeleton className="h-[520px] rounded-none" />;
+  if (!event) return null;
+
   return (
-    <section style={{ background: "linear-gradient(135deg, #1c0a04 0%, #3b0f06 35%, #7c2d12 70%, #431407 100%)" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-          {/* Left: content */}
-          <motion.div
-            initial={{ opacity: 0, x: -32 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col gap-6"
-          >
-            {/* Badge */}
-            <div className="flex items-center gap-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-700/50" style={{ background: "rgba(255,160,50,0.12)" }}>
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Kiemelt program · {new Date(event.startDate).getFullYear()}</span>
-              </div>
-              {event.category && (
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
-                  {event.category.name}
-                </span>
-              )}
-            </div>
+    <section style={{ background: "linear-gradient(180deg, #f0faf2 0%, #d1fae5 30%, #064e3b 100%)" }}>
+      {/* ── Event card ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-0">
+        {/* Section badge */}
+        <div className="flex items-center gap-2 mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: "linear-gradient(135deg, #065f46, #047857)", boxShadow: "0 4px 14px rgba(6,95,70,0.3)" }}>
+            <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
+            <span className="text-xs font-bold uppercase tracking-widest text-emerald-100">Csíkszereda legnagyobb tavaszi ünnepe</span>
+          </div>
+        </div>
 
-            {/* Title */}
+        <div className="grid md:grid-cols-2 gap-0 rounded-t-3xl overflow-hidden shadow-2xl shadow-emerald-900/30">
+          {/* Left: details + countdown */}
+          <div className="p-8 md:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(145deg, #ffffff 0%, #f0fdf4 60%, #dcfce7 100%)" }}>
             <div>
-              <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-3">{event.title}</h2>
-              <p className="text-sm text-orange-100/75 leading-relaxed">{event.description}</p>
-            </div>
+              {/* Title block */}
+              <div className="mb-5">
+                <p className="text-xs font-black uppercase tracking-[0.2em] mb-1" style={{ color: "#059669" }}>Csíki</p>
+                <h2 className="text-4xl md:text-5xl font-black leading-none mb-1" style={{ color: "#064e3b" }}>
+                  Majális
+                </h2>
+                <p className="text-base font-semibold" style={{ color: "#047857" }}>A családok hétvégéje</p>
+              </div>
 
-            {/* Meta */}
-            <div className="flex flex-wrap gap-4 text-sm text-orange-200/80">
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-amber-400" />
-                {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-amber-400" />
-                {event.location}
-              </span>
-              {event.price && (
+              <p className="text-sm text-slate-600 leading-relaxed mb-6">{event.description}</p>
+
+              <div className="flex flex-wrap gap-4 text-xs text-slate-500 mb-6">
                 <span className="flex items-center gap-1.5">
-                  <Ticket className="w-4 h-4 text-amber-400" />
-                  {event.price}
+                  <Calendar className="w-3.5 h-3.5" style={{ color: "#059669" }} />
+                  {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
                 </span>
-              )}
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" style={{ color: "#059669" }} />
+                  {event.location}
+                </span>
+                {event.price && (
+                  <span className="flex items-center gap-1.5">
+                    <Ticket className="w-3.5 h-3.5" style={{ color: "#059669" }} />
+                    {event.price}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Countdown */}
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400/70 mb-2">Visszaszámláló</p>
-              <div className="grid grid-cols-4 gap-2 max-w-xs">
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#059669" }}>Visszaszámláló</p>
+              <div className="grid grid-cols-4 gap-2 mb-6">
                 {[
                   { value: pad(timeLeft.days), label: "NAP" },
                   { value: pad(timeLeft.hours), label: "ÓRA" },
                   { value: pad(timeLeft.minutes), label: "PERC" },
                   { value: pad(timeLeft.seconds), label: "MP" },
                 ].map(({ value, label }) => (
-                  <div key={label} className="flex flex-col items-center justify-center rounded-xl py-3 px-2" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,160,50,0.2)" }}>
+                  <div key={label} className="flex flex-col items-center justify-center rounded-2xl py-3" style={{ background: "linear-gradient(135deg, #065f46, #047857)" }}>
                     <span className="text-2xl font-black leading-none text-white">{value}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-widest mt-1 text-amber-400">{label}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest mt-1 text-emerald-200">{label}</span>
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* CTAs */}
-            <div className="flex gap-3 flex-wrap">
-              <Link href={`/esemeny/${event.id}`}>
-                <button className="flex items-center gap-2 px-6 py-3 font-bold text-sm rounded-xl text-white transition-all hover:scale-105" style={{ background: "linear-gradient(135deg, #ea580c, #dc2626)" }}>
-                  Teljes program <ArrowRight className="w-4 h-4" />
-                </button>
-              </Link>
-              {event.ticketUrl && (
-                <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
-                  <button className="flex items-center gap-2 px-6 py-3 border border-orange-600/50 text-orange-200 font-semibold text-sm rounded-xl hover:bg-white/10 transition-colors">
-                    <ExternalLink className="w-3.5 h-3.5" /> Hivatalos oldal
+              <div className="flex gap-3 flex-wrap">
+                <Link href={`/esemeny/${event.id}`}>
+                  <button className="flex items-center gap-2 px-6 py-3 font-bold text-sm rounded-xl text-white transition-all hover:scale-105 shadow-lg shadow-emerald-700/30" style={{ background: "linear-gradient(135deg, #059669, #047857)" }}>
+                    Teljes program <ArrowRight className="w-4 h-4" />
                   </button>
-                </a>
-              )}
+                </Link>
+                {event.ticketUrl && (
+                  <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
+                    <button className="px-6 py-3 border-2 border-emerald-600 text-emerald-700 font-bold text-sm rounded-xl hover:bg-emerald-50 transition-colors">
+                      Jegyvásárlás
+                    </button>
+                  </a>
+                )}
+              </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Right: poster image */}
-          <motion.div
-            initial={{ opacity: 0, x: 32 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="relative"
-          >
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/60 aspect-[4/5]">
-              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(30,10,5,0.6) 0%, transparent 50%)" }} />
-            </div>
-            {/* Decorative glow */}
-            <div className="absolute -inset-4 rounded-3xl opacity-30 blur-2xl -z-10" style={{ background: "radial-gradient(ellipse, #ea580c 0%, transparent 70%)" }} />
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── Individual highlight event card (forest-green theme, image left) ──────────
-function HighlightSectionGreen({ event }: { event: ApiEvent }) {
-  return (
-    <section style={{ background: "linear-gradient(135deg, #052010 0%, #0a3d1f 40%, #166534 75%, #052e12 100%)" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-          {/* Left: poster image */}
-          <motion.div
-            initial={{ opacity: 0, x: -32 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="relative order-2 md:order-1"
-          >
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/60 aspect-[4/5]">
-              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(5,32,16,0.55) 0%, transparent 50%)" }} />
-              {event.category && (
-                <div className="absolute top-4 left-4">
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
-                    {event.category.name}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="absolute -inset-4 rounded-3xl opacity-25 blur-2xl -z-10" style={{ background: "radial-gradient(ellipse, #22c55e 0%, transparent 70%)" }} />
-          </motion.div>
-
-          {/* Right: content */}
-          <motion.div
-            initial={{ opacity: 0, x: 32 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex flex-col gap-6 order-1 md:order-2"
-          >
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-green-500/30 self-start" style={{ background: "rgba(34,197,94,0.1)" }}>
-              <Sparkles className="w-3 h-3 text-green-300" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-green-300">Kiemelt program · {new Date(event.startDate).getFullYear()}</span>
-            </div>
-
-            {/* Title */}
-            <div>
-              <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-3">{event.title}</h2>
-              <p className="text-sm text-green-100/75 leading-relaxed">{event.description}</p>
-            </div>
-
-            {/* Meta */}
-            <div className="flex flex-col gap-3 text-sm text-green-200/80">
-              <span className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-green-400 shrink-0" />
-                {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
-              </span>
-              <span className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-green-400 shrink-0" />
-                {event.location}{event.locationAddress ? ` · ${event.locationAddress}` : ""}
-              </span>
-              {event.price && (
-                <span className="flex items-center gap-2">
-                  <Ticket className="w-4 h-4 text-green-400 shrink-0" />
-                  {event.price}
+          {/* Right: poster */}
+          <div className="relative min-h-[360px]">
+            <img src={event.imageUrl} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,78,59,0.55) 0%, transparent 55%)" }} />
+            {event.category && (
+              <div className="absolute top-4 left-4">
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
+                  {event.category.name}
                 </span>
-              )}
-            </div>
-
-            {/* Tags */}
-            {event.tags && event.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {event.tags.map((tag: string) => (
-                  <span key={tag} className="text-xs px-3 py-1 rounded-full font-medium text-green-300 border border-green-600/40" style={{ background: "rgba(34,197,94,0.08)" }}>
-                    #{tag}
-                  </span>
-                ))}
               </div>
             )}
-
-            {/* CTAs */}
-            <div className="flex gap-3 flex-wrap pt-2">
-              <Link href={`/esemeny/${event.id}`}>
-                <button className="flex items-center gap-2 px-6 py-3 font-bold text-sm rounded-xl text-white transition-all hover:scale-105" style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}>
-                  Teljes program <ArrowRight className="w-4 h-4" />
-                </button>
-              </Link>
-              {event.ticketUrl && (
-                <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
-                  <button className="flex items-center gap-2 px-6 py-3 border border-green-600/50 text-green-200 font-semibold text-sm rounded-xl hover:bg-white/10 transition-colors">
-                    <ExternalLink className="w-3.5 h-3.5" /> Jegyvásárlás
-                  </button>
-                </a>
-              )}
+            <div className="absolute bottom-0 left-0 right-0 p-6">
+              <p className="text-white/80 text-sm font-medium">
+                📅 {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""} &nbsp;·&nbsp; 📍 {event.location}
+              </p>
             </div>
-          </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Program highlights ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-4 h-4 text-emerald-300" />
+              <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Mit találsz ott?</span>
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold text-white">A majális kínálata</h3>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          {MAJALIS_HIGHLIGHTS.map((item, i) => (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.07, duration: 0.4 }}
+              className="flex flex-col items-center text-center p-4 rounded-2xl"
+              style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}
+            >
+              <span className="text-3xl mb-3">{item.icon}</span>
+              <p className="font-bold text-sm text-white leading-tight mb-1">{item.label}</p>
+              <p className="text-xs text-emerald-200/70 leading-snug">{item.desc}</p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
@@ -991,26 +937,7 @@ function HighlightSectionGreen({ event }: { event: ApiEvent }) {
 }
 
 function FeaturedProgramSection() {
-  const { data, isLoading } = useListFeaturedEvents();
-  const highlights = (data?.events ?? []).filter(e => e.monthHighlight).slice(0, 2);
-
-  if (isLoading) {
-    return (
-      <div className="py-6 space-y-4 px-4">
-        <Skeleton className="h-80 rounded-none" />
-        <Skeleton className="h-80 rounded-none" />
-      </div>
-    );
-  }
-
-  if (!highlights.length) return null;
-
-  return (
-    <>
-      <HighlightSectionTerracotta event={highlights[0]} />
-      {highlights[1] && <HighlightSectionGreen event={highlights[1]} />}
-    </>
-  );
+  return <MajalisSection />;
 }
 
 // ─── VENUES MAP ─────────────────────────────────────────────────────────────

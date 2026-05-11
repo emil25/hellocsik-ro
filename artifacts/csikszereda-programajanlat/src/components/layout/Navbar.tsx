@@ -29,8 +29,8 @@ export function Navbar() {
               <img
                 src={hellocsikLogo}
                 alt="hellocsík"
-                className="h-9 w-auto object-contain transition-opacity group-hover:opacity-85"
-                style={{ maxWidth: 160 }}
+                className="h-11 w-auto object-contain transition-opacity group-hover:opacity-85"
+                style={{ maxWidth: 220 }}
               />
             </Link>
 
