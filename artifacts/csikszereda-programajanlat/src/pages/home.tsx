@@ -762,8 +762,7 @@ function CinemaSection() {
   );
 }
 
-// ─── BOOK FAIR SECTION (event + countdown + guests) ─────────────────────────
-
+// ─── TEDX SECTION (a hét eseménye) ──────────────────────────────────────────
 
 function useCountdown(targetDate: string | null) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -784,6 +783,162 @@ function useCountdown(targetDate: string | null) {
     return () => clearInterval(id);
   }, [targetDate]);
   return timeLeft;
+}
+
+const TEDX_PILLARS = [
+  { label: "Hagyomány", desc: "Erdélyi gyökerek és közösségi értékek", icon: "🌿" },
+  { label: "Innováció", desc: "Jövőbe mutató ötletek és technológia", icon: "💡" },
+  { label: "Felelősség", desc: "Tudatos, fenntartható életmód", icon: "🤝" },
+  { label: "Inspiráció", desc: "Előadók, akik megváltoztatják a nézőpontod", icon: "✨" },
+];
+
+function TEDxSection() {
+  const { data: event, isLoading } = useGetEvent(15);
+  const timeLeft = useCountdown(event?.startDate ?? null);
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return (
+    <section style={{ background: "linear-gradient(180deg, #0a0a0a 0%, #1a0505 40%, #2a0808 100%)" }}>
+      {/* ── Event card ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-0">
+
+        {/* Section badge */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: "#E62B1E" }}>
+            <span className="text-xs font-black uppercase tracking-widest text-white">A hét eseménye</span>
+          </div>
+          <div className="h-px flex-1 opacity-20" style={{ background: "linear-gradient(to right, #E62B1E, transparent)" }} />
+        </div>
+
+        {isLoading ? (
+          <Skeleton className="h-80 rounded-3xl mb-0" style={{ background: "#1a1a1a" }} />
+        ) : event ? (
+          <div className="grid md:grid-cols-2 gap-0 rounded-t-3xl overflow-hidden" style={{ boxShadow: "0 25px 60px rgba(230,43,30,0.25)" }}>
+            {/* Left: details */}
+            <div className="p-8 md:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(145deg, #111111 0%, #1a0a0a 100%)", borderRight: "1px solid rgba(230,43,30,0.2)" }}>
+              <div>
+                {/* TEDx wordmark */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="px-3 py-1 rounded font-black text-white text-sm tracking-tight" style={{ background: "#E62B1E" }}>
+                    TEDx
+                  </div>
+                  <div className="h-px flex-1" style={{ background: "rgba(230,43,30,0.3)" }} />
+                </div>
+
+                {/* Theme title */}
+                <div className="mb-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style={{ color: "#E62B1E" }}>Csíkszereda · 2026</p>
+                  <h2 className="font-black leading-none mb-1" style={{ color: "white", fontSize: "clamp(2rem, 5vw, 3.5rem)", letterSpacing: "-0.02em" }}>
+                    ECHOES OF<br />THE FUTURE
+                  </h2>
+                  <p className="text-sm mt-3" style={{ color: "rgba(255,255,255,0.55)" }}>{event.description}</p>
+                </div>
+
+                <div className="flex flex-col gap-2.5 text-sm mb-6" style={{ color: "rgba(255,255,255,0.65)" }}>
+                  <span className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 shrink-0" style={{ color: "#E62B1E" }} />
+                    {formatShortDate(event.startDate)}, 13:00–20:00
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: "#E62B1E" }} />
+                    {event.location}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Ticket className="w-3.5 h-3.5 shrink-0" style={{ color: "#E62B1E" }} />
+                    {event.price}
+                  </span>
+                </div>
+              </div>
+
+              {/* Countdown */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(230,43,30,0.7)" }}>Visszaszámláló</p>
+                <div className="grid grid-cols-4 gap-2 mb-6">
+                  {[
+                    { value: pad(timeLeft.days), label: "NAP" },
+                    { value: pad(timeLeft.hours), label: "ÓRA" },
+                    { value: pad(timeLeft.minutes), label: "PERC" },
+                    { value: pad(timeLeft.seconds), label: "MP" },
+                  ].map(({ value, label }) => (
+                    <div key={label} className="flex flex-col items-center justify-center rounded-xl py-3" style={{ background: "rgba(230,43,30,0.12)", border: "1px solid rgba(230,43,30,0.3)" }}>
+                      <span className="text-2xl font-black leading-none text-white">{value}</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest mt-1" style={{ color: "#E62B1E" }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-3 flex-wrap">
+                  <Link href={`/esemeny/${event.id}`}>
+                    <button className="flex items-center gap-2 px-6 py-3 font-black text-sm rounded-xl text-white transition-all hover:opacity-90" style={{ background: "#E62B1E" }}>
+                      Részletek <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </Link>
+                  {event.ticketUrl && (
+                    <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
+                      <button className="flex items-center gap-2 px-6 py-3 font-bold text-sm rounded-xl transition-colors" style={{ border: "1px solid rgba(230,43,30,0.4)", color: "rgba(255,255,255,0.8)" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(230,43,30,0.1)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> Jegyvásárlás
+                      </button>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: poster */}
+            <div className="relative min-h-[380px]">
+              <img src={event.imageUrl} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,0,0,0.7) 0%, transparent 50%)" }} />
+              {/* TED watermark overlay */}
+              <div className="absolute inset-0 flex items-end p-6">
+                <div>
+                  <p className="font-black text-5xl md:text-6xl leading-none select-none" style={{ color: "rgba(230,43,30,0.18)", letterSpacing: "-0.04em" }}>TED<span style={{ color: "rgba(255,255,255,0.08)" }}>x</span></p>
+                  <p className="text-white/60 text-sm font-medium mt-1">{event.location}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* ── Theme pillars ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="h-px w-8" style={{ background: "#E62B1E" }} />
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(230,43,30,0.8)" }}>Az előadás témái</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {TEDX_PILLARS.map((pillar, i) => (
+            <motion.div
+              key={pillar.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08, duration: 0.4 }}
+              className="p-5 rounded-2xl flex flex-col gap-3"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <span className="text-2xl">{pillar.icon}</span>
+              <div>
+                <p className="font-black text-white text-sm mb-1">{pillar.label}</p>
+                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>{pillar.desc}</p>
+              </div>
+              <div className="w-6 h-0.5 rounded-full mt-auto" style={{ background: "#E62B1E" }} />
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <a href="https://www.tedxcsikszereda.ro/" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-70"
+            style={{ color: "rgba(255,255,255,0.5)" }}>
+            tedxcsikszereda.ro <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 const MAJALIS_HIGHLIGHTS = [
@@ -1059,6 +1214,7 @@ export default function Home() {
       <WeeklyCalendar />
       <UpcomingEvents />
       <MonthHighlight />
+      <TEDxSection />
       <FeaturedProgramSection />
       <CinemaSection />
       <VenuesSection />
