@@ -173,6 +173,23 @@ export default function EventDetail() {
                 ))}
               </div>
             )}
+
+            {event.imageUrl && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.35 }}
+                className="mt-8"
+              >
+                <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3">Plakát</p>
+                <img
+                  src={event.imageUrl}
+                  alt={`${event.title} – plakát`}
+                  className="w-full rounded-2xl border border-stone-100 shadow-md object-cover"
+                  style={{ maxHeight: "520px", objectPosition: "top" }}
+                />
+              </motion.div>
+            )}
           </div>
 
           {/* Right: info card */}
