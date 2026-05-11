@@ -763,50 +763,6 @@ function CinemaSection() {
 
 // ─── BOOK FAIR SECTION (event + countdown + guests) ─────────────────────────
 
-const BOOK_FAIR_GUESTS = [
-  {
-    name: "Ferenczes István",
-    role: "erdélyi magyar költő",
-    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Ferenczes_Istvan-scaled-e1681813619647.jpg",
-    url: "https://csikszeredaikonyvvasar.ro/ferenczes-istvan/",
-    gradient: "from-violet-500 to-purple-700",
-  },
-  {
-    name: "Zalán Tibor",
-    role: "költő, író, dramaturg",
-    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Zalan_Tibor-scaled-e1681813693770.jpg",
-    url: "https://csikszeredaikonyvvasar.ro/zalan-tibor/",
-    gradient: "from-blue-500 to-indigo-700",
-  },
-  {
-    name: "Lackfi János",
-    role: "költő, műfordító",
-    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Lackfi_Janos-scaled.jpg",
-    url: "https://csikszeredaikonyvvasar.ro/lackfi-janos/",
-    gradient: "from-emerald-500 to-teal-700",
-  },
-  {
-    name: "André Ferenc",
-    role: "erdélyi magyar prózaíró",
-    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Andre_Ferenc-scaled-e1681813769730.jpg",
-    url: "https://csikszeredaikonyvvasar.ro/andre-ferenc/",
-    gradient: "from-amber-500 to-orange-700",
-  },
-  {
-    name: "László Noémi",
-    role: "erdélyi magyar költő",
-    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Laszlo_Noemi-scaled-e1681813715348.jpg",
-    url: "https://csikszeredaikonyvvasar.ro/laszlo-noemi/",
-    gradient: "from-rose-500 to-pink-700",
-  },
-  {
-    name: "Tasi Katalin",
-    role: "irodalomtörténész, kritikus",
-    img: "https://csikszeredaikonyvvasar.ro/wp-content/uploads/2023/04/Tasi_Kata-scaled.jpg",
-    url: "https://csikszeredaikonyvvasar.ro/tasi-katalin/",
-    gradient: "from-cyan-500 to-sky-700",
-  },
-];
 
 function useCountdown(targetDate: string | null) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -829,151 +785,183 @@ function useCountdown(targetDate: string | null) {
   return timeLeft;
 }
 
-function BookFairSection() {
-  const { data: event, isLoading } = useGetEvent("2");
-  const timeLeft = useCountdown(event?.startDate ?? null);
+function FeaturedProgramSection() {
+  const { data, isLoading } = useListFeaturedEvents();
+  const highlights = (data?.events ?? []).filter(e => e.monthHighlight).slice(0, 2);
+  const main = highlights[0] ?? null;
+  const secondary = highlights[1] ?? null;
+  const timeLeft = useCountdown(main?.startDate ?? null);
   const pad = (n: number) => String(n).padStart(2, "0");
 
+  if (!isLoading && !main) return null;
+
   return (
-    <section style={{ background: "linear-gradient(180deg, #f0f6ff 0%, #dbeafe 40%, #1e3a6e 100%)" }}>
-      {/* ── Event card ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-0">
+    <section style={{ background: "linear-gradient(180deg, #faf7f2 0%, #f0e8d8 35%, #2d1a0e 100%)" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16">
+        {/* Header */}
+        <div className="mb-10">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="w-4 h-4 text-secondary" />
+            <span className="text-xs font-bold text-secondary uppercase tracking-widest">Nagy programok</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground">A közelgő kiemelt programok</h2>
+        </div>
+
         {isLoading ? (
-          <Skeleton className="h-72 rounded-3xl mb-0" />
-        ) : event ? (
-          <div className="grid md:grid-cols-2 gap-0 rounded-t-3xl overflow-hidden shadow-2xl">
-            {/* Left: details + countdown */}
-            <div className="p-8 md:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(135deg, #fffdf7 0%, #fff8ed 100%)" }}>
-              <div>
-                {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5" style={{ background: "#fff3cd", border: "1px solid #f59e0b44" }}>
-                  <Sparkles className="w-3.5 h-3.5" style={{ color: "#d97706" }} />
-                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#d97706" }}>
-                    Kiemelt program · {new Date(event.startDate).getFullYear()}
-                  </span>
-                </div>
-                {/* Title in könyvvásár style */}
-                <div className="mb-4">
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Csíkszeredai</p>
-                  <h2 className="text-4xl md:text-5xl font-black leading-none" style={{ color: "#d97706" }}>
-                    Könyvvásár
-                  </h2>
-                </div>
-                <p className="text-sm text-slate-600 leading-relaxed mb-5">{event.description}</p>
-                <div className="flex flex-wrap gap-4 text-xs text-slate-500 mb-6">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                    {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                    {event.location}
-                  </span>
-                  {event.price && (
-                    <span className="flex items-center gap-1.5">
-                      <Ticket className="w-3.5 h-3.5 text-blue-600" />
-                      {event.price}
-                    </span>
+          <div className="grid md:grid-cols-2 gap-6">
+            <Skeleton className="h-80 rounded-3xl" />
+            <Skeleton className="h-80 rounded-3xl" />
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6 items-start">
+            {/* ── Main event (large, with countdown) ── */}
+            {main && (
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="rounded-3xl overflow-hidden shadow-2xl"
+              >
+                {/* Image */}
+                <div className="relative h-56 overflow-hidden">
+                  <img src={main.imageUrl} alt={main.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(20,10,5,0.65) 0%, transparent 55%)" }} />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "rgba(180,80,20,0.92)", backdropFilter: "blur(4px)" }}>
+                      <Sparkles className="w-3 h-3 text-amber-200" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-100">Kiemelt program</span>
+                    </div>
+                  </div>
+                  {main.category && (
+                    <div className="absolute top-4 right-4">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: main.category.color }}>
+                        {main.category.name}
+                      </span>
+                    </div>
                   )}
                 </div>
-              </div>
-              {/* Countdown */}
-              <div>
-                <div className="grid grid-cols-4 gap-2 mb-5">
-                  {[
-                    { value: pad(timeLeft.days), label: "NAP" },
-                    { value: pad(timeLeft.hours), label: "ÓRA" },
-                    { value: pad(timeLeft.minutes), label: "PERC" },
-                    { value: pad(timeLeft.seconds), label: "MP" },
-                  ].map(({ value, label }) => (
-                    <div key={label} className="flex flex-col items-center justify-center rounded-xl py-3" style={{ background: "#1e3a6e" }}>
-                      <span className="text-xl font-bold leading-none text-white">{value}</span>
-                      <span className="text-[9px] font-bold uppercase tracking-widest mt-1" style={{ color: "#93c5fd" }}>{label}</span>
+                {/* Details */}
+                <div className="p-7 flex flex-col gap-4" style={{ background: "linear-gradient(135deg, #fffdf7 0%, #fff8ed 100%)" }}>
+                  <div>
+                    <h3 className="text-2xl font-black leading-tight mb-2" style={{ color: "#7c2d12" }}>{main.title}</h3>
+                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">{main.description}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-primary" />
+                      {formatShortDate(main.startDate)}{main.endDate ? ` – ${formatShortDate(main.endDate)}` : ""}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-primary" />
+                      {main.location}
+                    </span>
+                    {main.price && (
+                      <span className="flex items-center gap-1.5">
+                        <Ticket className="w-3.5 h-3.5 text-primary" />
+                        {main.price}
+                      </span>
+                    )}
+                  </div>
+                  {/* Countdown */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { value: pad(timeLeft.days), label: "NAP" },
+                      { value: pad(timeLeft.hours), label: "ÓRA" },
+                      { value: pad(timeLeft.minutes), label: "PERC" },
+                      { value: pad(timeLeft.seconds), label: "MP" },
+                    ].map(({ value, label }) => (
+                      <div key={label} className="flex flex-col items-center justify-center rounded-xl py-3" style={{ background: "#7c2d12" }}>
+                        <span className="text-xl font-bold leading-none text-white">{value}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest mt-1 text-orange-200">{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3">
+                    <Link href={`/esemeny/${main.id}`}>
+                      <button className="flex items-center gap-1.5 px-5 py-2.5 font-bold text-sm rounded-xl text-white transition-colors" style={{ background: "#7c2d12" }}>
+                        Részletek <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </Link>
+                    {main.ticketUrl && (
+                      <a href={main.ticketUrl} target="_blank" rel="noopener noreferrer">
+                        <button className="px-5 py-2.5 border border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition-colors">
+                          Hivatalos oldal
+                        </button>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── Secondary event ── */}
+            {secondary && (
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.12 }}
+                className="rounded-3xl overflow-hidden shadow-2xl"
+              >
+                {/* Image – taller since no countdown */}
+                <div className="relative h-72 overflow-hidden">
+                  <img src={secondary.imageUrl} alt={secondary.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(20,10,5,0.72) 0%, transparent 50%)" }} />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "rgba(30,90,40,0.90)", backdropFilter: "blur(4px)" }}>
+                      <Sparkles className="w-3 h-3 text-green-200" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-green-100">Kiemelt program</span>
                     </div>
-                  ))}
+                  </div>
+                  {secondary.category && (
+                    <div className="absolute top-4 right-4">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: secondary.category.color }}>
+                        {secondary.category.name}
+                      </span>
+                    </div>
+                  )}
+                  {/* Title overlay on image */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="text-2xl font-black text-white leading-tight mb-1">{secondary.title}</h3>
+                    <div className="flex flex-wrap gap-3 text-xs text-white/80">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {formatShortDate(secondary.startDate)}{secondary.endDate ? ` – ${formatShortDate(secondary.endDate)}` : ""}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5" />
+                        {secondary.location}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <Link href={`/esemeny/${event.id}`}>
-                    <button className="flex items-center gap-1.5 px-5 py-2.5 font-bold text-sm rounded-xl text-white transition-colors" style={{ background: "#d97706" }}>
-                      Teljes program <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </Link>
-                  <a href="https://csikszeredaikonyvvasar.ro" target="_blank" rel="noopener noreferrer">
-                    <button className="px-5 py-2.5 border border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition-colors">
-                      Hivatalos oldal
-                    </button>
-                  </a>
+                {/* Details */}
+                <div className="p-7 flex flex-col gap-4" style={{ background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)" }}>
+                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">{secondary.description}</p>
+                  {secondary.price && (
+                    <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <Ticket className="w-3.5 h-3.5 text-primary" />
+                      {secondary.price}
+                    </span>
+                  )}
+                  <div className="flex gap-3">
+                    <Link href={`/esemeny/${secondary.id}`}>
+                      <button className="flex items-center gap-1.5 px-5 py-2.5 font-bold text-sm rounded-xl text-white transition-colors bg-primary hover:bg-primary/90">
+                        Részletek <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </Link>
+                    {secondary.ticketUrl && (
+                      <a href={secondary.ticketUrl} target="_blank" rel="noopener noreferrer">
+                        <button className="px-5 py-2.5 border border-slate-300 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition-colors">
+                          Hivatalos oldal
+                        </button>
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-            {/* Right: poster */}
-            <div className="relative min-h-[320px]">
-              <img src={event.imageUrl} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(30,58,110,0.5) 0%, transparent 60%)" }} />
-              {event.category && (
-                <div className="absolute top-4 left-4">
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
-                    {event.category.name}
-                  </span>
-                </div>
-              )}
-            </div>
+              </motion.div>
+            )}
           </div>
-        ) : null}
-      </div>
-
-      {/* ── Guests ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span className="text-xs font-bold text-amber-300 uppercase tracking-widest">Meghívott vendégek</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white">A könyvvásár sztárjai</h2>
-          </div>
-          <a
-            href="https://csikszeredaikonyvvasar.ro/meghivottak/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden md:flex items-center gap-1.5 text-sm text-blue-200 hover:text-white transition-colors"
-          >
-            Összes részlet <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-          {BOOK_FAIR_GUESTS.map((guest, i) => (
-            <motion.a
-              key={guest.name}
-              href={guest.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07, duration: 0.4 }}
-              className="group flex flex-col items-center text-center"
-            >
-              <div className={`relative w-full aspect-square rounded-2xl overflow-hidden mb-3 bg-gradient-to-br ${guest.gradient} ring-2 ring-white/10 group-hover:ring-white/40 transition-all duration-300`}>
-                <img
-                  src={guest.img}
-                  alt={guest.name}
-                  className="w-full h-full object-cover object-top mix-blend-luminosity opacity-85 group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              </div>
-              <p className="font-bold text-sm text-white leading-tight">{guest.name}</p>
-              <p className="text-xs mt-0.5" style={{ color: "#93c5fd" }}>{guest.role}</p>
-            </motion.a>
-          ))}
-        </div>
-
-        <div className="flex justify-center mt-6 md:hidden">
-          <a href="https://csikszeredaikonyvvasar.ro/meghivottak/" target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-blue-200 hover:text-white transition-colors">
-            Összes részlet <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
+        )}
       </div>
     </section>
   );
@@ -1098,7 +1086,7 @@ export default function Home() {
       <WeeklyCalendar />
       <UpcomingEvents />
       <MonthHighlight />
-      <BookFairSection />
+      <FeaturedProgramSection />
       <CinemaSection />
       <VenuesSection />
       <AddEventSection />

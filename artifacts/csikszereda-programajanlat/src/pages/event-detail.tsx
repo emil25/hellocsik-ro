@@ -44,7 +44,7 @@ export default function EventDetail() {
 
   const { data: relatedData } = useListEvents(
     event?.categoryId ? { categoryId: event.categoryId, limit: 4 } : undefined,
-    { query: { enabled: !!event?.categoryId } }
+    { query: { enabled: !!event?.categoryId, queryKey: ["events", "related", event?.categoryId] } }
   );
   const related = (relatedData?.events ?? []).filter(e => e.id !== id).slice(0, 3);
 
