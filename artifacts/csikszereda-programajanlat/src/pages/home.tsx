@@ -415,6 +415,7 @@ function UpcomingEvents() {
   const { data, isLoading } = useListUpcomingEvents({ limit: 50 });
   const { data: catData } = useListCategories();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const rawEvents = data?.events ?? [];
   const categories = catData?.categories ?? [];
 
@@ -482,7 +483,7 @@ function UpcomingEvents() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {isLoading
             ? Array.from({length: 6}).map((_,i) => <Skeleton key={i} className="h-80 rounded-2xl" />)
-            : events.map((event, i) => (
+            : (showAll ? events : events.slice(0, 9)).map((event, i) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -549,6 +550,18 @@ function UpcomingEvents() {
             ))
           }
         </div>
+
+        {/* "See all" button */}
+        {!isLoading && events.length > 9 && (
+          <div className="mt-10 flex justify-center">
+            <button
+              onClick={() => setShowAll(true)}
+              className="flex items-center gap-2 px-8 py-3 rounded-full border-2 border-primary text-primary font-bold text-sm hover:bg-primary hover:text-white transition-all"
+            >
+              Összes {sorted.length} program megtekintése <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
