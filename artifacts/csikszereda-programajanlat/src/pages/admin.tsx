@@ -13,10 +13,11 @@ const API = "/api";
 // ─── IMAGE UPLOAD FIELD ───────────────────────────────────────────────────────
 
 function ImageUploadField({
-  value, onChange
+  value, onChange, onBusyChange
 }: {
   value: string;
   onChange: (url: string) => void;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<"url" | "upload">("url");
@@ -29,9 +30,11 @@ function ImageUploadField({
       onChange(serveUrl);
       setUploadedPreview(serveUrl);
       setUploadError("");
+      onBusyChange?.(false);
     },
     onError: (err) => {
       setUploadError(err.message || "Feltöltési hiba");
+      onBusyChange?.(false);
     },
   });
 
@@ -40,6 +43,7 @@ function ImageUploadField({
     if (!file) return;
     if (!file.type.startsWith("image/")) { setUploadError("Csak képfájl tölthető fel."); return; }
     setUploadError("");
+    onBusyChange?.(true);
     await uploadFile(file);
   }
 
@@ -198,10 +202,11 @@ const inputCls = "w-full px-3 py-2 rounded-xl border border-border text-sm focus
 const labelCls = "block text-xs font-semibold text-muted-foreground mb-1";
 
 function EventFormFields({
-  form, set
+  form, set, onImageBusyChange
 }: {
   form: EventForm;
   set: (field: keyof EventForm, val: string | boolean) => void;
+  onImageBusyChange?: (busy: boolean) => void;
 }) {
   return (
     <>
@@ -253,6 +258,7 @@ function EventFormFields({
       <ImageUploadField
         value={form.imageUrl}
         onChange={url => set("imageUrl", url)}
+        onBusyChange={onImageBusyChange}
       />
 
       <div>
@@ -298,6 +304,7 @@ function CreateModal({
 }) {
   const [form, setForm] = useState<EventForm>(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [error, setError] = useState("");
 
   function set(field: keyof EventForm, val: string | boolean) {
@@ -361,16 +368,16 @@ function CreateModal({
         </div>
 
         <form onSubmit={save} className="px-6 py-5 space-y-4">
-          <CategorySelect form={form} set={set} categories={categories} />
+          <CategorySelect form={form} set={set} categories={categories} onImageBusyChange={setImageUploading} />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
               className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
               Mégsem
             </button>
-            <button type="submit" disabled={saving}
+            <button type="submit" disabled={saving || imageUploading}
               className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-60">
-              {saving ? "Létrehozás..." : "Létrehozás"}
+              {imageUploading ? "Kép feltöltése..." : saving ? "Létrehozás..." : "Létrehozás"}
             </button>
           </div>
         </form>
@@ -402,6 +409,7 @@ function EditModal({
     monthHighlight: ev.monthHighlight,
   });
   const [saving, setSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [error, setError] = useState("");
 
   function set(field: keyof EventForm, val: string | boolean) {
@@ -465,16 +473,16 @@ function EditModal({
         </div>
 
         <form onSubmit={save} className="px-6 py-5 space-y-4">
-          <CategorySelect form={form} set={set} categories={categories} />
+          <CategorySelect form={form} set={set} categories={categories} onImageBusyChange={setImageUploading} />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
               className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
               Mégsem
             </button>
-            <button type="submit" disabled={saving}
+            <button type="submit" disabled={saving || imageUploading}
               className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-60">
-              {saving ? "Mentés..." : "Mentés"}
+              {imageUploading ? "Kép feltöltése..." : saving ? "Mentés..." : "Mentés"}
             </button>
           </div>
         </form>
@@ -524,11 +532,12 @@ function lookupVenueAddress(location: string): string | null {
 
 // Separate component to inject categories into the select
 function CategorySelect({
-  form, set, categories
+  form, set, categories, onImageBusyChange
 }: {
   form: EventForm;
   set: (field: keyof EventForm, val: string | boolean) => void;
   categories: Category[];
+  onImageBusyChange?: (busy: boolean) => void;
 }) {
   const [autoFilled, setAutoFilled] = useState(false);
 
@@ -604,6 +613,7 @@ function CategorySelect({
       <ImageUploadField
         value={form.imageUrl}
         onChange={url => set("imageUrl", url)}
+        onBusyChange={onImageBusyChange}
       />
 
       <div>
