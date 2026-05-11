@@ -960,17 +960,16 @@ function TEDxSection() {
 }
 
 const MAJALIS_HIGHLIGHTS = [
-  { icon: "🎡", label: "Vidámpark & játékok", desc: "Óriáskerék, körhinta, gyerekjátékok" },
-  { icon: "🎶", label: "Élő zene & koncertek", desc: "Helyi és meghívott előadók a színpadon" },
-  { icon: "🍽️", label: "Gasztronómia", desc: "Helyi ételek, street food, csíki finomságok" },
-  { icon: "🎨", label: "Kézművesség", desc: "Erdélyi népi mesterségek és alkotóműhelyek" },
-  { icon: "🏃", label: "Sport & mozgás", desc: "Verseny, torna, aktív programok minden korosztálynak" },
+  { icon: "🎨", label: "Kreatív foglalkozások", desc: "Alkotóműhelyek és játékok a legkisebbeknek" },
+  { icon: "🛍️", label: "Kézművesek vására", desc: "Helyi mesterek portékái egy helyen" },
+  { icon: "🎭", label: "Kulturális programok", desc: "Színes fellépések, előadások egész nap" },
+  { icon: "🌳", label: "Jó hangulat", desc: "Közösség, szabadban, kellemes tavaszi légkör" },
   { icon: "👨‍👩‍👧", label: "Egész napos program", desc: "Reggeltől estig szórakozás a családnak" },
+  { icon: "🧺", label: "Lazulós hétvége", desc: "Pokróc, barátok, friss levegő a parkban" },
 ];
 
 function MajalisSection() {
-  const { data, isLoading } = useListFeaturedEvents();
-  const event = (data?.events ?? []).filter(e => e.monthHighlight).slice(0, 2)[1] ?? null;
+  const { data: event, isLoading } = useGetEvent(45);
   const timeLeft = useCountdown(event?.startDate ?? null);
   const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -1058,17 +1057,10 @@ function MajalisSection() {
 
           {/* Right: poster */}
           <div className="relative min-h-[360px]">
-            <img src={event.imageUrl} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,78,59,0.55) 0%, transparent 55%)" }} />
-            {event.category && (
-              <div className="absolute top-4 left-4">
-                <span className="text-xs font-bold px-3 py-1.5 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
-                  {event.category.name}
-                </span>
-              </div>
-            )}
+            <img src="/majalis-plakat.jpg" alt="Csíki Majális plakát" className="absolute inset-0 w-full h-full object-cover object-top" />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,78,59,0.45) 0%, transparent 60%)" }} />
             <div className="absolute bottom-0 left-0 right-0 p-6">
-              <p className="text-white/80 text-sm font-medium">
+              <p className="text-white/90 text-sm font-semibold drop-shadow">
                 📅 {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""} &nbsp;·&nbsp; 📍 {event.location}
               </p>
             </div>
