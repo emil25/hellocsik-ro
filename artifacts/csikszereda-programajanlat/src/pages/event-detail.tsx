@@ -83,164 +83,140 @@ export default function EventDetail() {
   };
 
   return (
-    <div>
-      {/* ── Hero banner ─────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative w-full overflow-hidden"
-        style={{ height: "clamp(300px, 45vw, 500px)" }}
-      >
-        <img
-          src={event.imageUrl}
-          alt={event.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)" }} />
-
-        {/* Back button */}
-        <div className="absolute top-5 left-5 sm:left-8">
-          <Link href="/">
-            <button className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3.5 py-2 rounded-full transition-all">
-              <ArrowLeft className="w-3.5 h-3.5" /> Vissza
-            </button>
-          </Link>
-        </div>
-
-        {/* Share button */}
-        <div className="absolute top-5 right-5 sm:right-8">
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3.5 py-2 rounded-full transition-all"
-          >
-            <Share2 className="w-3.5 h-3.5" /> Megosztás
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* ── Top nav ─────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between mb-6">
+        <Link href="/">
+          <button className="flex items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-800 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Vissza
           </button>
-        </div>
+        </Link>
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-800 transition-colors"
+        >
+          <Share2 className="w-4 h-4" /> Megosztás
+        </button>
+      </div>
 
-        {/* Bottom overlay content */}
-        <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 pb-7 pt-16">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex flex-wrap items-center gap-2 mb-3">
+      {/* ── Main content ────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="grid md:grid-cols-5 gap-8 lg:gap-12">
+          {/* Left: image + description + tags */}
+          <div className="md:col-span-3 order-2 md:order-1">
+            {/* Image */}
+            <div className="relative rounded-2xl overflow-hidden mb-6 bg-stone-100" style={{ aspectRatio: "16/9" }}>
+              <img
+                src={event.imageUrl}
+                alt={event.title}
+                className="w-full h-full object-cover"
+              />
               {event.category && (
-                <span className="text-xs font-bold px-3 py-1 rounded-full text-white" style={{ backgroundColor: event.category.color }}>
+                <span className="absolute top-3 left-3 text-xs font-bold px-3 py-1.5 rounded-full text-white shadow-sm" style={{ backgroundColor: event.category.color }}>
                   {event.category.name}
                 </span>
               )}
               {event.featured && (
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-400 text-amber-900">
+                <span className="absolute top-3 right-3 text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400 text-amber-900 shadow-sm">
                   ★ Kiemelt
                 </span>
               )}
-              {event.price && (
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center gap-1.5">
-                  <Ticket className="w-3 h-3" />{event.price}
-                </span>
-              )}
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight drop-shadow-md max-w-3xl">
-              {event.title}
-            </h1>
-          </div>
-        </div>
-      </motion.div>
 
-      {/* ── Body ────────────────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.15 }}
-        >
-          <div className="grid md:grid-cols-5 gap-8 lg:gap-12">
-            {/* Left: description + tags */}
-            <div className="md:col-span-3 order-2 md:order-1">
-              <div className="prose prose-stone prose-sm max-w-none text-stone-600 leading-relaxed space-y-4 mb-8">
-                {(event.description ?? "").split(/\n\n+/).map((para, i) => (
-                  <p key={i} className="text-[15px] leading-relaxed text-stone-600">
-                    {para.split(/\n/).map((line, j, arr) => (
-                      <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
-                    ))}
-                  </p>
+            {/* Title */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 leading-tight mb-4">{event.title}</h1>
+
+            {/* Description */}
+            <div className="space-y-3 mb-6">
+              {(event.description ?? "").split(/\n\n+/).map((para, i) => (
+                <p key={i} className="text-[15px] leading-relaxed text-stone-600">
+                  {para.split(/\n/).map((line, j, arr) => (
+                    <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
+                  ))}
+                </p>
+              ))}
+            </div>
+
+            {event.tags && event.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {event.tags.map(tag => (
+                  <span key={tag} className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 transition-colors">
+                    <Tag className="w-3 h-3" />{tag}
+                  </span>
                 ))}
               </div>
+            )}
+          </div>
 
-              {event.tags && event.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {event.tags.map(tag => (
-                    <span key={tag} className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 transition-colors">
-                      <Tag className="w-3 h-3" />{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Right: info card */}
-            <div className="md:col-span-2 order-1 md:order-2">
-              <div className="sticky top-6 space-y-3">
-                {/* Details card */}
-                <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-                  {/* Date row */}
-                  <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #fef3c7, #fde68a)" }}>
-                      <Calendar className="w-4 h-4 text-amber-600" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Időpont</p>
-                      <p className="font-semibold text-sm text-stone-800">{formatDate(event.startDate)}</p>
-                      {event.endDate && (
-                        <p className="text-xs text-stone-400 mt-0.5">– {formatDate(event.endDate)}</p>
-                      )}
-                    </div>
+          {/* Right: info card */}
+          <div className="md:col-span-2 order-1 md:order-2">
+            <div className="sticky top-6 space-y-3">
+              {/* Details card */}
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                {/* Date row */}
+                <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #fef3c7, #fde68a)" }}>
+                    <Calendar className="w-4 h-4 text-amber-600" />
                   </div>
-
-                  {/* Location row */}
-                  <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #dcfce7, #bbf7d0)" }}>
-                      <MapPin className="w-4 h-4 text-emerald-600" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Helyszín</p>
-                      <p className="font-semibold text-sm text-stone-800 leading-snug">{event.location}</p>
-                      {event.locationAddress && (
-                        <p className="text-xs text-stone-400 mt-0.5">{event.locationAddress}</p>
-                      )}
-                    </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Időpont</p>
+                    <p className="font-semibold text-sm text-stone-800">{formatDate(event.startDate)}</p>
+                    {event.endDate && (
+                      <p className="text-xs text-stone-400 mt-0.5">– {formatDate(event.endDate)}</p>
+                    )}
                   </div>
-
-                  {/* Price row */}
-                  {event.price && (
-                    <div className="flex items-start gap-4 px-5 py-4">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #fce7f3, #fbcfe8)" }}>
-                        <Ticket className="w-4 h-4 text-pink-500" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Belépő</p>
-                        <p className="font-semibold text-sm text-stone-800">{event.price}</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* CTA buttons */}
-                {event.ticketUrl && (
-                  <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer" className="block">
-                    <button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2"
-                      style={{ background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black))" }}>
-                      <Ticket className="w-4 h-4" /> Jegyvásárlás <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-                    </button>
-                  </a>
+                {/* Location row */}
+                <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #dcfce7, #bbf7d0)" }}>
+                    <MapPin className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Helyszín</p>
+                    <p className="font-semibold text-sm text-stone-800 leading-snug">{event.location}</p>
+                    {event.locationAddress && (
+                      <p className="text-xs text-stone-400 mt-0.5">{event.locationAddress}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Price row */}
+                {event.price && (
+                  <div className="flex items-start gap-4 px-5 py-4">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #fce7f3, #fbcfe8)" }}>
+                      <Ticket className="w-4 h-4 text-pink-500" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Belépő</p>
+                      <p className="font-semibold text-sm text-stone-800">{event.price}</p>
+                    </div>
+                  </div>
                 )}
-
-                <Link href="/" className="block">
-                  <button className="w-full py-3 border border-stone-200 text-stone-600 font-semibold rounded-xl hover:bg-stone-50 transition-colors text-sm">
-                    ← Összes program
-                  </button>
-                </Link>
               </div>
+
+              {/* CTA buttons */}
+              {event.ticketUrl && (
+                <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer" className="block">
+                  <button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2"
+                    style={{ background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black))" }}>
+                    <Ticket className="w-4 h-4" /> Jegyvásárlás <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                  </button>
+                </a>
+              )}
+
+              <Link href="/" className="block">
+                <button className="w-full py-3 border border-stone-200 text-stone-600 font-semibold rounded-xl hover:bg-stone-50 transition-colors text-sm">
+                  ← Összes program
+                </button>
+              </Link>
             </div>
           </div>
+        </div>
 
           {/* Related news */}
           <RelatedNews eventId={id} eventTitle={event.title} />
@@ -259,7 +235,6 @@ export default function EventDetail() {
           )}
         </motion.div>
       </div>
-    </div>
   );
 }
 
