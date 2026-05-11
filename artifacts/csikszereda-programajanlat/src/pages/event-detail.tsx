@@ -52,10 +52,18 @@ export default function EventDetail() {
   );
   const related = (relatedData?.events ?? []).filter(e => e.id !== id).slice(0, 3);
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: event?.title ?? "", url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+    }
+  };
+
   if (isLoading) {
     return (
       <div>
-        <Skeleton className="w-full h-[420px]" />
+        <Skeleton className="w-full h-[480px]" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
           <Skeleton className="h-10 w-2/3" />
           <Skeleton className="h-24 w-full" />
@@ -74,63 +82,78 @@ export default function EventDetail() {
     );
   }
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({ title: event.title, url: window.location.href });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-    }
-  };
-
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* ── Top nav ─────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-6">
-        <Link href="/">
-          <button className="flex items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-800 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Vissza
-          </button>
-        </Link>
-        <button
-          onClick={handleShare}
-          className="flex items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-800 transition-colors"
-        >
-          <Share2 className="w-4 h-4" /> Megosztás
-        </button>
-      </div>
+    <div>
+      {/* ── Cinematic hero ──────────────────────────────────────── */}
+      <div className="relative w-full overflow-hidden" style={{ height: "clamp(320px, 55vh, 560px)" }}>
+        {/* Background image */}
+        <motion.img
+          src={event.imageUrl}
+          alt={event.title}
+          initial={{ scale: 1.06, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
 
-      {/* ── Main content ────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="grid md:grid-cols-5 gap-8 lg:gap-12">
-          {/* Left: image + description + tags */}
-          <div className="md:col-span-3 order-2 md:order-1">
-            {/* Image */}
-            <div className="relative rounded-2xl overflow-hidden mb-6 bg-stone-100" style={{ aspectRatio: "16/9" }}>
-              <img
-                src={event.imageUrl}
-                alt={event.title}
-                className="w-full h-full object-cover"
-              />
+        {/* Gradient overlays */}
+        <div className="absolute inset-0" style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.75) 100%)"
+        }} />
+
+        {/* Top nav buttons */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 sm:px-8 pt-5">
+          <Link href="/">
+            <button className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/20 px-3 py-2 rounded-xl">
+              <ArrowLeft className="w-4 h-4" /> Vissza
+            </button>
+          </Link>
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/20 px-3 py-2 rounded-xl"
+          >
+            <Share2 className="w-4 h-4" /> Megosztás
+          </button>
+        </div>
+
+        {/* Bottom: category + title */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-8 pb-7">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
               {event.category && (
-                <span className="absolute top-3 left-3 text-xs font-bold px-3 py-1.5 rounded-full text-white shadow-sm" style={{ backgroundColor: event.category.color }}>
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full text-white shadow-sm" style={{ backgroundColor: event.category.color }}>
                   {event.category.name}
                 </span>
               )}
               {event.featured && (
-                <span className="absolute top-3 right-3 text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400 text-amber-900 shadow-sm">
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400 text-amber-900 shadow-sm">
                   ★ Kiemelt
                 </span>
               )}
             </div>
+            <motion.h1
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight drop-shadow-md"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+            >
+              {event.title}
+            </motion.h1>
+          </div>
+        </div>
+      </div>
 
-            {/* Title */}
-            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 leading-tight mb-4">{event.title}</h1>
-
-            {/* Description */}
+      {/* ── Body ────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+      >
+        <div className="grid md:grid-cols-5 gap-8 lg:gap-12">
+          {/* Left: description + tags */}
+          <div className="md:col-span-3">
             <div className="space-y-3 mb-6">
               {(event.description ?? "").split(/\n\n+/).map((para, i) => (
                 <p key={i} className="text-[15px] leading-relaxed text-stone-600">
@@ -153,9 +176,8 @@ export default function EventDetail() {
           </div>
 
           {/* Right: info card */}
-          <div className="md:col-span-2 order-1 md:order-2">
+          <div className="md:col-span-2">
             <div className="sticky top-6 space-y-3">
-              {/* Details card */}
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
                 {/* Date row */}
                 <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
@@ -172,7 +194,7 @@ export default function EventDetail() {
                 </div>
 
                 {/* Location row */}
-                <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
+                <div className={`flex items-start gap-4 px-5 py-4 ${event.price ? "border-b border-stone-50" : ""}`}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #dcfce7, #bbf7d0)" }}>
                     <MapPin className="w-4 h-4 text-emerald-600" />
                   </div>
@@ -218,23 +240,23 @@ export default function EventDetail() {
           </div>
         </div>
 
-          {/* Related news */}
-          <RelatedNews eventId={id} eventTitle={event.title} />
+        {/* Related news */}
+        <RelatedNews eventId={id} eventTitle={event.title} />
 
-          {/* Related events */}
-          {related.length > 0 && (
-            <div className="mt-16 pt-10 border-t border-stone-100">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-6 w-1 rounded-full bg-primary" />
-                <h2 className="text-xl font-bold text-stone-800">Hasonló események</h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                {related.map((ev, i) => <EventCard key={ev.id} event={ev} index={i} />)}
-              </div>
+        {/* Related events */}
+        {related.length > 0 && (
+          <div className="mt-16 pt-10 border-t border-stone-100">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-6 w-1 rounded-full bg-primary" />
+              <h2 className="text-xl font-bold text-stone-800">Hasonló események</h2>
             </div>
-          )}
-        </motion.div>
-      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              {related.map((ev, i) => <EventCard key={ev.id} event={ev} index={i} />)}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </div>
   );
 }
 
