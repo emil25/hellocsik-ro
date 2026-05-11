@@ -96,7 +96,15 @@ export default function EventDetail() {
             </div>
 
             <h1 className="text-3xl font-bold text-foreground mb-4 leading-tight">{event.title}</h1>
-            <p className="text-muted-foreground leading-relaxed text-sm mb-5">{event.description}</p>
+            <div className="text-muted-foreground leading-relaxed text-sm mb-5 space-y-3">
+              {(event.description ?? "").split(/\n\n+/).map((para, i) => (
+                <p key={i}>
+                  {para.split(/\n/).map((line, j, arr) => (
+                    <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
+                  ))}
+                </p>
+              ))}
+            </div>
 
             {event.tags && event.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
