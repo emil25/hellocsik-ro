@@ -1223,7 +1223,6 @@ export default function Home() {
       <Hero />
       <WeeklyCalendar />
       <UpcomingEvents />
-      <MonthHighlight />
       <TEDxSection />
       <FeaturedProgramSection />
       <CinemaSection />
