@@ -520,51 +520,40 @@ function UpcomingEvents() {
           const visible = showAll ? events : events.slice(0, 12);
 
           // Split banners by type
-          const cardBanners = activeBanners.filter(b => b.displayType === 'card').slice().sort((a, b) => a.position - b.position);
+          const cardBanners = activeBanners.filter(b => b.displayType === 'card');
           const fullBanners  = activeBanners.filter(b => b.displayType === 'full');
 
-          // Step 1: Build rows from events only (every row fully filled first)
-          type EvSlot = { kind: 'event'; ev: Ev };
-          const eventSlots: EvSlot[] = visible.map(ev => ({ kind: 'event', ev }));
+          // Build slot pool: events + card-banners merged at their position index
+          const slots: Slot[] = [];
+          let cbi = 0;
+          for (let i = 0; i <= visible.length; i++) {
+            while (cbi < cardBanners.length && cardBanners[cbi].position <= i) {
+              slots.push({ kind: 'card-banner', banner: cardBanners[cbi++] });
+            }
+            if (i < visible.length) slots.push({ kind: 'event', ev: visible[i] });
+          }
+
+          // Build rows from slot pool
           const rows: Row[] = [];
           let si = 0;
           let featRowIdx = 0;
-          while (si < eventSlots.length) {
-            const slot = eventSlots[si];
-            if (slot.ev.featured) {
+          while (si < slots.length) {
+            const slot = slots[si];
+            if (slot.kind === 'event' && slot.ev.featured) {
               si++;
               const companions: Slot[] = [];
-              while (companions.length < 2 && si < eventSlots.length) {
-                if (eventSlots[si].ev.featured) break;
-                companions.push(eventSlots[si++]);
-              }
-              rows.push({ kind: 'featured', feat: slot.ev, companions, featLeft: featRowIdx++ % 2 === 0 });
+              while (companions.length < 2 && si < slots.length) companions.push(slots[si++]);
+              rows.push({ kind: 'featured', feat: slot.ev, companions, featLeft: featRowIdx % 2 === 0 });
+              featRowIdx++;
             } else {
               const batch: Slot[] = [];
-              while (si < eventSlots.length && batch.length < 3) {
-                if (eventSlots[si].ev.featured) break;
-                batch.push(eventSlots[si++]);
+              while (si < slots.length && batch.length < 3) {
+                const s = slots[si];
+                if (s.kind === 'event' && s.ev.featured) break;
+                batch.push(slots[si++]);
               }
               if (batch.length > 0) rows.push({ kind: 'regular', items: batch });
             }
-          }
-
-          // Step 2: Inject card banners — replace the event slot at the given position index
-          type SlotRef = { rowIdx: number; type: 'regular'; itemIdx: number }
-                       | { rowIdx: number; type: 'companion'; itemIdx: number };
-          const allRefs: SlotRef[] = [];
-          rows.forEach((r, ri) => {
-            if (r.kind === 'regular') r.items.forEach((_, ii) => allRefs.push({ rowIdx: ri, type: 'regular', itemIdx: ii }));
-            else r.companions.forEach((_, ci) => allRefs.push({ rowIdx: ri, type: 'companion', itemIdx: ci }));
-          });
-          for (const banner of cardBanners) {
-            const pos = Math.max(0, Math.min(banner.position, allRefs.length - 1));
-            const ref = allRefs[pos];
-            if (!ref) continue;
-            const bSlot: Slot = { kind: 'card-banner', banner };
-            const r = rows[ref.rowIdx];
-            if (ref.type === 'regular' && r.kind === 'regular') r.items[ref.itemIdx] = bSlot;
-            else if (ref.type === 'companion' && r.kind === 'featured') r.companions[ref.itemIdx] = bSlot;
           }
 
           // Inject full-banners between rows based on cumulative event count
@@ -576,21 +565,23 @@ function UpcomingEvents() {
               merged.push({ kind: 'full-banner', banner: pendingFull.shift()! });
             }
             merged.push({ kind: 'row', row });
-            if (row.kind === 'featured') eventsRendered += 1 + row.companions.filter(s => s.kind === 'event').length;
-            else eventsRendered += row.items.filter(s => s.kind === 'event').length;
+            const evCount = row.kind === 'featured'
+              ? 1 + row.companions.filter(s => s.kind === 'event').length
+              : row.items.filter(s => s.kind === 'event').length;
+            eventsRendered += evCount;
           }
           while (pendingFull.length > 0) merged.push({ kind: 'full-banner', banner: pendingFull.shift()! });
 
           // ── Card renderers ──────────────────────────────────────────────
           const CardBannerSlot = ({ banner: b }: { banner: Banner }) => {
             const inner = (
-              <div className="w-full rounded-2xl overflow-hidden border border-border/40 shadow-sm relative" style={{ aspectRatio: '3/2' }}>
-                <img src={b.imageUrl} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />
+              <div className="w-full rounded-2xl overflow-hidden border border-border/40 shadow-sm h-full" style={{ minHeight: '160px' }}>
+                <img src={b.imageUrl} alt={b.title} className="w-full h-full object-cover" style={{ aspectRatio: '16/9' }} />
               </div>
             );
             return b.linkUrl
-              ? <a href={b.linkUrl} target="_blank" rel="noopener noreferrer" className="block">{inner}</a>
-              : <>{inner}</>;
+              ? <a href={b.linkUrl} target="_blank" rel="noopener noreferrer" className="block h-full">{inner}</a>
+              : inner;
           };
 
           const EventCard = ({ ev: event, aspectRatio = '16/9' }: { ev: Ev; aspectRatio?: string }) => (
@@ -672,7 +663,7 @@ function UpcomingEvents() {
             </Link>
           );
 
-          const SlotCell = ({ slot }: { slot: Slot }) =>
+          const SlotCell = ({ slot, idx }: { slot: Slot; idx: number }) =>
             slot.kind === 'card-banner'
               ? <CardBannerSlot banner={slot.banner} />
               : <EventCard ev={slot.ev} />;
@@ -700,18 +691,17 @@ function UpcomingEvents() {
 
                 const { row } = item;
 
-                // ── Regular row (events + optional card banner in one slot) ──
+                // ── Event row ───────────────────────────────────────────
                 if (row.kind === 'regular') {
                   return (
-                    <div key={itemIdx} className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {row.items.map((slot) => {
+                    <div key={itemIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {row.items.map((slot, ci) => {
                         const idx = globalIdx++;
-                        const key = slot.kind === 'card-banner' ? `cb-${slot.banner.id}` : slot.ev.id;
                         return (
-                          <motion.div key={key}
+                          <motion.div key={slot.kind === 'card-banner' ? `cb-${slot.banner.id}` : slot.ev.id}
                             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.04, duration: 0.38 }}>
-                            <SlotCell slot={slot} />
+                            <SlotCell slot={slot} idx={idx} />
                           </motion.div>
                         );
                       })}
@@ -719,35 +709,24 @@ function UpcomingEvents() {
                   );
                 }
 
-                // ── Featured row ─────────────────────────────────────────
+                // Featured row
                 const featIdx = globalIdx++;
                 globalIdx += row.companions.length;
-                // On mobile (2-col grid): featured card always full-width (col-span-2)
-                // On desktop (3-col grid): span depends on companion count to avoid empty cells
-                const compCount = row.companions.length;
-                const featColClass = compCount === 0
-                  ? 'col-span-2 md:col-span-3'
-                  : compCount === 1
-                    ? 'col-span-2 md:col-span-2'
-                    : 'col-span-2 md:col-span-1';
-                const featCell = (
-                  <div className={featColClass}>
-                    <FeaturedCard ev={row.feat} featLeft={row.featLeft} />
-                  </div>
-                );
-                const companionCells = row.companions.map((slot) => (
+                const featCell = <FeaturedCard ev={row.feat} featLeft={row.featLeft} />;
+                const companionCells = row.companions.map((slot, ci) => (
                   <div key={slot.kind === 'card-banner' ? `cb-${slot.banner.id}` : slot.ev.id}>
-                    <SlotCell slot={slot} />
+                    <SlotCell slot={slot} idx={featIdx + 1 + ci} />
                   </div>
                 ));
+                const cells = row.featLeft
+                  ? [<div key="feat">{featCell}</div>, ...companionCells]
+                  : [...companionCells, <div key="feat">{featCell}</div>];
 
                 return (
-                  <motion.div key={itemIdx} className="grid grid-cols-2 md:grid-cols-3 gap-4"
+                  <motion.div key={itemIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5"
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: featIdx * 0.04, duration: 0.38 }}>
-                    {row.featLeft
-                      ? <>{featCell}{companionCells}</>
-                      : <>{companionCells}{featCell}</>}
+                    {cells}
                   </motion.div>
                 );
               })}
