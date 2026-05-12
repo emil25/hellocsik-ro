@@ -1275,14 +1275,33 @@ function FeaturedProgramSection() {
 
 // ─── VENUES MAP ─────────────────────────────────────────────────────────────
 
-const VENUES = [
-  { name: "Csíki Játékszín", color: "#e879f9", categories: "fesztivál, tánc, zene", events: ["Tánc Világnapja – Gálaest", "Kórustalálkozó"] },
-  { name: "Csíki Székely Múzeum", color: "#60a5fa", categories: "kiállítás, kultúra", events: ["Cobe Sights – Csodálatos Látványok", "Sík Múzeum Vasárnapokon"] },
-  { name: "Csíkszeredai Városközpont", color: "#4ade80", categories: "fesztivál, közösségi", events: ["Csíki Majális – A családok hétvégéje"] },
-  { name: "Vákár Lajos Sportpálya", color: "#fbbf24", categories: "sport", events: ["Nyújtón a Sólyom – Sportnapok"] },
-];
+const VENUE_COLORS = ["#e879f9", "#60a5fa", "#4ade80", "#fbbf24", "#f97316", "#a78bfa", "#34d399", "#fb7185"];
 
 function VenuesSection() {
+  const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
+
+  const venues = useMemo(() => {
+    const evs = data?.events ?? [];
+    // Normalize venue names so minor variants map to a canonical form
+    const ALIASES: Record<string, string> = {
+      "Cinema Csíki Mozi": "Csíki Mozi",
+      "Cinema Csiki Mozi": "Csíki Mozi",
+    };
+    const map = new Map<string, { titles: string[]; categories: Set<string> }>();
+    for (const ev of evs) {
+      if (!ev.location) continue;
+      const raw = ev.location.split("–")[0].split("-")[0].trim();
+      const name = ALIASES[raw] ?? raw;
+      if (!map.has(name)) map.set(name, { titles: [], categories: new Set() });
+      const entry = map.get(name)!;
+      entry.titles.push(ev.title);
+      if (ev.category?.name) entry.categories.add(ev.category.name);
+    }
+    return Array.from(map.entries())
+      .map(([name, val]) => ({ name, titles: val.titles, categories: [...val.categories].join(", ") }))
+      .sort((a, b) => b.titles.length - a.titles.length);
+  }, [data]);
+
   return (
     <section id="helyszinek" className="py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1307,37 +1326,53 @@ function VenuesSection() {
             />
           </div>
 
-          {/* Venue list */}
+          {/* Venue list – dynamic */}
           <div className="space-y-3">
-            {VENUES.map((venue, i) => (
-              <motion.div
-                key={venue.name}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.08, duration: 0.4 }}
-                className="bg-card border border-card-border rounded-2xl p-4 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: venue.color + "22" }}>
-                    <Building2 className="w-4 h-4" style={{ color: venue.color }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-0.5">
-                      <h3 className="font-bold text-sm text-foreground">{venue.name}</h3>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">{venue.events.length} program</span>
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)
+            ) : venues.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-8">Nincs közelgő esemény.</p>
+            ) : (
+              venues.map((venue, i) => {
+                const color = VENUE_COLORS[i % VENUE_COLORS.length];
+                return (
+                  <motion.div
+                    key={venue.name}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.07, duration: 0.4 }}
+                    className="bg-card border border-card-border rounded-2xl p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: color + "22" }}>
+                        <Building2 className="w-4 h-4" style={{ color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <h3 className="font-bold text-sm text-foreground">{venue.name}</h3>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">{venue.titles.length} program</span>
+                        </div>
+                        {venue.categories && (
+                          <p className="text-xs text-muted-foreground mb-2">{venue.categories}</p>
+                        )}
+                        <div className="flex flex-wrap gap-1.5">
+                          {venue.titles.slice(0, 3).map(t => (
+                            <span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground max-w-[180px] truncate">
+                              {t}
+                            </span>
+                          ))}
+                          {venue.titles.length > 3 && (
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                              +{venue.titles.length - 3} további
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">{venue.categories}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {venue.events.map(ev => (
-                        <span key={ev} className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground line-clamp-1 max-w-[180px]">
-                          {ev}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
