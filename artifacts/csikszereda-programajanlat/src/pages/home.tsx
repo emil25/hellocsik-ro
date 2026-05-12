@@ -70,19 +70,18 @@ function Hero() {
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: "radial-gradient(ellipse at 20% 60%, rgba(34,100,60,0.18) 0%, transparent 65%)" }} />
 
-      {/* Logo – top-left corner of hero */}
-      <motion.img
-        src={helloCsikLogo}
-        alt="hellocsík"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.05 }}
-        className="absolute top-5 left-4 sm:left-6 lg:left-8 z-20 h-16 md:h-20 w-auto drop-shadow-lg"
-      />
-
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
         {/* Left: text with staggered entrance */}
         <div>
+          <motion.img
+            src={helloCsikLogo}
+            alt="hellocsík"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.06 }}
+            className="h-16 md:h-20 w-auto mb-6 drop-shadow-lg"
+          />
+
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
