@@ -497,7 +497,7 @@ function UpcomingEvents() {
         ) : (() => {
           type Ev = typeof events[number];
           type Row =
-            | { kind: 'featured'; feat: Ev; companion: Ev | null; featLeft: boolean }
+            | { kind: 'featured'; feat: Ev; companions: Ev[]; featLeft: boolean }
             | { kind: 'regular'; items: Ev[] };
 
           const visible = showAll ? events : events.slice(0, 12);
@@ -508,10 +508,13 @@ function UpcomingEvents() {
           while (fi < visible.length) {
             const ev = visible[fi];
             if (ev.featured) {
-              const next = fi + 1 < visible.length ? visible[fi + 1] : null;
-              rows.push({ kind: 'featured', feat: ev, companion: next, featLeft: featRowIdx % 2 === 0 });
+              fi++;
+              const companions: Ev[] = [];
+              while (companions.length < 2 && fi < visible.length) {
+                companions.push(visible[fi++]);
+              }
+              rows.push({ kind: 'featured', feat: ev, companions, featLeft: featRowIdx % 2 === 0 });
               featRowIdx++;
-              fi += next ? 2 : 1;
             } else {
               const batch: Ev[] = [];
               while (fi < visible.length && !visible[fi].featured && batch.length < 3) {
@@ -576,7 +579,7 @@ function UpcomingEvents() {
 
                 // Featured row
                 const featIdx = globalIdx++;
-                const compIdx = row.companion ? globalIdx++ : -1;
+                globalIdx += row.companions.length;
                 const FeatCard = ({ event, large }: { event: Ev; large: boolean }) => (
                   <Link href={`/esemeny/${event.id}`}>
                     <div className="group cursor-pointer rounded-2xl overflow-hidden border-2 border-amber-300/70 shadow-lg shadow-amber-100/50 ring-1 ring-amber-200/40 bg-gradient-to-br from-amber-50/60 to-card transition-all duration-300 hover:shadow-xl hover:border-amber-400/80 h-full flex flex-col">
@@ -651,19 +654,16 @@ function UpcomingEvents() {
                   </Link>
                 );
 
+                const featCard = <FeatCard event={row.feat} large={false} />;
+                const compCards = row.companions.map(c => <CompCard key={c.id} event={c} />);
+
+                const cells = row.featLeft
+                  ? [featCard, ...compCards]
+                  : [...compCards, featCard];
+
                 return (
                   <motion.div key={rowIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: featIdx * 0.04, duration: 0.38 }}>
-                    {row.featLeft ? (
-                      <>
-                        <div className="md:col-span-2"><FeatCard event={row.feat} large /></div>
-                        {row.companion && <div className="md:col-span-1"><CompCard event={row.companion} /></div>}
-                      </>
-                    ) : (
-                      <>
-                        {row.companion && <div className="md:col-span-1"><CompCard event={row.companion} /></div>}
-                        <div className="md:col-span-2"><FeatCard event={row.feat} large /></div>
-                      </>
-                    )}
+                    {cells.map((cell, ci) => <div key={ci}>{cell}</div>)}
                   </motion.div>
                 );
               })}
