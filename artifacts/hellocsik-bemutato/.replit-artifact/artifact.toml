@@ -1,0 +1,31 @@
+kind = "slides"
+previewPath = "/hellocsik-bemutato/"
+title = "hellocsík – Portál Bemutató"
+version = "1.0.0"
+id = "artifacts/hellocsik-bemutato"
+router = "path"
+
+[[integratedSkills]]
+name = "slides"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/hellocsik-bemutato/" ]
+localPort = 18142
+
+[services.development]
+run = "pnpm --filter @workspace/hellocsik-bemutato run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/hellocsik-bemutato", "run", "build" ]
+publicDir = "artifacts/hellocsik-bemutato/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18142"
+BASE_PATH = "/hellocsik-bemutato/"
