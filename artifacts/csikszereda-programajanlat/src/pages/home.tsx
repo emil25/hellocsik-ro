@@ -1314,9 +1314,9 @@ function VenuesSection() {
           <p className="text-muted-foreground text-sm">A város legfontosabb kulturális helyszínei egy pillantásra.</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 items-start">
-          {/* Map embed */}
-          <div className="rounded-2xl overflow-hidden border border-card-border shadow-sm" style={{ height: "420px" }}>
+        <div className="flex flex-col gap-6">
+          {/* Map – full width */}
+          <div className="rounded-2xl overflow-hidden border border-card-border shadow-sm" style={{ height: "280px" }}>
             <iframe
               title="Csíkszereda térkép"
               src="https://www.openstreetmap.org/export/embed.html?bbox=25.7800%2C46.3500%2C25.8300%2C46.3900&layer=mapnik&marker=46.3690%2C25.8020"
@@ -1326,48 +1326,36 @@ function VenuesSection() {
             />
           </div>
 
-          {/* Venue list – dynamic */}
-          <div className="space-y-3">
+          {/* Venue grid – dynamic, 2–3 cols */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)
+              Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
             ) : venues.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">Nincs közelgő esemény.</p>
+              <p className="col-span-3 text-muted-foreground text-sm text-center py-8">Nincs közelgő esemény.</p>
             ) : (
               venues.map((venue, i) => {
                 const color = VENUE_COLORS[i % VENUE_COLORS.length];
                 return (
                   <motion.div
                     key={venue.name}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.07, duration: 0.4 }}
-                    className="bg-card border border-card-border rounded-2xl p-4 hover:shadow-md transition-shadow"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05, duration: 0.35 }}
+                    className="bg-card border border-card-border rounded-2xl p-4 flex flex-col gap-2 hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: color + "22" }}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: color + "22" }}>
                         <Building2 className="w-4 h-4" style={{ color }} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-0.5">
-                          <h3 className="font-bold text-sm text-foreground">{venue.name}</h3>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">{venue.titles.length} program</span>
-                        </div>
-                        {venue.categories && (
-                          <p className="text-xs text-muted-foreground mb-2">{venue.categories}</p>
-                        )}
-                        <div className="flex flex-wrap gap-1.5">
-                          {venue.titles.slice(0, 3).map(t => (
-                            <span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground max-w-[180px] truncate">
-                              {t}
-                            </span>
-                          ))}
-                          {venue.titles.length > 3 && (
-                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                              +{venue.titles.length - 3} további
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
+                        {venue.titles.length}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-foreground leading-snug line-clamp-2">{venue.name}</p>
+                      {venue.categories && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{venue.categories}</p>
+                      )}
                     </div>
                   </motion.div>
                 );
