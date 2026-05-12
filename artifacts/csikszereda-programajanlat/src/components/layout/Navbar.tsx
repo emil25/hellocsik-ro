@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import { Menu, X, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchModal } from "@/components/SearchModal";
-import hellocsikLogo from "@assets/hellocsik1_1778510931467.png";
 
 const navLinks = [
   { href: "/#hetvege", label: "Hétvége" },
@@ -26,12 +25,9 @@ export function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center shrink-0 group">
-              <img
-                src={hellocsikLogo}
-                alt="hellocsík"
-                className="h-11 w-auto object-contain transition-opacity group-hover:opacity-85"
-                style={{ maxWidth: 220 }}
-              />
+              <span className="text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                hellocsík<span className="text-primary">.ro</span>
+              </span>
             </Link>
 
             {/* Nav pills */}
