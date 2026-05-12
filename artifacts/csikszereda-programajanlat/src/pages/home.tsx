@@ -514,7 +514,8 @@ function UpcomingEvents() {
           type Slot = { kind: 'event'; ev: Ev } | { kind: 'card-banner'; banner: Banner };
           type Row =
             | { kind: 'featured'; feat: Ev; companions: Slot[]; featLeft: boolean }
-            | { kind: 'regular'; items: Slot[] };
+            | { kind: 'regular'; items: Ev[] }
+            | { kind: 'banner-wide'; banner: Banner; companions: Ev[] };
           type MergedItem = { kind: 'row'; row: Row } | { kind: 'full-banner'; banner: Banner };
 
           const visible = showAll ? events : events.slice(0, 12);
@@ -523,58 +524,59 @@ function UpcomingEvents() {
           const cardBanners = activeBanners.filter(b => b.displayType === 'card').slice().sort((a, b) => a.position - b.position);
           const fullBanners  = activeBanners.filter(b => b.displayType === 'full');
 
-          // Step 1: Build rows from events only (guarantees every row is fully filled)
-          type EvSlot = { kind: 'event'; ev: Ev };
-          const eventSlots: EvSlot[] = visible.map(ev => ({ kind: 'event', ev }));
+          // Build slot pool: events + card-banners merged at their position index
+          const slots: Slot[] = [];
+          let cbi = 0;
+          for (let i = 0; i <= visible.length; i++) {
+            while (cbi < cardBanners.length && cardBanners[cbi].position <= i) {
+              slots.push({ kind: 'card-banner', banner: cardBanners[cbi++] });
+            }
+            if (i < visible.length) slots.push({ kind: 'event', ev: visible[i] });
+          }
+
+          // Build rows from slot pool
           const rows: Row[] = [];
           let si = 0;
           let featRowIdx = 0;
-          while (si < eventSlots.length) {
-            const slot = eventSlots[si];
-            if (slot.ev.featured) {
+          while (si < slots.length) {
+            const slot = slots[si];
+
+            if (slot.kind === 'card-banner') {
+              // Wide banner row: banner spans left col (row-span-2), 4 events fill 2×2 on the right
+              si++;
+              const companions: Ev[] = [];
+              while (companions.length < 4 && si < slots.length) {
+                const s = slots[si];
+                if (s.kind === 'card-banner') break;
+                if (s.kind === 'event' && s.ev.featured) break;
+                companions.push(s.ev);
+                si++;
+              }
+              rows.push({ kind: 'banner-wide', banner: slot.banner, companions });
+
+            } else if (slot.ev.featured) {
               si++;
               const companions: Slot[] = [];
-              while (companions.length < 2 && si < eventSlots.length) {
-                if (eventSlots[si].ev.featured) break;
-                companions.push(eventSlots[si++]);
+              while (companions.length < 2 && si < slots.length) {
+                const s = slots[si];
+                if (s.kind === 'card-banner') break;
+                if (s.kind === 'event' && s.ev.featured) break;
+                companions.push(s as Slot);
+                si++;
               }
               rows.push({ kind: 'featured', feat: slot.ev, companions, featLeft: featRowIdx % 2 === 0 });
               featRowIdx++;
+
             } else {
-              const batch: Slot[] = [];
-              while (si < eventSlots.length && batch.length < 3) {
-                const s = eventSlots[si];
-                if (s.ev.featured) break;
-                batch.push(eventSlots[si++]);
+              const batch: Ev[] = [];
+              while (si < slots.length && batch.length < 3) {
+                const s = slots[si];
+                if (s.kind === 'card-banner') break;
+                if (s.kind === 'event' && s.ev.featured) break;
+                batch.push(s.ev);
+                si++;
               }
               if (batch.length > 0) rows.push({ kind: 'regular', items: batch });
-            }
-          }
-
-          // Step 2: Inject card banners by replacing an event slot at the given position index.
-          // This guarantees the row stays full (card-banner + 2 events).
-          type SlotRef =
-            | { rowIdx: number; type: 'regular'; itemIdx: number }
-            | { rowIdx: number; type: 'companion'; compIdx: number };
-          const eventSlotRefs: SlotRef[] = [];
-          for (let ri = 0; ri < rows.length; ri++) {
-            const r = rows[ri];
-            if (r.kind === 'regular') {
-              r.items.forEach((_, ii) => eventSlotRefs.push({ rowIdx: ri, type: 'regular', itemIdx: ii }));
-            } else {
-              r.companions.forEach((_, ci) => eventSlotRefs.push({ rowIdx: ri, type: 'companion', compIdx: ci }));
-            }
-          }
-          for (const banner of cardBanners) {
-            const pos = Math.max(0, Math.min(banner.position, eventSlotRefs.length - 1));
-            const ref = eventSlotRefs[pos];
-            if (!ref) continue;
-            const bSlot: Slot = { kind: 'card-banner', banner };
-            const r = rows[ref.rowIdx];
-            if (ref.type === 'regular' && r.kind === 'regular') {
-              r.items[ref.itemIdx] = bSlot;
-            } else if (ref.type === 'companion' && r.kind === 'featured') {
-              r.companions[ref.compIdx] = bSlot;
             }
           }
 
@@ -587,10 +589,9 @@ function UpcomingEvents() {
               merged.push({ kind: 'full-banner', banner: pendingFull.shift()! });
             }
             merged.push({ kind: 'row', row });
-            const evCount = row.kind === 'featured'
-              ? 1 + row.companions.filter(s => s.kind === 'event').length
-              : row.items.filter(s => s.kind === 'event').length;
-            eventsRendered += evCount;
+            if (row.kind === 'featured') eventsRendered += 1 + row.companions.filter(s => s.kind === 'event').length;
+            else if (row.kind === 'regular') eventsRendered += row.items.length;
+            else eventsRendered += row.companions.length;
           }
           while (pendingFull.length > 0) merged.push({ kind: 'full-banner', banner: pendingFull.shift()! });
 
@@ -685,7 +686,7 @@ function UpcomingEvents() {
             </Link>
           );
 
-          const SlotCell = ({ slot, idx }: { slot: Slot; idx: number }) =>
+          const SlotCell = ({ slot }: { slot: Slot }) =>
             slot.kind === 'card-banner'
               ? <CardBannerSlot banner={slot.banner} />
               : <EventCard ev={slot.ev} />;
@@ -711,19 +712,45 @@ function UpcomingEvents() {
                   );
                 }
 
-                // ── Event row ───────────────────────────────────────────
                 const { row } = item;
 
+                // ── Wide card banner: banner left (row-span-2), 2×2 events right ──
+                if (row.kind === 'banner-wide') {
+                  const idx = globalIdx++;
+                  return (
+                    <div key={`bw-${row.banner.id}`}
+                      className="grid grid-cols-1 md:grid-cols-3 gap-5"
+                      style={{ gridTemplateRows: 'auto auto' }}>
+                      {/* Banner: left column, spans both rows */}
+                      <motion.div
+                        className="md:row-span-2"
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.04, duration: 0.38 }}>
+                        <CardBannerSlot banner={row.banner} />
+                      </motion.div>
+                      {/* Up to 4 companion events filling cols 2 & 3, rows 1 & 2 */}
+                      {row.companions.map((ev, ci) => (
+                        <motion.div key={ev.id}
+                          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: (idx + 1 + ci) * 0.04, duration: 0.38 }}>
+                          <EventCard ev={ev} />
+                        </motion.div>
+                      ))}
+                    </div>
+                  );
+                }
+
+                // ── Regular 3-event row ──────────────────────────────────
                 if (row.kind === 'regular') {
                   return (
                     <div key={itemIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                      {row.items.map((slot, ci) => {
+                      {row.items.map((ev) => {
                         const idx = globalIdx++;
                         return (
-                          <motion.div key={slot.kind === 'card-banner' ? `cb-${slot.banner.id}` : slot.ev.id}
+                          <motion.div key={ev.id}
                             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.04, duration: 0.38 }}>
-                            <SlotCell slot={slot} idx={idx} />
+                            <EventCard ev={ev} />
                           </motion.div>
                         );
                       })}
@@ -731,13 +758,13 @@ function UpcomingEvents() {
                   );
                 }
 
-                // Featured row
+                // ── Featured row ─────────────────────────────────────────
                 const featIdx = globalIdx++;
                 globalIdx += row.companions.length;
                 const featCell = <FeaturedCard ev={row.feat} featLeft={row.featLeft} />;
                 const companionCells = row.companions.map((slot, ci) => (
                   <div key={slot.kind === 'card-banner' ? `cb-${slot.banner.id}` : slot.ev.id}>
-                    <SlotCell slot={slot} idx={featIdx + 1 + ci} />
+                    <SlotCell slot={slot} />
                   </div>
                 ));
                 const cells = row.featLeft
