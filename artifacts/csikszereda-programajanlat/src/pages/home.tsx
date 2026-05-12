@@ -489,86 +489,187 @@ function UpcomingEvents() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {isLoading
-            ? Array.from({length: 6}).map((_,i) => <Skeleton key={i} className="h-80 rounded-2xl" />)
-            : (showAll ? events : events.slice(0, 12)).map((event, i) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.38 }}
-              >
-                <Link href={`/esemeny/${event.id}`}>
-                  <div className={`group cursor-pointer bg-card rounded-2xl overflow-hidden border transition-all duration-300 hover:shadow-xl h-full flex flex-col ${
-                    event.featured
-                      ? "border-amber-300/60 shadow-md shadow-amber-100 ring-1 ring-amber-200/50"
-                      : "border-card-border hover:border-primary/20"
-                  }`}>
-                    {/* Image */}
-                    <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                      <img
-                        src={event.imageUrl}
-                        alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                      {/* Top badges */}
-                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        {event.featured && (
-                          <span className="flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
-                            style={{ background: "linear-gradient(135deg, #f59e0b, #f97316)" }}>
+        {/* Editorial grid: featured events break the row as 2/3+1/3, regular stay 3-col */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {Array.from({length: 6}).map((_,i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}
+          </div>
+        ) : (() => {
+          type Ev = typeof events[number];
+          type Row =
+            | { kind: 'featured'; feat: Ev; companion: Ev | null; featLeft: boolean }
+            | { kind: 'regular'; items: Ev[] };
+
+          const visible = showAll ? events : events.slice(0, 12);
+          const rows: Row[] = [];
+          let fi = 0;
+          let featRowIdx = 0;
+
+          while (fi < visible.length) {
+            const ev = visible[fi];
+            if (ev.featured) {
+              const next = fi + 1 < visible.length ? visible[fi + 1] : null;
+              rows.push({ kind: 'featured', feat: ev, companion: next, featLeft: featRowIdx % 2 === 0 });
+              featRowIdx++;
+              fi += next ? 2 : 1;
+            } else {
+              const batch: Ev[] = [];
+              while (fi < visible.length && !visible[fi].featured && batch.length < 3) {
+                batch.push(visible[fi++]);
+              }
+              rows.push({ kind: 'regular', items: batch });
+            }
+          }
+
+          let globalIdx = 0;
+          return (
+            <div className="flex flex-col gap-5">
+              {rows.map((row, rowIdx) => {
+                if (row.kind === 'regular') {
+                  return (
+                    <div key={rowIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {row.items.map(event => {
+                        const idx = globalIdx++;
+                        return (
+                          <motion.div key={event.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04, duration: 0.38 }}>
+                            <Link href={`/esemeny/${event.id}`}>
+                              <div className="group cursor-pointer bg-card rounded-2xl overflow-hidden border border-card-border hover:border-primary/20 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
+                                <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                                  <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                                  <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                                    {event.category && (
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: event.category.color }}>{event.category.name}</span>
+                                    )}
+                                  </div>
+                                  {isAdmin && (
+                                    <a href="/admin" onClick={e => e.stopPropagation()} className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/70 text-white text-[10px] font-bold hover:bg-black/90 transition-colors">
+                                      <Pencil className="w-2.5 h-2.5" /> Szerkeszt
+                                    </a>
+                                  )}
+                                  {event.price && event.price !== "Ingyenes" && (
+                                    <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/95 rounded-lg px-2 py-1 shadow-sm">
+                                      <Ticket className="w-3 h-3 text-muted-foreground" />
+                                      <span className="text-[11px] font-semibold text-foreground">{event.price}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="p-4 flex flex-col flex-1">
+                                  <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatShortDate(event.startDate)}</span>
+                                    <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" /><span className="truncate">{event.location?.split("–")[0].trim()}</span></span>
+                                  </div>
+                                  <h3 className="font-bold text-base text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors flex-1">{event.title}</h3>
+                                  <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
+                                    <span className="text-xs text-muted-foreground">{!event.price || event.price === "Ingyenes" ? "Ingyenes" : event.price}</span>
+                                    <span className="flex items-center gap-1 text-primary text-xs font-bold">Részletek <ArrowRight className="w-3 h-3" /></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </Link>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+
+                // Featured row
+                const featIdx = globalIdx++;
+                const compIdx = row.companion ? globalIdx++ : -1;
+                const FeatCard = ({ event, large }: { event: Ev; large: boolean }) => (
+                  <Link href={`/esemeny/${event.id}`}>
+                    <div className="group cursor-pointer rounded-2xl overflow-hidden border-2 border-amber-300/70 shadow-lg shadow-amber-100/50 ring-1 ring-amber-200/40 bg-gradient-to-br from-amber-50/60 to-card transition-all duration-300 hover:shadow-xl hover:border-amber-400/80 h-full flex flex-col">
+                      <div className="relative overflow-hidden" style={{ aspectRatio: large ? "16/9" : "4/3" }}>
+                        <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                          <span className="flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full text-white shadow" style={{ background: "linear-gradient(135deg, #f59e0b, #f97316)" }}>
                             <Sparkles className="w-2.5 h-2.5" /> Kihagyhatatlan
                           </span>
-                        )}
-                        {event.category && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                            style={{ backgroundColor: event.category.color }}>
-                            {event.category.name}
-                          </span>
-                        )}
-                      </div>
-                      {/* Admin edit button */}
-                      {isAdmin && (
-                        <a
-                          href="/admin"
-                          onClick={e => e.stopPropagation()}
-                          className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/70 text-white text-[10px] font-bold hover:bg-black/90 transition-colors"
-                        >
-                          <Pencil className="w-2.5 h-2.5" /> Szerkeszt
-                        </a>
-                      )}
-                      {event.price && event.price !== "Ingyenes" && (
-                        <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/95 rounded-lg px-2 py-1 shadow-sm">
-                          <Ticket className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-[11px] font-semibold text-foreground">{event.price}</span>
+                          {event.category && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: event.category.color }}>{event.category.name}</span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    {/* Body */}
-                    <div className="p-4 flex flex-col flex-1">
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatShortDate(event.startDate)}</span>
-                        <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" /><span className="truncate">{event.location?.split("–")[0].trim()}</span></span>
+                        {isAdmin && (
+                          <a href="/admin" onClick={e => e.stopPropagation()} className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/70 text-white text-[10px] font-bold hover:bg-black/90 transition-colors">
+                            <Pencil className="w-2.5 h-2.5" /> Szerkeszt
+                          </a>
+                        )}
+                        {event.price && event.price !== "Ingyenes" && (
+                          <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/95 rounded-full px-2.5 py-1 shadow">
+                            <Ticket className="w-3 h-3 text-amber-600" />
+                            <span className="text-[11px] font-bold text-amber-700">{event.price}</span>
+                          </div>
+                        )}
                       </div>
-                      <h3 className="font-bold text-base text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors flex-1">
-                        {event.title}
-                      </h3>
-                      <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
-                        <span className="text-xs text-muted-foreground">
-                          {!event.price || event.price === "Ingyenes" ? "Ingyenes" : event.price}
-                        </span>
-                        <span className="flex items-center gap-1 text-primary text-xs font-bold">
-                          Részletek <ArrowRight className="w-3 h-3" />
-                        </span>
+                      <div className="p-4 flex flex-col flex-1">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatShortDate(event.startDate)}</span>
+                          <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" /><span className="truncate">{event.location?.split("–")[0].trim()}</span></span>
+                        </div>
+                        <h3 className={`font-bold text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors flex-1 ${large ? "text-xl" : "text-base"}`}>{event.title}</h3>
+                        <div className="flex items-center justify-between mt-auto pt-2 border-t border-amber-200/60">
+                          <span className="text-xs text-muted-foreground">{!event.price || event.price === "Ingyenes" ? "Ingyenes" : event.price}</span>
+                          <span className="flex items-center gap-1 text-amber-600 text-xs font-bold">Részletek <ArrowRight className="w-3 h-3" /></span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))
-          }
-        </div>
+                  </Link>
+                );
+
+                const CompCard = ({ event }: { event: Ev }) => (
+                  <Link href={`/esemeny/${event.id}`}>
+                    <div className="group cursor-pointer bg-card rounded-2xl overflow-hidden border border-card-border hover:border-primary/20 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
+                      <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
+                        <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                          {event.category && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: event.category.color }}>{event.category.name}</span>
+                          )}
+                        </div>
+                        {event.price && event.price !== "Ingyenes" && (
+                          <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/95 rounded-lg px-2 py-1 shadow-sm">
+                            <Ticket className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-[11px] font-semibold text-foreground">{event.price}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4 flex flex-col flex-1">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatShortDate(event.startDate)}</span>
+                          <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" /><span className="truncate">{event.location?.split("–")[0].trim()}</span></span>
+                        </div>
+                        <h3 className="font-bold text-base text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors flex-1">{event.title}</h3>
+                        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
+                          <span className="text-xs text-muted-foreground">{!event.price || event.price === "Ingyenes" ? "Ingyenes" : event.price}</span>
+                          <span className="flex items-center gap-1 text-primary text-xs font-bold">Részletek <ArrowRight className="w-3 h-3" /></span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+
+                return (
+                  <motion.div key={rowIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: featIdx * 0.04, duration: 0.38 }}>
+                    {row.featLeft ? (
+                      <>
+                        <div className="md:col-span-2"><FeatCard event={row.feat} large /></div>
+                        {row.companion && <div className="md:col-span-1"><CompCard event={row.companion} /></div>}
+                      </>
+                    ) : (
+                      <>
+                        {row.companion && <div className="md:col-span-1"><CompCard event={row.companion} /></div>}
+                        <div className="md:col-span-2"><FeatCard event={row.feat} large /></div>
+                      </>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         {/* "See all" button */}
         {!isLoading && events.length > 12 && (
