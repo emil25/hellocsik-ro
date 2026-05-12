@@ -703,7 +703,7 @@ function UpcomingEvents() {
                 // ── Regular row (events + optional card banner in one slot) ──
                 if (row.kind === 'regular') {
                   return (
-                    <div key={itemIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div key={itemIdx} className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {row.items.map((slot) => {
                         const idx = globalIdx++;
                         const key = slot.kind === 'card-banner' ? `cb-${slot.banner.id}` : slot.ev.id;
@@ -722,21 +722,32 @@ function UpcomingEvents() {
                 // ── Featured row ─────────────────────────────────────────
                 const featIdx = globalIdx++;
                 globalIdx += row.companions.length;
-                const featCell = <FeaturedCard ev={row.feat} featLeft={row.featLeft} />;
-                const companionCells = row.companions.map((slot, ci) => (
+                // On mobile (2-col grid): featured card always full-width (col-span-2)
+                // On desktop (3-col grid): span depends on companion count to avoid empty cells
+                const compCount = row.companions.length;
+                const featColClass = compCount === 0
+                  ? 'col-span-2 md:col-span-3'
+                  : compCount === 1
+                    ? 'col-span-2 md:col-span-2'
+                    : 'col-span-2 md:col-span-1';
+                const featCell = (
+                  <div className={featColClass}>
+                    <FeaturedCard ev={row.feat} featLeft={row.featLeft} />
+                  </div>
+                );
+                const companionCells = row.companions.map((slot) => (
                   <div key={slot.kind === 'card-banner' ? `cb-${slot.banner.id}` : slot.ev.id}>
                     <SlotCell slot={slot} />
                   </div>
                 ));
-                const cells = row.featLeft
-                  ? [<div key="feat">{featCell}</div>, ...companionCells]
-                  : [...companionCells, <div key="feat">{featCell}</div>];
 
                 return (
-                  <motion.div key={itemIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5"
+                  <motion.div key={itemIdx} className="grid grid-cols-2 md:grid-cols-3 gap-4"
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: featIdx * 0.04, duration: 0.38 }}>
-                    {cells}
+                    {row.featLeft
+                      ? <>{featCell}{companionCells}</>
+                      : <>{companionCells}{featCell}</>}
                   </motion.div>
                 );
               })}
