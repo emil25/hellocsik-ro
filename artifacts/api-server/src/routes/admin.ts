@@ -62,6 +62,8 @@ router.post("/admin/events", requireAdmin, async (req, res) => {
 
     const endDate = body.endDate ? new Date(body.endDate) : null;
 
+    const newsLinks = Array.isArray(body.newsLinks) ? body.newsLinks.filter((s: unknown) => typeof s === "string") : [];
+
     const [created] = await db.insert(eventsTable).values({
       title: body.title.trim(),
       description: (body.description ?? "").trim(),
@@ -76,6 +78,7 @@ router.post("/admin/events", requireAdmin, async (req, res) => {
       status: "published",
       featured: body.featured === true,
       monthHighlight: body.monthHighlight === true,
+      newsLinks,
     }).returning();
 
     res.status(201).json({ ...created, startDate: created.startDate.toISOString(), createdAt: created.createdAt.toISOString() });
@@ -102,6 +105,7 @@ router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
     if (typeof body.imageUrl === "string" && body.imageUrl.trim()) patch.imageUrl = body.imageUrl.trim();
     if (typeof body.ticketUrl === "string") patch.ticketUrl = body.ticketUrl.trim() || null;
     if (typeof body.price === "string") patch.price = body.price.trim() || null;
+    if (Array.isArray(body.newsLinks)) patch.newsLinks = body.newsLinks.filter((s: unknown) => typeof s === "string");
     if (body.startDate) { const d = new Date(body.startDate); if (!isNaN(d.getTime())) patch.startDate = d; }
     if (body.endDate) { const d = new Date(body.endDate); if (!isNaN(d.getTime())) patch.endDate = d; }
     if (body.endDate === null) patch.endDate = null;

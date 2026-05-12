@@ -169,7 +169,7 @@ type EventRow = {
   id: number; title: string; description: string; location: string; locationAddress?: string;
   startDate: string; endDate?: string; status: string; featured: boolean; monthHighlight: boolean;
   submitterName?: string; submitterEmail?: string; imageUrl: string; ticketUrl?: string;
-  price?: string; createdAt: string; categoryId?: number;
+  price?: string; createdAt: string; categoryId?: number; newsLinks?: string[];
   category?: { id: number; name: string; color: string } | null;
 };
 
@@ -186,16 +186,20 @@ function toDatetimeLocal(iso: string) {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
 }
 
+type NewsLink = { title: string; url: string };
+
 type EventForm = {
   title: string; description: string; location: string; locationAddress: string;
   startDate: string; endDate: string; price: string; ticketUrl: string;
   imageUrl: string; categoryId: string; featured: boolean; monthHighlight: boolean;
+  newsLinks: NewsLink[];
 };
 
 const emptyForm = (): EventForm => ({
   title: "", description: "", location: "", locationAddress: "",
   startDate: "", endDate: "", price: "", ticketUrl: "",
   imageUrl: "", categoryId: "", featured: false, monthHighlight: false,
+  newsLinks: [],
 });
 
 const inputCls = "w-full px-3 py-2 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-background";
@@ -294,6 +298,58 @@ function EventFormFields({
   );
 }
 
+// ─── NEWS LINKS EDITOR ────────────────────────────────────────────────────────
+
+function NewsLinksEditor({ links, onChange }: { links: NewsLink[]; onChange: (links: NewsLink[]) => void }) {
+  function addLink() {
+    onChange([...links, { title: "", url: "" }]);
+  }
+  function removeLink(i: number) {
+    onChange(links.filter((_, idx) => idx !== i));
+  }
+  function updateLink(i: number, field: keyof NewsLink, val: string) {
+    onChange(links.map((l, idx) => idx === i ? { ...l, [field]: val } : l));
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Kapcsolódó hírek</p>
+        <button type="button" onClick={addLink}
+          className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+          + Hírlink hozzáadása
+        </button>
+      </div>
+      {links.length === 0 && (
+        <p className="text-xs text-muted-foreground italic">Még nincs hírlink megadva.</p>
+      )}
+      {links.map((link, i) => (
+        <div key={i} className="space-y-1.5 p-2.5 bg-background rounded-lg border border-border">
+          <input
+            value={link.title}
+            onChange={e => updateLink(i, "title", e.target.value)}
+            className={inputCls}
+            placeholder="Cikk címe (pl. Megkezdődött a 38. Csűrdöngölő)"
+          />
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={link.url}
+              onChange={e => updateLink(i, "url", e.target.value)}
+              className={inputCls}
+              placeholder="https://..."
+            />
+            <button type="button" onClick={() => removeLink(i)}
+              className="flex-shrink-0 text-xs text-red-500 hover:text-red-700 font-semibold px-2">
+              ✕
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── CREATE MODAL ──────────────────────────────────────────────────────────────
 
 function CreateModal({
@@ -330,6 +386,7 @@ function CreateModal({
         categoryId: form.categoryId ? Number(form.categoryId) : null,
         featured: form.featured,
         monthHighlight: form.monthHighlight,
+        newsLinks: form.newsLinks.filter(l => l.title.trim() && l.url.trim()).map(l => JSON.stringify(l)),
       };
       const res = await fetch(`${API}/admin/events`, {
         method: "POST",
@@ -408,6 +465,7 @@ function EditModal({
     categoryId: ev.categoryId ? String(ev.categoryId) : "",
     featured: ev.featured,
     monthHighlight: ev.monthHighlight,
+    newsLinks: (ev.newsLinks ?? []).map(s => { try { return JSON.parse(s) as NewsLink; } catch { return null; } }).filter(Boolean) as NewsLink[],
   });
   const [saving, setSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
@@ -436,6 +494,7 @@ function EditModal({
         categoryId: form.categoryId ? Number(form.categoryId) : null,
         featured: form.featured,
         monthHighlight: form.monthHighlight,
+        newsLinks: form.newsLinks.filter(l => l.title.trim() && l.url.trim()).map(l => JSON.stringify(l)),
       };
       const res = await fetch(`${API}/admin/events/${ev.id}`, {
         method: "PATCH",
@@ -622,6 +681,8 @@ function CategorySelect({
         <label className={labelCls}>Jegy / részletek URL</label>
         <input type="url" value={form.ticketUrl} onChange={e => set("ticketUrl", e.target.value)} className={inputCls} placeholder="https://..." />
       </div>
+
+      <NewsLinksEditor links={form.newsLinks} onChange={links => set("newsLinks", links as any)} />
 
       <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Megjelenési beállítások</p>

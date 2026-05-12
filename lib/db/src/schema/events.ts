@@ -18,6 +18,7 @@ export const eventsTable = pgTable("events", {
   ticketUrl: text("ticket_url"),
   price: text("price"),
   tags: text("tags").array().notNull().default([]),
+  newsLinks: text("news_links").array().notNull().default([]),
   status: text("status").notNull().default("published"),
   submitterName: text("submitter_name"),
   submitterEmail: text("submitter_email"),

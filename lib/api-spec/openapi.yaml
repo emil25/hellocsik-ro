@@ -349,6 +349,11 @@ components:
           type: array
           items:
             type: string
+        newsLinks:
+          type: array
+          items:
+            type: string
+          description: JSON-encoded news link objects [{title, url}]
         createdAt:
           type: string
           format: date-time
