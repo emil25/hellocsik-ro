@@ -14,6 +14,8 @@ tags:
     description: Event operations
   - name: categories
     description: Category operations
+  - name: banners
+    description: Banner operations
   - name: Storage
     description: Object storage upload and serving endpoints.
 paths:
@@ -259,6 +261,101 @@ paths:
         "404":
           description: Not found
 
+  /banners:
+    get:
+      operationId: listBanners
+      tags: [banners]
+      summary: List active banners
+      responses:
+        "200":
+          description: Active banners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  banners:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Banner"
+                required:
+                  - banners
+
+  /admin/banners:
+    get:
+      operationId: listAdminBanners
+      tags: [banners]
+      summary: List all banners (admin)
+      responses:
+        "200":
+          description: All banners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  banners:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Banner"
+                required:
+                  - banners
+    post:
+      operationId: createBanner
+      tags: [banners]
+      summary: Create banner (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBannerBody"
+      responses:
+        "201":
+          description: Created banner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Banner"
+
+  /admin/banners/{id}:
+    patch:
+      operationId: updateBanner
+      tags: [banners]
+      summary: Update banner (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBannerBody"
+      responses:
+        "200":
+          description: Updated banner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Banner"
+    delete:
+      operationId: deleteBanner
+      tags: [banners]
+      summary: Delete banner (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
   /categories:
     get:
       operationId: listCategories
@@ -445,6 +542,61 @@ components:
           description: Normalized object path (e.g. `/objects/uploads/uuid`). Store this in your database.
         metadata:
           $ref: '#/components/schemas/UploadUrlRequest'
+    Banner:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        imageUrl:
+          type: string
+        linkUrl:
+          type: string
+          nullable: true
+        displayType:
+          type: string
+          description: "'full' = teljes szélességű sáv, 'card' = kártyamérű"
+        active:
+          type: boolean
+        position:
+          type: integer
+          description: Hány esemény után jelenjen meg
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - imageUrl
+        - displayType
+        - active
+        - position
+        - createdAt
+
+    CreateBannerBody:
+      type: object
+      properties:
+        title:
+          type: string
+        imageUrl:
+          type: string
+        linkUrl:
+          type: string
+          nullable: true
+        displayType:
+          type: string
+          default: full
+        active:
+          type: boolean
+          default: true
+        position:
+          type: integer
+          default: 6
+      required:
+        - title
+        - imageUrl
+
     ErrorEnvelope:
       type: object
       required: [error]

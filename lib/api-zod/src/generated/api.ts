@@ -95,6 +95,10 @@ export const ListEventsResponse = zod.object({
       ticketUrl: zod.string().nullish(),
       price: zod.string().nullish(),
       tags: zod.array(zod.string()),
+      newsLinks: zod
+        .array(zod.string())
+        .optional()
+        .describe("JSON-encoded news link objects [{title, url}]"),
       createdAt: zod.coerce.date(),
     }),
   ),
@@ -151,6 +155,10 @@ export const ListFeaturedEventsResponse = zod.object({
       ticketUrl: zod.string().nullish(),
       price: zod.string().nullish(),
       tags: zod.array(zod.string()),
+      newsLinks: zod
+        .array(zod.string())
+        .optional()
+        .describe("JSON-encoded news link objects [{title, url}]"),
       createdAt: zod.coerce.date(),
     }),
   ),
@@ -188,6 +196,10 @@ export const ListThisWeekEventsResponse = zod.object({
           ticketUrl: zod.string().nullish(),
           price: zod.string().nullish(),
           tags: zod.array(zod.string()),
+          newsLinks: zod
+            .array(zod.string())
+            .optional()
+            .describe("JSON-encoded news link objects [{title, url}]"),
           createdAt: zod.coerce.date(),
         }),
       ),
@@ -229,6 +241,10 @@ export const ListUpcomingEventsResponse = zod.object({
       ticketUrl: zod.string().nullish(),
       price: zod.string().nullish(),
       tags: zod.array(zod.string()),
+      newsLinks: zod
+        .array(zod.string())
+        .optional()
+        .describe("JSON-encoded news link objects [{title, url}]"),
       createdAt: zod.coerce.date(),
     }),
   ),
@@ -260,6 +276,10 @@ export const GetMonthHighlightResponse = zod.object({
   ticketUrl: zod.string().nullish(),
   price: zod.string().nullish(),
   tags: zod.array(zod.string()),
+  newsLinks: zod
+    .array(zod.string())
+    .optional()
+    .describe("JSON-encoded news link objects [{title, url}]"),
   createdAt: zod.coerce.date(),
 });
 
@@ -293,7 +313,107 @@ export const GetEventResponse = zod.object({
   ticketUrl: zod.string().nullish(),
   price: zod.string().nullish(),
   tags: zod.array(zod.string()),
+  newsLinks: zod
+    .array(zod.string())
+    .optional()
+    .describe("JSON-encoded news link objects [{title, url}]"),
   createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List active banners
+ */
+export const ListBannersResponse = zod.object({
+  banners: zod.array(
+    zod.object({
+      id: zod.number(),
+      title: zod.string(),
+      imageUrl: zod.string(),
+      linkUrl: zod.string().nullish(),
+      displayType: zod
+        .string()
+        .describe("'full' = teljes szélességű sáv, 'card' = kártyamérű"),
+      active: zod.boolean(),
+      position: zod.number().describe("Hány esemény után jelenjen meg"),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+});
+
+/**
+ * @summary List all banners (admin)
+ */
+export const ListAdminBannersResponse = zod.object({
+  banners: zod.array(
+    zod.object({
+      id: zod.number(),
+      title: zod.string(),
+      imageUrl: zod.string(),
+      linkUrl: zod.string().nullish(),
+      displayType: zod
+        .string()
+        .describe("'full' = teljes szélességű sáv, 'card' = kártyamérű"),
+      active: zod.boolean(),
+      position: zod.number().describe("Hány esemény után jelenjen meg"),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+});
+
+/**
+ * @summary Create banner (admin)
+ */
+export const createBannerBodyDisplayTypeDefault = `full`;
+export const createBannerBodyActiveDefault = true;
+export const createBannerBodyPositionDefault = 6;
+
+export const CreateBannerBody = zod.object({
+  title: zod.string(),
+  imageUrl: zod.string(),
+  linkUrl: zod.string().nullish(),
+  displayType: zod.string().default(createBannerBodyDisplayTypeDefault),
+  active: zod.boolean().default(createBannerBodyActiveDefault),
+  position: zod.number().default(createBannerBodyPositionDefault),
+});
+
+/**
+ * @summary Update banner (admin)
+ */
+export const UpdateBannerParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updateBannerBodyDisplayTypeDefault = `full`;
+export const updateBannerBodyActiveDefault = true;
+export const updateBannerBodyPositionDefault = 6;
+
+export const UpdateBannerBody = zod.object({
+  title: zod.string(),
+  imageUrl: zod.string(),
+  linkUrl: zod.string().nullish(),
+  displayType: zod.string().default(updateBannerBodyDisplayTypeDefault),
+  active: zod.boolean().default(updateBannerBodyActiveDefault),
+  position: zod.number().default(updateBannerBodyPositionDefault),
+});
+
+export const UpdateBannerResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  imageUrl: zod.string(),
+  linkUrl: zod.string().nullish(),
+  displayType: zod
+    .string()
+    .describe("'full' = teljes szélességű sáv, 'card' = kártyamérű"),
+  active: zod.boolean(),
+  position: zod.number().describe("Hány esemény után jelenjen meg"),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete banner (admin)
+ */
+export const DeleteBannerParams = zod.object({
+  id: zod.coerce.number(),
 });
 
 /**

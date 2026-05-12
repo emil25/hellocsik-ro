@@ -10,7 +10,9 @@ import {
   useListCategories,
   useListEvents,
   useGetEvent,
+  useListBanners,
   type Event as ApiEvent,
+  type Banner,
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatTime, formatShortDate } from "@/utils/date-format";
@@ -422,11 +424,13 @@ function WeeklyCalendar() {
 function UpcomingEvents() {
   const { data, isLoading } = useListUpcomingEvents({ limit: 50 });
   const { data: catData } = useListCategories();
+  const { data: bannerData } = useListBanners();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
   const isAdmin = useIsAdmin();
   const rawEvents = data?.events ?? [];
   const categories = catData?.categories ?? [];
+  const activeBanners: Banner[] = (bannerData?.banners ?? []).slice().sort((a, b) => a.position - b.position);
 
   // Featured events first, then the rest by date
   const sorted = [
@@ -524,10 +528,48 @@ function UpcomingEvents() {
             }
           }
 
+          // Build merged display with banners injected at correct positions
+          type MergedItem =
+            | { kind: 'row'; row: Row }
+            | { kind: 'banner'; banner: Banner };
+
+          const merged: MergedItem[] = [];
+          const pendingBanners = activeBanners.slice();
+          let eventsRendered = 0;
+
+          for (const row of rows) {
+            while (pendingBanners.length > 0 && pendingBanners[0].position <= eventsRendered) {
+              merged.push({ kind: 'banner', banner: pendingBanners.shift()! });
+            }
+            merged.push({ kind: 'row', row });
+            eventsRendered += row.kind === 'featured' ? 1 + row.companions.length : row.items.length;
+          }
+          while (pendingBanners.length > 0) {
+            merged.push({ kind: 'banner', banner: pendingBanners.shift()! });
+          }
+
           let globalIdx = 0;
           return (
             <div className="flex flex-col gap-5">
-              {rows.map((row, rowIdx) => {
+              {merged.map((item, itemIdx) => {
+                if (item.kind === 'banner') {
+                  const b = item.banner;
+                  const inner = (
+                    <div className={`w-full overflow-hidden rounded-2xl border border-border/40 shadow-sm ${b.displayType === 'card' ? 'max-w-sm' : ''}`}>
+                      <img src={b.imageUrl} alt={b.title} className={`w-full object-cover ${b.displayType === 'full' ? 'max-h-32' : 'h-40'}`} />
+                    </div>
+                  );
+                  return (
+                    <motion.div key={`banner-${b.id}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+                      className={b.displayType === 'card' ? '' : 'w-full'}>
+                      {b.linkUrl
+                        ? <a href={b.linkUrl} target="_blank" rel="noopener noreferrer">{inner}</a>
+                        : inner}
+                    </motion.div>
+                  );
+                }
+                const row = item.row;
+                const rowIdx = itemIdx;
                 if (row.kind === 'regular') {
                   return (
                     <div key={rowIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5">

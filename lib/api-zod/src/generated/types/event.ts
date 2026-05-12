@@ -23,5 +23,7 @@ export interface Event {
   ticketUrl?: string | null;
   price?: string | null;
   tags: string[];
+  /** JSON-encoded news link objects [{title, url}] */
+  newsLinks?: string[];
   createdAt: Date;
 }

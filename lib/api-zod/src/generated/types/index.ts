@@ -6,11 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./banner";
 export * from "./category";
+export * from "./createBannerBody";
 export * from "./createEventBody";
 export * from "./errorEnvelope";
 export * from "./event";
 export * from "./healthStatus";
+export * from "./listAdminBanners200";
+export * from "./listBanners200";
 export * from "./listCategories200";
 export * from "./listEvents200";
 export * from "./listEventsParams";

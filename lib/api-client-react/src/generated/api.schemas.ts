@@ -32,6 +32,8 @@ export interface Event {
   ticketUrl?: string | null;
   price?: string | null;
   tags: string[];
+  /** JSON-encoded news link objects [{title, url}] */
+  newsLinks?: string[];
   createdAt: string;
 }
 
@@ -77,6 +79,28 @@ export interface UploadUrlResponse {
   metadata?: UploadUrlRequest;
 }
 
+export interface Banner {
+  id: number;
+  title: string;
+  imageUrl: string;
+  linkUrl?: string | null;
+  /** 'full' = teljes szélességű sáv, 'card' = kártyamérű */
+  displayType: string;
+  active: boolean;
+  /** Hány esemény után jelenjen meg */
+  position: number;
+  createdAt: string;
+}
+
+export interface CreateBannerBody {
+  title: string;
+  imageUrl: string;
+  linkUrl?: string | null;
+  displayType?: string;
+  active?: boolean;
+  position?: number;
+}
+
 export interface ErrorEnvelope {
   error: string;
 }
@@ -115,6 +139,14 @@ export type ListUpcomingEventsParams = {
 
 export type ListUpcomingEvents200 = {
   events: Event[];
+};
+
+export type ListBanners200 = {
+  banners: Banner[];
+};
+
+export type ListAdminBanners200 = {
+  banners: Banner[];
 };
 
 export type ListCategories200 = {

@@ -173,9 +173,15 @@ type EventRow = {
   category?: { id: number; name: string; color: string } | null;
 };
 
+type BannerRow = {
+  id: number; title: string; imageUrl: string; linkUrl?: string | null;
+  displayType: string; active: boolean; position: number; createdAt: string;
+};
+
 type Category = { id: number; name: string; color: string; slug: string };
 
 type Tab = "pending" | "published" | "all";
+type Section = "events" | "banners";
 
 // ─── SHARED FORM FIELDS ───────────────────────────────────────────────────────
 
@@ -721,6 +727,145 @@ function CategorySelect({
   );
 }
 
+// ─── BANNER MANAGER ──────────────────────────────────────────────────────────
+
+function BannerManager({ token }: { token: string }) {
+  const [banners, setBanners] = useState<BannerRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState<BannerRow | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ title: "", imageUrl: "", linkUrl: "", displayType: "full", active: true, position: 6 });
+  const [busy, setBusy] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
+
+  const fetchBanners = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/admin/banners`, { headers: { Authorization: `Bearer ${token}` } });
+      const d = await res.json();
+      setBanners(d.banners ?? []);
+    } finally { setLoading(false); }
+  }, [token]);
+
+  useEffect(() => { fetchBanners(); }, [fetchBanners]);
+
+  function openCreate() {
+    setForm({ title: "", imageUrl: "", linkUrl: "", displayType: "full", active: true, position: 6 });
+    setCreating(true); setEditing(null);
+  }
+  function openEdit(b: BannerRow) {
+    setForm({ title: b.title, imageUrl: b.imageUrl, linkUrl: b.linkUrl || "", displayType: b.displayType, active: b.active, position: b.position });
+    setEditing(b); setCreating(false);
+  }
+  async function save() {
+    setBusy(true);
+    try {
+      const body = { ...form, linkUrl: form.linkUrl.trim() || null };
+      const url = editing ? `${API}/admin/banners/${editing.id}` : `${API}/admin/banners`;
+      const method = editing ? "PATCH" : "POST";
+      await fetch(url, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
+      await fetchBanners();
+      setEditing(null); setCreating(false);
+    } finally { setBusy(false); }
+  }
+  async function del(id: number) {
+    if (!confirm("Töröljük ezt a bannert?")) return;
+    await fetch(`${API}/admin/banners/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    await fetchBanners();
+  }
+  async function toggle(b: BannerRow) {
+    await fetch(`${API}/admin/banners/${b.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ active: !b.active }) });
+    await fetchBanners();
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-bold text-foreground">Bannerek</h2>
+        <button onClick={openCreate} className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors">
+          <Plus className="w-3.5 h-3.5" /> Új banner
+        </button>
+      </div>
+
+      {(creating || editing) && (
+        <div className="bg-card border border-amber-200 rounded-2xl p-5 mb-6 space-y-4">
+          <h3 className="font-bold text-sm text-foreground">{editing ? "Banner szerkesztése" : "Új banner"}</h3>
+          <div>
+            <label className={labelCls}>Belső megnevezés *</label>
+            <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className={inputCls} placeholder="pl. Nyári fesztivál promo" />
+          </div>
+          <ImageUploadField value={form.imageUrl} onChange={v => setForm(f => ({ ...f, imageUrl: v }))} onBusyChange={setImageBusy} />
+          <div>
+            <label className={labelCls}>Kattintható link (opcionális)</label>
+            <input value={form.linkUrl} onChange={e => setForm(f => ({ ...f, linkUrl: e.target.value }))} className={inputCls} placeholder="https://..." />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Megjelenési típus</label>
+              <select value={form.displayType} onChange={e => setForm(f => ({ ...f, displayType: e.target.value }))} className={inputCls}>
+                <option value="full">Teljes szélességű sáv</option>
+                <option value="card">Kártyamérű (1 helyet foglal)</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Hány esemény után jelenjen meg?</label>
+              <input type="number" min={1} value={form.position} onChange={e => setForm(f => ({ ...f, position: Number(e.target.value) }))} className={inputCls} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={save} disabled={busy || imageBusy || !form.title.trim() || !form.imageUrl.trim()}
+              className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors">
+              {busy ? "Mentés..." : "Mentés"}
+            </button>
+            <button onClick={() => { setEditing(null); setCreating(false); }}
+              className="px-4 py-2 rounded-xl bg-muted text-muted-foreground text-sm font-semibold hover:bg-muted/80 transition-colors">
+              Mégse
+            </button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-center py-10 text-muted-foreground">Betöltés...</div>
+      ) : banners.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <ImageIcon className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p>Nincs még banner. Hozd létre az elsőt!</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {banners.map(b => (
+            <div key={b.id} className="bg-card border border-card-border rounded-2xl p-4 flex gap-4 items-center">
+              <img src={b.imageUrl} alt={b.title} className="w-28 h-16 rounded-xl object-cover shrink-0 bg-muted" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-foreground">{b.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {b.displayType === "full" ? "Teljes szélesség" : "Kártya"} · {b.position}. esemény után
+                </p>
+                {b.linkUrl && <p className="text-xs text-primary truncate mt-0.5">{b.linkUrl}</p>}
+              </div>
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <button onClick={() => toggle(b)}
+                  className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors ${b.active ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
+                  {b.active ? "Aktív ✓" : "Inaktív"}
+                </button>
+                <button onClick={() => openEdit(b)}
+                  className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
+                  <Pencil className="w-3 h-3" /> Szerkeszt
+                </button>
+                <button onClick={() => del(b.id)}
+                  className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+                  <Trash2 className="w-3 h-3" /> Töröl
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── MAIN PAGE ───────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -732,6 +877,7 @@ export default function AdminPage() {
   const [actionId, setActionId] = useState<number | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
   const [creating, setCreating] = useState(false);
+  const [section, setSection] = useState<Section>("events");
 
   const fetchEvents = useCallback(async (status: Tab) => {
     if (!token) return;
@@ -868,7 +1014,23 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Tabs */}
+        {/* Section toggle */}
+        <div className="flex gap-2 mb-6">
+          <button onClick={() => setSection("events")}
+            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${section === "events" ? "bg-primary text-white shadow-sm" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
+            Események
+          </button>
+          <button onClick={() => setSection("banners")}
+            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${section === "banners" ? "bg-primary text-white shadow-sm" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
+            Bannerek
+          </button>
+        </div>
+
+        {section === "banners" ? (
+          <BannerManager token={token!} />
+        ) : (
+        <>
+        {/* Event Tabs */}
         <div className="flex gap-1 mb-6 bg-muted p-1 rounded-xl w-fit">
           {tabs.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
@@ -967,6 +1129,8 @@ export default function AdminPage() {
               ))}
             </AnimatePresence>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
