@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink, Plus, CheckCircle2, Building2, Pencil } from "lucide-react";
 import { Link } from "wouter";
+import helloCsikLogo from "@/assets/hellocsik-logo-nobg.png";
 import {
   useListFeaturedEvents,
   useListThisWeekEvents,
@@ -72,10 +73,19 @@ function Hero() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
         {/* Left: text with staggered entrance */}
         <div>
+          <motion.img
+            src={helloCsikLogo}
+            alt="hellocsík"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.08 }}
+            className="h-20 md:h-24 w-auto mb-5 drop-shadow-lg"
+          />
+
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.5, delay: 0.18 }}
             className="inline-flex items-center gap-2 mb-6 px-3.5 py-1.5 rounded-full border border-white/15 bg-white/8"
             style={{ backdropFilter: "blur(8px)" }}
           >
@@ -86,7 +96,7 @@ function Hero() {
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.22 }}
+            transition={{ duration: 0.55, delay: 0.28 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-5"
           >
             Mi újság{" "}
