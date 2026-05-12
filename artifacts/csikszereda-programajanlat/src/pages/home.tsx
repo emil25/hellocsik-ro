@@ -205,16 +205,26 @@ function Hero() {
                     {events[0].location?.split("–")[0].trim()}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-xs font-semibold text-primary">
                     {events[0].price ?? "Ingyenes"}
                   </span>
-                  <a href={events[0].ticketUrl ?? "#"} target="_blank" rel="noopener noreferrer">
-                    <button className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full text-white transition-colors"
-                      style={{ background: "hsl(148 45% 22%)" }}>
-                      Részletek <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </a>
+                  <div className="flex items-center gap-1.5">
+                    {events[0].ticketUrl && (
+                      <a href={events[0].ticketUrl} target="_blank" rel="noopener noreferrer">
+                        <button className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full text-white transition-colors"
+                          style={{ background: "hsl(35 92% 50%)" }}>
+                          <Ticket className="w-2.5 h-2.5" /> Jegy
+                        </button>
+                      </a>
+                    )}
+                    <Link href={`/esemeny/${events[0].id}`}>
+                      <button className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full text-white transition-colors"
+                        style={{ background: "hsl(148 45% 22%)" }}>
+                        Részletek <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </motion.div>
