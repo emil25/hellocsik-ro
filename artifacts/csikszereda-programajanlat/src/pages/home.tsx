@@ -520,39 +520,61 @@ function UpcomingEvents() {
           const visible = showAll ? events : events.slice(0, 12);
 
           // Split banners by type
-          const cardBanners = activeBanners.filter(b => b.displayType === 'card');
+          const cardBanners = activeBanners.filter(b => b.displayType === 'card').slice().sort((a, b) => a.position - b.position);
           const fullBanners  = activeBanners.filter(b => b.displayType === 'full');
 
-          // Build slot pool: events + card-banners merged at their position index
-          const slots: Slot[] = [];
-          let cbi = 0;
-          for (let i = 0; i <= visible.length; i++) {
-            while (cbi < cardBanners.length && cardBanners[cbi].position <= i) {
-              slots.push({ kind: 'card-banner', banner: cardBanners[cbi++] });
-            }
-            if (i < visible.length) slots.push({ kind: 'event', ev: visible[i] });
-          }
-
-          // Build rows from slot pool
+          // Step 1: Build rows from events only (guarantees every row is fully filled)
+          type EvSlot = { kind: 'event'; ev: Ev };
+          const eventSlots: EvSlot[] = visible.map(ev => ({ kind: 'event', ev }));
           const rows: Row[] = [];
           let si = 0;
           let featRowIdx = 0;
-          while (si < slots.length) {
-            const slot = slots[si];
-            if (slot.kind === 'event' && slot.ev.featured) {
+          while (si < eventSlots.length) {
+            const slot = eventSlots[si];
+            if (slot.ev.featured) {
               si++;
               const companions: Slot[] = [];
-              while (companions.length < 2 && si < slots.length) companions.push(slots[si++]);
+              while (companions.length < 2 && si < eventSlots.length) {
+                if (eventSlots[si].ev.featured) break;
+                companions.push(eventSlots[si++]);
+              }
               rows.push({ kind: 'featured', feat: slot.ev, companions, featLeft: featRowIdx % 2 === 0 });
               featRowIdx++;
             } else {
               const batch: Slot[] = [];
-              while (si < slots.length && batch.length < 3) {
-                const s = slots[si];
-                if (s.kind === 'event' && s.ev.featured) break;
-                batch.push(slots[si++]);
+              while (si < eventSlots.length && batch.length < 3) {
+                const s = eventSlots[si];
+                if (s.ev.featured) break;
+                batch.push(eventSlots[si++]);
               }
               if (batch.length > 0) rows.push({ kind: 'regular', items: batch });
+            }
+          }
+
+          // Step 2: Inject card banners by replacing an event slot at the given position index.
+          // This guarantees the row stays full (card-banner + 2 events).
+          type SlotRef =
+            | { rowIdx: number; type: 'regular'; itemIdx: number }
+            | { rowIdx: number; type: 'companion'; compIdx: number };
+          const eventSlotRefs: SlotRef[] = [];
+          for (let ri = 0; ri < rows.length; ri++) {
+            const r = rows[ri];
+            if (r.kind === 'regular') {
+              r.items.forEach((_, ii) => eventSlotRefs.push({ rowIdx: ri, type: 'regular', itemIdx: ii }));
+            } else {
+              r.companions.forEach((_, ci) => eventSlotRefs.push({ rowIdx: ri, type: 'companion', compIdx: ci }));
+            }
+          }
+          for (const banner of cardBanners) {
+            const pos = Math.max(0, Math.min(banner.position, eventSlotRefs.length - 1));
+            const ref = eventSlotRefs[pos];
+            if (!ref) continue;
+            const bSlot: Slot = { kind: 'card-banner', banner };
+            const r = rows[ref.rowIdx];
+            if (ref.type === 'regular' && r.kind === 'regular') {
+              r.items[ref.itemIdx] = bSlot;
+            } else if (ref.type === 'companion' && r.kind === 'featured') {
+              r.companions[ref.compIdx] = bSlot;
             }
           }
 
@@ -575,13 +597,13 @@ function UpcomingEvents() {
           // ── Card renderers ──────────────────────────────────────────────
           const CardBannerSlot = ({ banner: b }: { banner: Banner }) => {
             const inner = (
-              <div className="w-full rounded-2xl overflow-hidden border border-border/40 shadow-sm h-full" style={{ minHeight: '160px' }}>
-                <img src={b.imageUrl} alt={b.title} className="w-full h-full object-cover" style={{ aspectRatio: '16/9' }} />
+              <div className="w-full rounded-2xl overflow-hidden border border-border/40 shadow-sm h-full relative" style={{ minHeight: '200px' }}>
+                <img src={b.imageUrl} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />
               </div>
             );
             return b.linkUrl
               ? <a href={b.linkUrl} target="_blank" rel="noopener noreferrer" className="block h-full">{inner}</a>
-              : inner;
+              : <div className="h-full">{inner}</div>;
           };
 
           const EventCard = ({ ev: event, aspectRatio = '16/9' }: { ev: Ev; aspectRatio?: string }) => (
