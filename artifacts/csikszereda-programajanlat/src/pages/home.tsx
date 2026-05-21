@@ -1449,6 +1449,7 @@ function MajalisSection() {
       </div>
 
       {/* ── Napi program tabs ── */}
+      <div style={{ background: "#064e3b" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
         <div className="flex items-center gap-3 mb-6">
           <Sparkles className="w-4 h-4 text-emerald-300" />
@@ -1558,6 +1559,7 @@ function MajalisSection() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );
