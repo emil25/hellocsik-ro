@@ -1133,25 +1133,52 @@ function PunkosdSection() {
         </div>
 
         {/* ── Csíksomlyói kövek banner ── */}
-        <div className="mt-8 rounded-2xl overflow-hidden relative" style={{ height: 180 }}>
+        <div className="mt-8 rounded-2xl overflow-hidden relative">
           <img
             src={`${base}punkosd/csiksomlyo-kovek.jpg`}
             alt="Csíksomlyói kövek – közösségi művészeti projekt"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover absolute inset-0"
+            style={{ height: "100%" }}
             crossOrigin="anonymous"
           />
-          <div
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(to right, rgba(26,4,8,0.85) 0%, rgba(26,4,8,0.3) 60%, transparent 100%)" }}
-          />
-          <div className="absolute inset-0 flex items-center px-8">
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(10,2,4,0.92) 0%, rgba(10,2,4,0.80) 55%, rgba(10,2,4,0.4) 100%)" }} />
+          <div className="relative px-8 py-8 grid md:grid-cols-2 gap-6 items-start">
+            {/* Left col */}
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "#C9A337" }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#C9A337" }}>
                 Közösségi művészeti projekt
               </p>
-              <h3 className="text-white font-black text-xl leading-tight">Csíksomlyói kövek</h3>
-              <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.6)" }}>
-                Festett kövekkel visz örömet a zarándokoknak
+              <h3 className="text-white font-black text-2xl leading-tight mb-3">Csíksomlyói kövek</h3>
+              <p className="text-sm leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.65)" }}>
+                Fess egy követ egy másik zarándoknak, válassz hozzá egy bibliai idézetet, majd helyezd el a közös kosárban, ahonnan egy zarándok magával viheti!
+              </p>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Szervező: Homoródmente Kulturális Egyesület
+              </p>
+            </div>
+            {/* Right col */}
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "#C9A337" }}>Helyszínek &amp; időpontok</p>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: "rgba(201,163,55,0.2)" }}>
+                  <MapPin className="w-3.5 h-3.5" style={{ color: "#C9A337" }} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Csíkszereda főtere</p>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>május 20–22.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: "rgba(201,163,55,0.2)" }}>
+                  <MapPin className="w-3.5 h-3.5" style={{ color: "#C9A337" }} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Csíksomlyó</p>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>május 23–24.</p>
+                </div>
+              </div>
+              <p className="text-xs mt-1 font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Gyerekeket és felnőtteket is várunk! · A kövek szabadon elvihetők.
               </p>
             </div>
           </div>
