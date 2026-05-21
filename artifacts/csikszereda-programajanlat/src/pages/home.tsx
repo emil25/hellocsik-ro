@@ -975,6 +975,16 @@ function PunkosdSection() {
       fb: "https://www.facebook.com/events/1674139840587002",
     },
     {
+      id: 60,
+      title: "Csíksomlyói Kövek",
+      date: "máj. 20–24.",
+      location: "Főtere / Csíksomlyó",
+      img: `${base}punkosd/csiksomlyo-kovek-plakat.jpg`,
+      tag: "Közösség",
+      tagColor: "#0891b2",
+      fb: null,
+    },
+    {
       id: 59,
       title: "Pünkösdi Jótékonysági Gála",
       date: "máj. 23., 18:00",
@@ -1063,7 +1073,7 @@ function PunkosdSection() {
         </div>
 
         {/* ── Event cards grid ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {events.map((ev) => (
             <div key={ev.id} className="relative group rounded-2xl overflow-hidden flex flex-col"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,163,55,0.15)" }}
