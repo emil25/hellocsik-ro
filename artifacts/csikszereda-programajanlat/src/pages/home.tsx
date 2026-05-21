@@ -948,6 +948,220 @@ function CinemaSection() {
 }
 
 
+// ─── PÜNKÖSDI PROGRAMAJÁNLÓ SZEKCIÓ ─────────────────────────────────────────
+
+function PunkosdSection() {
+  const base = import.meta.env.BASE_URL;
+
+  const events = [
+    {
+      id: 55,
+      title: "Mozaik – kortárs táncelőadás",
+      date: "máj. 19., 19:00",
+      location: "Művészetek Háza",
+      img: `${base}punkosd/mozaik.jpg`,
+      tag: "Tánc",
+      tagColor: "#a855f7",
+      fb: "https://www.facebook.com/events/1886325832026998",
+    },
+    {
+      id: 45,
+      title: "38. Csűrdöngölő",
+      date: "máj. 21., 11:00",
+      location: "Szabadság tér",
+      img: `${base}punkosd/csurdongolo-plakat.jpg`,
+      tag: "Néptánc",
+      tagColor: "#16a34a",
+      fb: "https://www.facebook.com/events/1674139840587002",
+    },
+    {
+      id: 57,
+      title: "Hunyadi-napok",
+      date: "máj. 20–22.",
+      location: "Csíksomlyó – Mária-kert",
+      img: `${base}punkosd/hunyadi-napok.jpg`,
+      tag: "Fesztivál",
+      tagColor: "#b45309",
+      fb: "https://www.facebook.com/events/1592886468956411",
+    },
+    {
+      id: 59,
+      title: "Pünkösdi Jótékonysági Gála",
+      date: "máj. 23., 18:00",
+      location: "Szakszervezetek Művelődési Háza",
+      img: `${base}punkosd/jotek-gala.jpg`,
+      tag: "Koncert",
+      tagColor: "#dc2626",
+      fb: "https://www.facebook.com/events/2138421383557471",
+    },
+  ];
+
+  return (
+    <section style={{ background: "linear-gradient(180deg, #1a0408 0%, #2d0810 50%, #1a0408 100%)" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+        {/* ── Header ── */}
+        <div className="flex items-center gap-4 mb-10">
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+            style={{ background: "linear-gradient(135deg, #8B1A2A, #C9273B)", boxShadow: "0 4px 16px rgba(139,26,42,0.4)" }}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+            <span className="text-xs font-black uppercase tracking-widest text-white">Pünkösdi programajánló</span>
+          </div>
+          <div className="h-px flex-1 opacity-20" style={{ background: "linear-gradient(to right, #C9273B, transparent)" }} />
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(201,163,55,0.6)" }}>május 19–25.</span>
+        </div>
+
+        {/* ── Hero split ── */}
+        <div className="grid md:grid-cols-2 gap-8 mb-12 items-center">
+          {/* Left: title + description */}
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] mb-3" style={{ color: "#C9A337" }}>
+              Csíkszereda · 2026
+            </p>
+            <h2
+              className="font-black leading-none tracking-tight mb-5"
+              style={{ color: "white", fontSize: "clamp(2.4rem, 5vw, 4rem)" }}
+            >
+              <span style={{ color: "#C9A337" }}>PÜNKÖSDI</span>
+              <br />
+              CSÍKSZEREDAI
+              <br />
+              PROGRAMAJÁNLÓ
+            </h2>
+            <p className="text-sm leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.55)", maxWidth: "36ch" }}>
+              A pünkösdi időszakban színes kulturális és közösségi programok várják az érdeklődőket — táncelőadásoktól a néptánctalálkozókon át a csíksomlyói zarándoklatig.
+            </p>
+            <div className="flex flex-col gap-2.5" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <span className="flex items-center gap-2 text-sm">
+                <Calendar className="w-3.5 h-3.5 shrink-0" style={{ color: "#C9A337" }} />
+                Május 19–25. · Csíkszereda és Csíksomlyó
+              </span>
+              <span className="flex items-center gap-2 text-sm">
+                <Ticket className="w-3.5 h-3.5 shrink-0" style={{ color: "#C9A337" }} />
+                Több program ingyenes · Részletek az eseményeknél
+              </span>
+            </div>
+          </div>
+
+          {/* Right: official poster */}
+          <div
+            className="relative rounded-2xl overflow-hidden"
+            style={{ boxShadow: "0 20px 60px rgba(139,26,42,0.4)", aspectRatio: "1/1" }}
+          >
+            <img
+              src={`${base}punkosd/punkosd-plakat.jpg`}
+              alt="Pünkösdi programajánló plakát"
+              className="w-full h-full object-cover"
+              crossOrigin="anonymous"
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(to top, rgba(26,4,8,0.6) 0%, transparent 50%)" }}
+            />
+            <div className="absolute bottom-4 left-4 right-4">
+              <img
+                src={`${base}punkosd/csiksomlyo-kovek.jpg`}
+                alt=""
+                className="w-full rounded-xl object-cover opacity-0 absolute"
+                crossOrigin="anonymous"
+                style={{ height: 0 }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Event cards grid ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {events.map((ev) => (
+            <div key={ev.id} className="relative group rounded-2xl overflow-hidden flex flex-col"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,163,55,0.15)" }}
+            >
+              {/* Image */}
+              <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                <img
+                  src={ev.img}
+                  alt={ev.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  crossOrigin="anonymous"
+                />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%)" }} />
+                <span className="absolute top-2.5 left-2.5 text-[10px] font-black px-2 py-0.5 rounded-full text-white" style={{ background: ev.tagColor + "cc" }}>
+                  {ev.tag}
+                </span>
+              </div>
+
+              {/* Info */}
+              <div className="p-4 flex flex-col flex-1">
+                <h3 className="font-bold text-sm leading-snug mb-2 flex-1" style={{ color: "white", textWrap: "balance" } as React.CSSProperties}>
+                  {ev.title}
+                </h3>
+                <div className="flex flex-col gap-1.5 mb-3" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  <span className="flex items-center gap-1.5 text-xs">
+                    <Calendar className="w-3 h-3 shrink-0" style={{ color: "#C9A337" }} />
+                    {ev.date}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs truncate">
+                    <MapPin className="w-3 h-3 shrink-0" style={{ color: "#C9A337" }} />
+                    <span className="truncate">{ev.location}</span>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(201,163,55,0.12)" }}>
+                  <Link href={`/esemeny/${ev.id}`}>
+                    <span className="flex items-center gap-1 text-xs font-bold cursor-pointer" style={{ color: "#C9A337" }}>
+                      Részletek <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </Link>
+                  {ev.fb && (
+                    <a href={ev.fb} target="_blank" rel="noopener noreferrer"
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded"
+                      style={{ color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.06)" }}
+                    >
+                      FB
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Full-card clickable overlay (below the FB link) */}
+              <Link href={`/esemeny/${ev.id}`}>
+                <span className="absolute inset-0" aria-hidden="true" />
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Csíksomlyói kövek banner ── */}
+        <div className="mt-8 rounded-2xl overflow-hidden relative" style={{ height: 180 }}>
+          <img
+            src={`${base}punkosd/csiksomlyo-kovek.jpg`}
+            alt="Csíksomlyói kövek – közösségi művészeti projekt"
+            className="w-full h-full object-cover"
+            crossOrigin="anonymous"
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to right, rgba(26,4,8,0.85) 0%, rgba(26,4,8,0.3) 60%, transparent 100%)" }}
+          />
+          <div className="absolute inset-0 flex items-center px-8">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "#C9A337" }}>
+                Közösségi művészeti projekt
+              </p>
+              <h3 className="text-white font-black text-xl leading-tight">Csíksomlyói kövek</h3>
+              <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+                Festett kövekkel visz örömet a zarándokoknak
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
 function useCountdown(targetDate: string | null) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   useEffect(() => {
@@ -1249,6 +1463,7 @@ export default function Home() {
       <Hero />
       <WeeklyCalendar />
       <UpcomingEvents />
+      <PunkosdSection />
       <FeaturedProgramSection />
       <CinemaSection />
       <VenuesSection />
