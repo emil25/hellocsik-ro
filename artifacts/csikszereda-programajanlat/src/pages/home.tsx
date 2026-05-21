@@ -1299,19 +1299,66 @@ function useCountdown(targetDate: string | null) {
   return timeLeft;
 }
 
-const MAJALIS_HIGHLIGHTS = [
-  { icon: "🎨", label: "Kreatív foglalkozások", desc: "Alkotóműhelyek és játékok a legkisebbeknek" },
-  { icon: "🛍️", label: "Kézművesek vására", desc: "Helyi mesterek portékái egy helyen" },
-  { icon: "🎭", label: "Kulturális programok", desc: "Színes fellépések, előadások egész nap" },
-  { icon: "🌳", label: "Jó hangulat", desc: "Közösség, szabadban, kellemes tavaszi légkör" },
-  { icon: "👨‍👩‍👧", label: "Egész napos program", desc: "Reggeltől estig szórakozás a családnak" },
-  { icon: "🧺", label: "Lazulós hétvége", desc: "Pokróc, barátok, friss levegő a parkban" },
+const MAJALIS_DAYS = [
+  {
+    id: "pentek",
+    label: "Péntek",
+    date: "máj. 29.",
+    img: "/majalis-pentek.jpg",
+    badge: "Nyitónap",
+    lead: "Megnyitjuk a kapukat! Jó hangulat, zene és közösségi élmények a parkban.",
+    schedule: [
+      { time: "15:00", label: "Kapunyitás" },
+      { time: "15:00–19:00", label: "Helyi és kézműves termékek vására" },
+      { time: "17:00", label: "Oláh Ferenc és zenekara · Biró Éva és Szilágyi Sándor nótaénekesek" },
+      { time: "19:00", label: "Kedves zenekar koncert" },
+    ],
+  },
+  {
+    id: "szombat",
+    label: "Szombat",
+    date: "máj. 30.",
+    img: "/majalis-gyerek-foglalkozas.jpg",
+    badge: "Családi nap",
+    lead: "Egész napos program a parkban gyerekeknek és felnőtteknek egyaránt.",
+    schedule: [
+      { time: "10:00–19:00", label: "Helyi és kézműves termékek vására" },
+      { time: "10:00–18:00", label: "Gyermekfoglalkozások" },
+      { time: "🎵", label: "Zenei program – hamarosan" },
+    ],
+  },
+  {
+    id: "vasarnap",
+    label: "Vasárnap",
+    date: "máj. 31.",
+    img: "/majalis-gyerek.jpg",
+    badge: "Hétvége",
+    lead: "Utolsó teljes nap a kézművesekkel, gyerekprogramokkal és zenével.",
+    schedule: [
+      { time: "10:00–19:00", label: "Helyi és kézműves termékek vására" },
+      { time: "10:00–18:00", label: "Gyermekfoglalkozások" },
+      { time: "🎵", label: "Zenei program – hamarosan" },
+    ],
+  },
+  {
+    id: "hetfo",
+    label: "Hétfő",
+    date: "jún. 1.",
+    img: "/majalis-gyerek-foglalkozas.jpg",
+    badge: "Záróap",
+    lead: "A hétvége utolsó napján is várjuk a gyerekeket alkotni és játszani!",
+    schedule: [
+      { time: "10:00–18:00", label: "Gyermekfoglalkozások" },
+      { time: "🎵", label: "Zenei program – hamarosan" },
+    ],
+  },
 ];
 
 function MajalisSection() {
   const { data: event, isLoading } = useGetEvent(3);
   const timeLeft = useCountdown(event?.startDate ?? null);
   const pad = (n: number) => String(n).padStart(2, "0");
+  const [activeDay, setActiveDay] = useState("pentek");
 
   if (isLoading) return <Skeleton className="h-[520px] rounded-none" />;
   if (!event) return null;
@@ -1401,57 +1448,85 @@ function MajalisSection() {
         </div>
       </div>
 
-      {/* ── Program highlights ── */}
+      {/* ── Napi program tabs ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-emerald-300" />
-              <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Mit találsz ott?</span>
+        <div className="flex items-center gap-3 mb-6">
+          <Sparkles className="w-4 h-4 text-emerald-300" />
+          <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Program napok szerint</span>
+        </div>
+
+        {/* Day tab pills */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {MAJALIS_DAYS.map((day) => {
+            const active = activeDay === day.id;
+            return (
+              <button
+                key={day.id}
+                onClick={() => setActiveDay(day.id)}
+                className="flex flex-col items-center px-5 py-2 rounded-xl font-bold text-sm transition-all"
+                style={active
+                  ? { background: "linear-gradient(135deg, #059669, #047857)", color: "white", boxShadow: "0 4px 14px rgba(5,150,105,0.4)" }
+                  : { background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.1)" }
+                }
+              >
+                <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: active ? "#a7f3d0" : "rgba(255,255,255,0.4)" }}>{day.date}</span>
+                <span>{day.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Active day content */}
+        {MAJALIS_DAYS.filter((d) => d.id === activeDay).map((day) => (
+          <div key={day.id} className="mb-6 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="grid md:grid-cols-2">
+              <div className="relative h-52 md:h-auto min-h-[200px] overflow-hidden">
+                <img src={day.img} alt={day.label} className="absolute inset-0 w-full h-full object-cover object-top" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.7) 0%, transparent 60%)" }} />
+                <span className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white" style={{ background: "rgba(5,150,105,0.8)" }}>{day.badge}</span>
+                <div className="absolute bottom-3 left-4">
+                  <p className="text-white font-black text-lg">{day.label}</p>
+                  <p className="text-emerald-200 text-xs">{day.date}</p>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-sm leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.6)" }}>{day.lead}</p>
+                <div className="flex flex-col gap-2">
+                  {day.schedule.map(({ time, label }) => (
+                    <div key={time + label} className="flex items-start gap-3 px-3 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <span className="text-xs font-black shrink-0 mt-0.5 min-w-[60px]" style={{ color: time.startsWith("🎵") ? "rgba(255,255,255,0.3)" : "#6ee7b7" }}>{time}</span>
+                      <span className="text-xs" style={{ color: time.startsWith("🎵") ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.8)" }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-white">A majális kínálata</h3>
           </div>
-        </div>
+        ))}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-10">
-          {MAJALIS_HIGHLIGHTS.map((item, i) => (
-            <motion.div
-              key={item.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07, duration: 0.4 }}
-              className="flex flex-col items-center text-center p-4 rounded-2xl"
-              style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}
-            >
-              <span className="text-3xl mb-3">{item.icon}</span>
-              <p className="font-bold text-sm text-white leading-tight mb-1">{item.label}</p>
-              <p className="text-xs text-emerald-200/70 leading-snug">{item.desc}</p>
-            </motion.div>
-          ))}
+        {/* Különleges programok */}
+        <div className="flex items-center gap-2 mb-4 mt-2">
+          <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
+          <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Különleges programok</span>
         </div>
-
-        {/* ── Kézműves + Gyermekfoglalkozások ── */}
         <div className="grid md:grid-cols-2 gap-5">
-
           {/* Kézműves vásár */}
           <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div className="relative h-44 overflow-hidden">
-              <img src="/majalis-gyerek.jpg" alt="Helyi és kézműves termékek vására" className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.85) 0%, transparent 60%)" }} />
-              <span className="absolute bottom-3 left-4 text-white font-black text-lg drop-shadow">🛍️ Kézműves vásár</span>
+            <div className="relative h-40 overflow-hidden">
+              <img src="/majalis-gyerek.jpg" alt="Kézműves vásár" className="w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.85) 0%, transparent 55%)" }} />
+              <span className="absolute bottom-3 left-4 text-white font-black text-base drop-shadow">🛍️ Kézműves vásár</span>
             </div>
-            <div className="p-5">
-              <p className="text-sm leading-relaxed mb-4 text-emerald-100/75">
-                Idén is számos helyi és kézműves termék közül böngészhetsz egész nap! Minden egyes vásárlással a csíki mesteremberek és kisvállalkozók munkáját támogatod.
-              </p>
-              <div className="flex flex-col gap-2">
+            <div className="p-4">
+              <p className="text-xs leading-relaxed mb-3 text-emerald-100/70">Helyi mesteremberek és kisvállalkozók portékái — minden vásárlásod a csíki gazdaságot támogatja.</p>
+              <div className="flex flex-col gap-1.5">
                 {[
-                  { day: "Május 29., Péntek", time: "15:00–19:00" },
-                  { day: "Május 30., Szombat", time: "10:00–19:00" },
-                  { day: "Május 31., Vasárnap", time: "10:00–19:00" },
+                  { day: "Péntek, máj. 29.", time: "15:00–19:00" },
+                  { day: "Szombat, máj. 30.", time: "10:00–19:00" },
+                  { day: "Vasárnap, máj. 31.", time: "10:00–19:00" },
                 ].map(({ day, time }) => (
-                  <div key={day} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.07)" }}>
-                    <span className="text-xs font-semibold text-emerald-100">{day}</span>
+                  <div key={day} className="flex items-center justify-between px-3 py-1.5 rounded-lg" style={{ background: "rgba(255,255,255,0.07)" }}>
+                    <span className="text-xs text-emerald-100/80">{day}</span>
                     <span className="text-xs font-black" style={{ color: "#6ee7b7" }}>{time}</span>
                   </div>
                 ))}
@@ -1461,30 +1536,27 @@ function MajalisSection() {
 
           {/* Gyermekfoglalkozások */}
           <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div className="relative h-44 overflow-hidden">
+            <div className="relative h-40 overflow-hidden">
               <img src="/majalis-gyerek-foglalkozas.jpg" alt="Gyermekfoglalkozások" className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.85) 0%, transparent 60%)" }} />
-              <span className="absolute bottom-3 left-4 text-white font-black text-lg drop-shadow">🎨 Gyermekfoglalkozások</span>
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.85) 0%, transparent 55%)" }} />
+              <span className="absolute bottom-3 left-4 text-white font-black text-base drop-shadow">🎨 Gyermekfoglalkozások</span>
             </div>
-            <div className="p-5">
-              <p className="text-sm leading-relaxed mb-3 text-emerald-100/75">
-                Népi bútorfestés, rongybaba készítés, bőrműves foglalkozás, Székely Gőzös fajátékok, kézműves HelloWuud-al, játszótér (Garden Proiect) és barkácsolás (MegoldomPont).
-              </p>
-              <div className="flex flex-col gap-2">
+            <div className="p-4">
+              <p className="text-xs leading-relaxed mb-3 text-emerald-100/70">Bútorfestés, rongybaba, bőrműves foglalkozás, Székely Gőzös fajátékok, kézműves HelloWuud-al, játszótér és barkácsolás.</p>
+              <div className="flex flex-col gap-1.5">
                 {[
-                  { day: "Május 30., Szombat", time: "10:00–18:00" },
-                  { day: "Május 31., Vasárnap", time: "10:00–18:00" },
-                  { day: "Június 1., Hétfő", time: "10:00–18:00" },
+                  { day: "Szombat, máj. 30.", time: "10:00–18:00" },
+                  { day: "Vasárnap, máj. 31.", time: "10:00–18:00" },
+                  { day: "Hétfő, jún. 1.", time: "10:00–18:00" },
                 ].map(({ day, time }) => (
-                  <div key={day} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.07)" }}>
-                    <span className="text-xs font-semibold text-emerald-100">{day}</span>
+                  <div key={day} className="flex items-center justify-between px-3 py-1.5 rounded-lg" style={{ background: "rgba(255,255,255,0.07)" }}>
+                    <span className="text-xs text-emerald-100/80">{day}</span>
                     <span className="text-xs font-black" style={{ color: "#6ee7b7" }}>{time}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>
