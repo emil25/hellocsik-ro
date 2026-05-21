@@ -1413,7 +1413,7 @@ function MajalisSection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-10">
           {MAJALIS_HIGHLIGHTS.map((item, i) => (
             <motion.div
               key={item.label}
@@ -1428,6 +1428,63 @@ function MajalisSection() {
               <p className="text-xs text-emerald-200/70 leading-snug">{item.desc}</p>
             </motion.div>
           ))}
+        </div>
+
+        {/* ── Kézműves + Gyermekfoglalkozások ── */}
+        <div className="grid md:grid-cols-2 gap-5">
+
+          {/* Kézműves vásár */}
+          <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="relative h-44 overflow-hidden">
+              <img src="/majalis-gyerek.jpg" alt="Helyi és kézműves termékek vására" className="w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.85) 0%, transparent 60%)" }} />
+              <span className="absolute bottom-3 left-4 text-white font-black text-lg drop-shadow">🛍️ Kézműves vásár</span>
+            </div>
+            <div className="p-5">
+              <p className="text-sm leading-relaxed mb-4 text-emerald-100/75">
+                Idén is számos helyi és kézműves termék közül böngészhetsz egész nap! Minden egyes vásárlással a csíki mesteremberek és kisvállalkozók munkáját támogatod.
+              </p>
+              <div className="flex flex-col gap-2">
+                {[
+                  { day: "Május 29., Péntek", time: "15:00–19:00" },
+                  { day: "Május 30., Szombat", time: "10:00–19:00" },
+                  { day: "Május 31., Vasárnap", time: "10:00–19:00" },
+                ].map(({ day, time }) => (
+                  <div key={day} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.07)" }}>
+                    <span className="text-xs font-semibold text-emerald-100">{day}</span>
+                    <span className="text-xs font-black" style={{ color: "#6ee7b7" }}>{time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Gyermekfoglalkozások */}
+          <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="relative h-44 overflow-hidden">
+              <img src="/majalis-gyerek-foglalkozas.jpg" alt="Gyermekfoglalkozások" className="w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.85) 0%, transparent 60%)" }} />
+              <span className="absolute bottom-3 left-4 text-white font-black text-lg drop-shadow">🎨 Gyermekfoglalkozások</span>
+            </div>
+            <div className="p-5">
+              <p className="text-sm leading-relaxed mb-3 text-emerald-100/75">
+                Népi bútorfestés, rongybaba készítés, bőrműves foglalkozás, Székely Gőzös fajátékok, kézműves HelloWuud-al, játszótér (Garden Proiect) és barkácsolás (MegoldomPont).
+              </p>
+              <div className="flex flex-col gap-2">
+                {[
+                  { day: "Május 30., Szombat", time: "10:00–18:00" },
+                  { day: "Május 31., Vasárnap", time: "10:00–18:00" },
+                  { day: "Június 1., Hétfő", time: "10:00–18:00" },
+                ].map(({ day, time }) => (
+                  <div key={day} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.07)" }}>
+                    <span className="text-xs font-semibold text-emerald-100">{day}</span>
+                    <span className="text-xs font-black" style={{ color: "#6ee7b7" }}>{time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
