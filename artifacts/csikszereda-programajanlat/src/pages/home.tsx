@@ -1363,99 +1363,101 @@ function MajalisSection() {
   if (isLoading) return <Skeleton className="h-[520px] rounded-none" />;
   if (!event) return null;
 
+  const activeData = MAJALIS_DAYS.find((d) => d.id === activeDay)!;
+
   return (
-    <section style={{ background: "#064e3b" }}>
-      {/* ── Event card ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-0">
-        {/* Section badge */}
-        <div className="flex items-center gap-2 mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: "linear-gradient(135deg, #065f46, #047857)", boxShadow: "0 4px 14px rgba(6,95,70,0.3)" }}>
-            <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-100">Csíkszereda legnagyobb tavaszi ünnepe</span>
-          </div>
+    <section style={{ background: "#080f0b" }}>
+
+      {/* ── HERO: teljes szélességű plakát ── */}
+      <div className="relative w-full overflow-hidden" style={{ height: "clamp(320px, 46vw, 560px)" }}>
+        <img
+          src="/majalis-plakat.jpg"
+          alt="Csíki Majális plakát"
+          className="absolute inset-0 w-full h-full object-cover object-top"
+        />
+        {/* gradient overlay — alulról feketés, felül átlátszó */}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(8,15,11,0) 30%, rgba(8,15,11,0.55) 70%, rgba(8,15,11,1) 100%)" }} />
+
+        {/* Badge bal felül */}
+        <div className="absolute top-6 left-6">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest" style={{ background: "rgba(16,185,129,0.25)", border: "1px solid rgba(16,185,129,0.5)", color: "#6ee7b7", backdropFilter: "blur(8px)" }}>
+            <Sparkles className="w-3 h-3" /> Csíkszereda legnagyobb tavaszi ünnepe
+          </span>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-0 rounded-t-3xl overflow-hidden shadow-2xl shadow-emerald-900/30">
-          {/* Left: details + countdown */}
-          <div className="p-8 md:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(145deg, #065f46 0%, #064e3b 100%)", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
+        {/* Cím + dátum alul */}
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 md:px-10">
+          <div className="max-w-7xl mx-auto flex items-end justify-between gap-4">
             <div>
-              {/* Title block */}
-              <div className="mb-5">
-                <p className="text-xs font-black uppercase tracking-[0.2em] mb-1" style={{ color: "#6ee7b7" }}>Csíki</p>
-                <h2 className="text-4xl md:text-5xl font-black leading-none mb-1 text-white">
-                  Majális
-                </h2>
-                <p className="text-base font-semibold" style={{ color: "#a7f3d0" }}>A családok hétvégéje</p>
-              </div>
-
-              <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.65)" }}>{event.description}</p>
-
-              <div className="flex flex-wrap gap-4 text-xs mb-6" style={{ color: "rgba(255,255,255,0.55)" }}>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" style={{ color: "#6ee7b7" }} />
-                  {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" style={{ color: "#6ee7b7" }} />
-                  {event.location}
-                </span>
-                {event.price && (
-                  <span className="flex items-center gap-1.5">
-                    <Ticket className="w-3.5 h-3.5" style={{ color: "#6ee7b7" }} />
-                    {event.price}
-                  </span>
-                )}
-              </div>
+              <p className="text-xs font-black uppercase tracking-[0.25em] mb-1" style={{ color: "#10b981" }}>Csíki</p>
+              <h2 className="text-5xl md:text-6xl font-black text-white leading-none drop-shadow-lg">Majális</h2>
+              <p className="text-base font-semibold mt-1" style={{ color: "#6ee7b7" }}>A családok hétvégéje · máj. 29. – jún. 1.</p>
             </div>
-
-            {/* Countdown */}
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#6ee7b7" }}>Visszaszámláló</p>
-              <div className="grid grid-cols-4 gap-2 mb-6">
-                {[
-                  { value: pad(timeLeft.days), label: "NAP" },
-                  { value: pad(timeLeft.hours), label: "ÓRA" },
-                  { value: pad(timeLeft.minutes), label: "PERC" },
-                  { value: pad(timeLeft.seconds), label: "MP" },
-                ].map(({ value, label }) => (
-                  <div key={label} className="flex flex-col items-center justify-center rounded-2xl py-3" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                    <span className="text-2xl font-black leading-none text-white">{value}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-widest mt-1 text-emerald-300">{label}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-3 flex-wrap">
-                <Link href={`/esemeny/${event.id}`}>
-                  <button className="flex items-center gap-2 px-6 py-3 font-bold text-sm rounded-xl text-white transition-all hover:scale-105 shadow-lg shadow-emerald-700/30" style={{ background: "linear-gradient(135deg, #059669, #047857)" }}>
-                    Teljes program <ArrowRight className="w-4 h-4" />
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: poster */}
-          <div className="relative min-h-[360px]">
-            <img src="/majalis-plakat.jpg" alt="Csíki Majális plakát" className="absolute inset-0 w-full h-full object-cover object-top" />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,78,59,0.45) 0%, transparent 60%)" }} />
-            <div className="absolute bottom-0 left-0 right-0 p-6">
-              <p className="text-white/90 text-sm font-semibold drop-shadow">
-                📅 {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""} &nbsp;·&nbsp; 📍 {event.location}
-              </p>
+            <div className="hidden md:flex flex-col items-end gap-2 shrink-0">
+              <span className="flex items-center gap-1.5 text-sm text-white/80 font-medium drop-shadow">
+                <MapPin className="w-4 h-4" style={{ color: "#10b981" }} /> {event.location}
+              </span>
+              {event.price && (
+                <span className="flex items-center gap-1.5 text-sm text-white/80 font-medium drop-shadow">
+                  <Ticket className="w-4 h-4" style={{ color: "#10b981" }} /> {event.price}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Napi program tabs ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
-        <div className="flex items-center gap-3 mb-6">
-          <Sparkles className="w-4 h-4 text-emerald-300" />
-          <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Program napok szerint</span>
+      {/* ── INFO BAR + VISSZASZÁMLÁLÓ ── */}
+      <div style={{ background: "#0d1f17", borderBottom: "1px solid rgba(16,185,129,0.15)" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-wrap items-center justify-between gap-6">
+          {/* Visszaszámláló */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "#10b981" }}>Visszaszámláló</p>
+            <div className="flex gap-3">
+              {[
+                { value: pad(timeLeft.days), label: "Nap" },
+                { value: pad(timeLeft.hours), label: "Óra" },
+                { value: pad(timeLeft.minutes), label: "Perc" },
+                { value: pad(timeLeft.seconds), label: "Mp" },
+              ].map(({ value, label }) => (
+                <div key={label} className="flex flex-col items-center" style={{ minWidth: 52 }}>
+                  <div className="w-full text-center rounded-xl py-2 px-1" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                    <span className="text-2xl font-black text-white leading-none">{value}</span>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider mt-1" style={{ color: "#6ee7b7" }}>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Info chips + CTA */}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.65)" }}>
+              <Calendar className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
+              {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
+            </span>
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.65)" }}>
+              <MapPin className="w-3.5 h-3.5" style={{ color: "#10b981" }} /> {event.location}
+            </span>
+            <Link href={`/esemeny/${event.id}`}>
+              <button className="flex items-center gap-2 px-5 py-2.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-105" style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.35)" }}>
+                Teljes program <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ── NAPI PROGRAM ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        {/* Fejléc */}
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-1 h-5 rounded-full" style={{ background: "#10b981" }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#10b981" }}>Program napok szerint</span>
         </div>
 
-        {/* Day tab pills */}
+        {/* Nap-tabok */}
         <div className="flex flex-wrap gap-2 mb-6">
           {MAJALIS_DAYS.map((day) => {
             const active = activeDay === day.id;
@@ -1463,71 +1465,93 @@ function MajalisSection() {
               <button
                 key={day.id}
                 onClick={() => setActiveDay(day.id)}
-                className="flex flex-col items-center px-5 py-2 rounded-xl font-bold text-sm transition-all"
+                className="transition-all rounded-2xl font-bold text-sm"
                 style={active
-                  ? { background: "linear-gradient(135deg, #059669, #047857)", color: "white", boxShadow: "0 4px 14px rgba(5,150,105,0.4)" }
-                  : { background: "rgba(255,255,255,0.18)", color: "white", border: "1px solid rgba(255,255,255,0.25)" }
+                  ? { background: "linear-gradient(135deg, #10b981, #059669)", color: "white", padding: "8px 22px", boxShadow: "0 4px 18px rgba(16,185,129,0.4)" }
+                  : { background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.12)", padding: "8px 22px" }
                 }
               >
-                <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: active ? "#a7f3d0" : "#86efac" }}>{day.date}</span>
-                <span>{day.label}</span>
+                <span className="block text-[10px] font-black uppercase tracking-wider" style={{ color: active ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.4)", marginBottom: 1 }}>{day.date}</span>
+                {day.label}
               </button>
             );
           })}
         </div>
 
-        {/* Active day content */}
-        {MAJALIS_DAYS.filter((d) => d.id === activeDay).map((day) => (
-          <div key={day.id} className="mb-6 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div className="grid md:grid-cols-2">
-              <div className="relative h-52 md:h-auto min-h-[200px] overflow-hidden">
-                <img src={day.img} alt={day.label} className="absolute inset-0 w-full h-full object-cover object-top" />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.7) 0%, transparent 60%)" }} />
-                <span className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white" style={{ background: "rgba(5,150,105,0.8)" }}>{day.badge}</span>
-                <div className="absolute bottom-3 left-4">
-                  <p className="text-white font-black text-lg">{day.label}</p>
-                  <p className="text-emerald-200 text-xs">{day.date}</p>
-                </div>
-              </div>
-              <div className="p-6">
-                <p className="text-sm leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.6)" }}>{day.lead}</p>
-                <div className="flex flex-col gap-2">
-                  {day.schedule.map(({ time, label }) => (
-                    <div key={time + label} className="flex items-start gap-3 px-3 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.06)" }}>
-                      <span className="text-xs font-black shrink-0 mt-0.5 min-w-[60px]" style={{ color: time.startsWith("🎵") ? "rgba(255,255,255,0.3)" : "#6ee7b7" }}>{time}</span>
-                      <span className="text-xs" style={{ color: time.startsWith("🎵") ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.8)" }}>{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {/* Aktív nap tartalma — tiszta lista, nincs fotó a zavar elkerülése miatt */}
+        <motion.div
+          key={activeDay}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="rounded-2xl p-6 mb-10"
+          style={{ background: "#0d1f17", border: "1px solid rgba(16,185,129,0.18)" }}
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest" style={{ background: "rgba(16,185,129,0.18)", color: "#10b981" }}>{activeData.badge}</span>
+            <div>
+              <p className="text-white font-black text-lg leading-none">{activeData.label}</p>
+              <p className="text-xs mt-0.5" style={{ color: "#6ee7b7" }}>{activeData.date}</p>
             </div>
           </div>
-        ))}
+          <p className="text-sm mb-5" style={{ color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>{activeData.lead}</p>
 
-        {/* Különleges programok */}
-        <div className="flex items-center gap-2 mb-4 mt-2">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
-          <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Különleges programok</span>
+          {/* Program timeline */}
+          <div className="flex flex-col gap-0">
+            {activeData.schedule.map(({ time, label }, i) => {
+              const isPending = time.startsWith("🎵");
+              return (
+                <div key={time + label} className="flex items-stretch gap-0">
+                  {/* Timeline line */}
+                  <div className="flex flex-col items-center mr-4" style={{ width: 20 }}>
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-3" style={{ background: isPending ? "rgba(255,255,255,0.15)" : "#10b981", border: isPending ? "1.5px solid rgba(255,255,255,0.2)" : "none" }} />
+                    {i < activeData.schedule.length - 1 && <div className="w-px flex-1 mt-1" style={{ background: "rgba(16,185,129,0.2)" }} />}
+                  </div>
+                  {/* Content */}
+                  <div className="pb-4 flex-1">
+                    <div className="flex items-baseline gap-3 flex-wrap">
+                      <span className="text-xs font-black shrink-0" style={{ color: isPending ? "rgba(255,255,255,0.25)" : "#10b981", minWidth: 72 }}>{isPending ? "" : time}</span>
+                      <span className="text-sm" style={{ color: isPending ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.85)", fontStyle: isPending ? "italic" : "normal" }}>
+                        {isPending ? "Zenei program – hamarosan" : label}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* ── KÜLÖNLEGES PROGRAMOK ── */}
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-1 h-5 rounded-full" style={{ background: "#f59e0b" }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#f59e0b" }}>Különleges programok</span>
         </div>
+
         <div className="grid md:grid-cols-2 gap-5">
           {/* Kézműves vásár */}
-          <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div className="relative h-40 overflow-hidden">
+          <div className="rounded-2xl overflow-hidden" style={{ background: "#0d1f17", border: "1px solid rgba(245,158,11,0.2)" }}>
+            <div className="relative h-44 overflow-hidden">
               <img src="/majalis-gyerek.jpg" alt="Kézműves vásár" className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.85) 0%, transparent 55%)" }} />
-              <span className="absolute bottom-3 left-4 text-white font-black text-base drop-shadow">🛍️ Kézműves vásár</span>
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,15,11,0.92) 0%, rgba(8,15,11,0.3) 60%, transparent 100%)" }} />
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#f59e0b" }}>Kézműves vásár</span>
+                <p className="text-white font-black text-xl leading-none">🛍️ Helyi mesterek</p>
+              </div>
             </div>
-            <div className="p-4">
-              <p className="text-xs leading-relaxed mb-3 text-emerald-100/70">Helyi mesteremberek és kisvállalkozók portékái — minden vásárlásod a csíki gazdaságot támogatja.</p>
-              <div className="flex flex-col gap-1.5">
+            <div className="p-5">
+              <p className="text-xs leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
+                Helyi mesteremberek és kisvállalkozók portékái — minden vásárlásod a csíki gazdaságot támogatja.
+              </p>
+              <div className="flex flex-col gap-2">
                 {[
                   { day: "Péntek, máj. 29.", time: "15:00–19:00" },
                   { day: "Szombat, máj. 30.", time: "10:00–19:00" },
                   { day: "Vasárnap, máj. 31.", time: "10:00–19:00" },
                 ].map(({ day, time }) => (
-                  <div key={day} className="flex items-center justify-between px-3 py-1.5 rounded-lg" style={{ background: "rgba(255,255,255,0.07)" }}>
-                    <span className="text-xs text-emerald-100/80">{day}</span>
-                    <span className="text-xs font-black" style={{ color: "#6ee7b7" }}>{time}</span>
+                  <div key={day} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.12)" }}>
+                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.65)" }}>{day}</span>
+                    <span className="text-xs font-black" style={{ color: "#f59e0b" }}>{time}</span>
                   </div>
                 ))}
               </div>
@@ -1535,23 +1559,28 @@ function MajalisSection() {
           </div>
 
           {/* Gyermekfoglalkozások */}
-          <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div className="relative h-40 overflow-hidden">
+          <div className="rounded-2xl overflow-hidden" style={{ background: "#0d1f17", border: "1px solid rgba(16,185,129,0.2)" }}>
+            <div className="relative h-44 overflow-hidden">
               <img src="/majalis-gyerek-foglalkozas.jpg" alt="Gyermekfoglalkozások" className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(4,47,46,0.85) 0%, transparent 55%)" }} />
-              <span className="absolute bottom-3 left-4 text-white font-black text-base drop-shadow">🎨 Gyermekfoglalkozások</span>
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,15,11,0.92) 0%, rgba(8,15,11,0.3) 60%, transparent 100%)" }} />
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#10b981" }}>Gyermekfoglalkozások</span>
+                <p className="text-white font-black text-xl leading-none">🎨 Alkotóműhelyek</p>
+              </div>
             </div>
-            <div className="p-4">
-              <p className="text-xs leading-relaxed mb-3 text-emerald-100/70">Bútorfestés, rongybaba, bőrműves foglalkozás, Székely Gőzös fajátékok, kézműves HelloWuud-al, játszótér és barkácsolás.</p>
-              <div className="flex flex-col gap-1.5">
+            <div className="p-5">
+              <p className="text-xs leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
+                Bútorfestés, rongybaba, bőrműves foglalkozás, Székely Gőzös fajátékok, kézműves HelloWuud-al, játszótér és barkácsolás.
+              </p>
+              <div className="flex flex-col gap-2">
                 {[
                   { day: "Szombat, máj. 30.", time: "10:00–18:00" },
                   { day: "Vasárnap, máj. 31.", time: "10:00–18:00" },
                   { day: "Hétfő, jún. 1.", time: "10:00–18:00" },
                 ].map(({ day, time }) => (
-                  <div key={day} className="flex items-center justify-between px-3 py-1.5 rounded-lg" style={{ background: "rgba(255,255,255,0.07)" }}>
-                    <span className="text-xs text-emerald-100/80">{day}</span>
-                    <span className="text-xs font-black" style={{ color: "#6ee7b7" }}>{time}</span>
+                  <div key={day} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.12)" }}>
+                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.65)" }}>{day}</span>
+                    <span className="text-xs font-black" style={{ color: "#10b981" }}>{time}</span>
                   </div>
                 ))}
               </div>
