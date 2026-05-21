@@ -955,14 +955,14 @@ function PunkosdSection() {
 
   const events = [
     {
-      id: 55,
-      title: "Mozaik – kortárs táncelőadás",
-      date: "máj. 19., 19:00",
-      location: "Művészetek Háza",
-      img: `${base}punkosd/mozaik.jpg`,
-      tag: "Tánc",
-      tagColor: "#a855f7",
-      fb: "https://www.facebook.com/events/1886325832026998",
+      id: 57,
+      title: "Hunyadi-napok",
+      date: "máj. 20–22.",
+      location: "Csíksomlyó – Mária-kert",
+      img: `${base}punkosd/hunyadi-napok.jpg`,
+      tag: "Fesztivál",
+      tagColor: "#b45309",
+      fb: "https://www.facebook.com/events/1592886468956411",
     },
     {
       id: 45,
@@ -973,16 +973,6 @@ function PunkosdSection() {
       tag: "Néptánc",
       tagColor: "#16a34a",
       fb: "https://www.facebook.com/events/1674139840587002",
-    },
-    {
-      id: 57,
-      title: "Hunyadi-napok",
-      date: "máj. 20–22.",
-      location: "Csíksomlyó – Mária-kert",
-      img: `${base}punkosd/hunyadi-napok.jpg`,
-      tag: "Fesztivál",
-      tagColor: "#b45309",
-      fb: "https://www.facebook.com/events/1592886468956411",
     },
     {
       id: 59,
@@ -1073,7 +1063,7 @@ function PunkosdSection() {
         </div>
 
         {/* ── Event cards grid ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {events.map((ev) => (
             <div key={ev.id} className="relative group rounded-2xl overflow-hidden flex flex-col"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,163,55,0.15)" }}
