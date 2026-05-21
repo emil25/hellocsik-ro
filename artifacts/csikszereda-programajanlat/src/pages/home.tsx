@@ -1364,7 +1364,7 @@ function MajalisSection() {
   if (!event) return null;
 
   return (
-    <section style={{ background: "linear-gradient(180deg, #f0faf2 0%, #d1fae5 30%, #064e3b 100%)" }}>
+    <section style={{ background: "#064e3b" }}>
       {/* ── Event card ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-0">
         {/* Section badge */}
@@ -1377,31 +1377,31 @@ function MajalisSection() {
 
         <div className="grid md:grid-cols-2 gap-0 rounded-t-3xl overflow-hidden shadow-2xl shadow-emerald-900/30">
           {/* Left: details + countdown */}
-          <div className="p-8 md:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(145deg, #ffffff 0%, #f0fdf4 60%, #dcfce7 100%)" }}>
+          <div className="p-8 md:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(145deg, #065f46 0%, #064e3b 100%)", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
             <div>
               {/* Title block */}
               <div className="mb-5">
-                <p className="text-xs font-black uppercase tracking-[0.2em] mb-1" style={{ color: "#059669" }}>Csíki</p>
-                <h2 className="text-4xl md:text-5xl font-black leading-none mb-1" style={{ color: "#064e3b" }}>
+                <p className="text-xs font-black uppercase tracking-[0.2em] mb-1" style={{ color: "#6ee7b7" }}>Csíki</p>
+                <h2 className="text-4xl md:text-5xl font-black leading-none mb-1 text-white">
                   Majális
                 </h2>
-                <p className="text-base font-semibold" style={{ color: "#047857" }}>A családok hétvégéje</p>
+                <p className="text-base font-semibold" style={{ color: "#a7f3d0" }}>A családok hétvégéje</p>
               </div>
 
-              <p className="text-sm text-slate-600 leading-relaxed mb-6">{event.description}</p>
+              <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.65)" }}>{event.description}</p>
 
-              <div className="flex flex-wrap gap-4 text-xs text-slate-500 mb-6">
+              <div className="flex flex-wrap gap-4 text-xs mb-6" style={{ color: "rgba(255,255,255,0.55)" }}>
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" style={{ color: "#059669" }} />
+                  <Calendar className="w-3.5 h-3.5" style={{ color: "#6ee7b7" }} />
                   {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" style={{ color: "#059669" }} />
+                  <MapPin className="w-3.5 h-3.5" style={{ color: "#6ee7b7" }} />
                   {event.location}
                 </span>
                 {event.price && (
                   <span className="flex items-center gap-1.5">
-                    <Ticket className="w-3.5 h-3.5" style={{ color: "#059669" }} />
+                    <Ticket className="w-3.5 h-3.5" style={{ color: "#6ee7b7" }} />
                     {event.price}
                   </span>
                 )}
@@ -1410,7 +1410,7 @@ function MajalisSection() {
 
             {/* Countdown */}
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#059669" }}>Visszaszámláló</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#6ee7b7" }}>Visszaszámláló</p>
               <div className="grid grid-cols-4 gap-2 mb-6">
                 {[
                   { value: pad(timeLeft.days), label: "NAP" },
@@ -1418,9 +1418,9 @@ function MajalisSection() {
                   { value: pad(timeLeft.minutes), label: "PERC" },
                   { value: pad(timeLeft.seconds), label: "MP" },
                 ].map(({ value, label }) => (
-                  <div key={label} className="flex flex-col items-center justify-center rounded-2xl py-3" style={{ background: "linear-gradient(135deg, #065f46, #047857)" }}>
+                  <div key={label} className="flex flex-col items-center justify-center rounded-2xl py-3" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.15)" }}>
                     <span className="text-2xl font-black leading-none text-white">{value}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-widest mt-1 text-emerald-200">{label}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest mt-1 text-emerald-300">{label}</span>
                   </div>
                 ))}
               </div>
@@ -1449,7 +1449,6 @@ function MajalisSection() {
       </div>
 
       {/* ── Napi program tabs ── */}
-      <div style={{ background: "#064e3b" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
         <div className="flex items-center gap-3 mb-6">
           <Sparkles className="w-4 h-4 text-emerald-300" />
@@ -1559,7 +1558,6 @@ function MajalisSection() {
             </div>
           </div>
         </div>
-      </div>
       </div>
     </section>
   );
