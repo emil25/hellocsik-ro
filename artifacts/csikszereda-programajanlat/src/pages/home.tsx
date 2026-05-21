@@ -1466,10 +1466,10 @@ function MajalisSection() {
                 className="flex flex-col items-center px-5 py-2 rounded-xl font-bold text-sm transition-all"
                 style={active
                   ? { background: "linear-gradient(135deg, #059669, #047857)", color: "white", boxShadow: "0 4px 14px rgba(5,150,105,0.4)" }
-                  : { background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.1)" }
+                  : { background: "rgba(255,255,255,0.18)", color: "white", border: "1px solid rgba(255,255,255,0.25)" }
                 }
               >
-                <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: active ? "#a7f3d0" : "rgba(255,255,255,0.4)" }}>{day.date}</span>
+                <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: active ? "#a7f3d0" : "#86efac" }}>{day.date}</span>
                 <span>{day.label}</span>
               </button>
             );
