@@ -1072,6 +1072,95 @@ function PunkosdSection() {
           </div>
         </div>
 
+        {/* ── Búcsú kiemelt banner ── */}
+        <div className="mb-6 rounded-2xl overflow-hidden relative" style={{ boxShadow: "0 20px 60px rgba(139,26,42,0.5)" }}>
+          <img
+            src={`${base}punkosd/csiksomlyo-kovek.jpg`}
+            alt="Csíksomlyói Pünkösdi Búcsú 2026"
+            className="w-full object-cover absolute inset-0"
+            style={{ height: "100%", filter: "brightness(0.45) saturate(0.7)" }}
+            crossOrigin="anonymous"
+          />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(60,5,15,0.97) 0%, rgba(80,10,20,0.85) 45%, rgba(30,5,10,0.65) 100%)" }} />
+          {/* Gold top border */}
+          <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: "linear-gradient(to right, transparent, #C9A337, transparent)" }} />
+
+          <div className="relative px-8 py-8 grid md:grid-cols-2 gap-8">
+            {/* Left: title + description */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: "rgba(201,163,55,0.15)", border: "1px solid rgba(201,163,55,0.3)" }}>
+                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#C9A337" }}>⛪ Kiemelt esemény</span>
+              </div>
+              <h3 className="font-black leading-tight mb-1" style={{ color: "white", fontSize: "clamp(1.5rem, 3vw, 2.2rem)" }}>
+                Csíksomlyói<br />
+                <span style={{ color: "#C9A337" }}>Pünkösdi Búcsú</span>
+              </h3>
+              <p className="text-base font-semibold mb-4" style={{ color: "rgba(255,255,255,0.5)" }}>2026 · Csíksomlyó, Hármashalom-oltár</p>
+              <p className="text-sm leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.6)", maxWidth: "38ch" }}>
+                Erdély legnagyobb vallási összejövetele, évente több százezer zarándokot vonz a Kis-Somlyó-hegy nyergébe.
+              </p>
+              <div className="flex items-start gap-3 p-3 rounded-xl mb-4" style={{ background: "rgba(201,163,55,0.08)", border: "1px solid rgba(201,163,55,0.2)" }}>
+                <span className="text-lg">✝️</span>
+                <div>
+                  <p className="text-xs font-bold mb-0.5" style={{ color: "#C9A337" }}>Főcelebráns és szónok</p>
+                  <p className="text-sm font-semibold text-white">Exc. és Ft. dr. Székely János</p>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Szombathelyi Egyházmegye püspöke · MKPK elnöke</p>
+                </div>
+              </div>
+              <Link href="/esemeny/48">
+                <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all"
+                  style={{ background: "linear-gradient(135deg, #8B1A2A, #C9273B)", boxShadow: "0 4px 16px rgba(139,26,42,0.4)" }}
+                >
+                  Részletek <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+            </div>
+
+            {/* Right: program */}
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "#C9A337" }}>Program</p>
+              <div className="flex flex-col gap-3">
+                {[
+                  {
+                    day: "Május 22., Péntek",
+                    items: ["18:00 – Nyitószentmise", "Péntekről szombatra virradóan virrasztás a kegytemplomban"],
+                  },
+                  {
+                    day: "Május 23., Szombat",
+                    items: [
+                      "07:30 – Szentmise a kegytemplomban",
+                      "10:30 – Ünnepélyes rózsafüzér a Hármashalom-oltárnál",
+                      "10:30 – A kordon indulása a Nyeregbe",
+                      "12:30 – Ünnepi búcsús szentmise",
+                      "17:00 – Csángó mise",
+                      "18:00 – Pünkösdi vigília-szentmise",
+                    ],
+                  },
+                  {
+                    day: "Május 24., Pünkösdvasárnap",
+                    items: ["Szentmisék: 07:00 | 08:00 | 10:30 | 18:00"],
+                  },
+                  {
+                    day: "Május 25., Pünkösdhétfő",
+                    items: ["Szentmisék: 08:00 | 10:30 | 18:00"],
+                  },
+                ].map((block) => (
+                  <div key={block.day} className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <p className="text-xs font-black uppercase tracking-wide mb-1.5" style={{ color: "#C9A337" }}>{block.day}</p>
+                    {block.items.map((item) => (
+                      <p key={item} className="text-xs leading-snug mb-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>
+                        {item}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Gold bottom border */}
+          <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: "linear-gradient(to right, transparent, #C9A337, transparent)" }} />
+        </div>
+
         {/* ── Event cards grid ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {events.map((ev) => (
