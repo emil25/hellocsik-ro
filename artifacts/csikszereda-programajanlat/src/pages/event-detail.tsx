@@ -1,6 +1,17 @@
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
-import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2 } from "lucide-react";
+import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2 } from "lucide-react";
+
+function getEventLinkMeta(url: string, price?: string | null) {
+  if (url.includes("facebook.com") || url.includes("fb.com") || url.includes("fb.me")) {
+    return { label: "Facebook esemény", Icon: Link2, style: { background: "linear-gradient(135deg,#1877f2,#0e5ab8)" } as React.CSSProperties };
+  }
+  const isFree = !price || price.trim() === "" || price.toLowerCase().includes("ingyenes");
+  if (isFree) {
+    return { label: "Részletek", Icon: ExternalLink, style: { background: "linear-gradient(135deg,#64748b,#475569)" } as React.CSSProperties };
+  }
+  return { label: "Jegyvásárlás", Icon: Ticket, style: { background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black))" } as React.CSSProperties };
+}
 import { Link } from "wouter";
 import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -238,14 +249,16 @@ export default function EventDetail() {
               </div>
 
               {/* CTA buttons */}
-              {event.ticketUrl && (
-                <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer" className="block">
-                  <button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2"
-                    style={{ background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black))" }}>
-                    <Ticket className="w-4 h-4" /> Jegyvásárlás <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-                  </button>
-                </a>
-              )}
+              {event.ticketUrl && (() => {
+                const { label, Icon, style } = getEventLinkMeta(event.ticketUrl!, event.price);
+                return (
+                  <a href={event.ticketUrl!} target="_blank" rel="noopener noreferrer" className="block">
+                    <button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2" style={style}>
+                      <Icon className="w-4 h-4" /> {label} <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                    </button>
+                  </a>
+                );
+              })()}
 
               <Link href="/" className="block">
                 <button className="w-full py-3 border border-stone-200 text-stone-600 font-semibold rounded-xl hover:bg-stone-50 transition-colors text-sm">

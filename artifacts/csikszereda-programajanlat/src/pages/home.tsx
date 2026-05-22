@@ -210,14 +210,23 @@ function Hero() {
                     {events[0].price ?? "Ingyenes"}
                   </span>
                   <div className="flex items-center gap-1.5">
-                    {events[0].ticketUrl && (
-                      <a href={events[0].ticketUrl} target="_blank" rel="noopener noreferrer">
-                        <button className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full text-white transition-colors"
-                          style={{ background: "hsl(35 92% 50%)" }}>
-                          <Ticket className="w-2.5 h-2.5" /> Jegy
-                        </button>
-                      </a>
-                    )}
+                    {events[0].ticketUrl && (() => {
+                      const url = events[0].ticketUrl!;
+                      const price = events[0].price;
+                      const isFb = url.includes("facebook.com") || url.includes("fb.com") || url.includes("fb.me");
+                      const isFree = !price || price.toLowerCase().includes("ingyenes");
+                      const label = isFb ? "Facebook" : isFree ? "Részletek" : "Jegy";
+                      const bg = isFb ? "#1877f2" : isFree ? "#64748b" : "hsl(35 92% 50%)";
+                      return (
+                        <a href={url} target="_blank" rel="noopener noreferrer">
+                          <button className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full text-white transition-colors"
+                            style={{ background: bg }}>
+                            {!isFb && !isFree && <Ticket className="w-2.5 h-2.5" />}
+                            {label}
+                          </button>
+                        </a>
+                      );
+                    })()}
                     <Link href={`/esemeny/${events[0].id}`}>
                       <button className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full text-white transition-colors"
                         style={{ background: "hsl(148 45% 22%)" }}>
@@ -831,13 +840,25 @@ function MonthHighlight() {
                   <ExternalLink className="w-4 h-4" />
                 </button>
               </Link>
-              {event.ticketUrl && (
-                <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">
-                  <button className="px-5 py-2.5 border border-border rounded-xl font-semibold text-sm hover:bg-muted transition-colors">
-                    Hivatalos oldal
-                  </button>
-                </a>
-              )}
+              {event.ticketUrl && (() => {
+                const url = event.ticketUrl!;
+                const isFb = url.includes("facebook.com") || url.includes("fb.com") || url.includes("fb.me");
+                const isFree = !event.price || event.price.toLowerCase().includes("ingyenes");
+                const label = isFb ? "Facebook esemény" : isFree ? "Részletek" : "Jegyvásárlás";
+                const style = isFb
+                  ? { background: "#1877f2", color: "white" }
+                  : isFree
+                  ? { border: "1px solid #e2e8f0", color: "#374151" }
+                  : { background: "hsl(35 92% 50%)", color: "white" };
+                return (
+                  <a href={url} target="_blank" rel="noopener noreferrer">
+                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors hover:opacity-90" style={style}>
+                      {!isFb && !isFree && <Ticket className="w-4 h-4" />}
+                      {label} <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                    </button>
+                  </a>
+                );
+              })()}
             </div>
           </div>
         </div>
