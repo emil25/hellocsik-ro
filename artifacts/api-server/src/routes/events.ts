@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, eventsTable, categoriesTable } from "@workspace/db";
-import { eq, and, gte, lte, desc, asc, ne } from "drizzle-orm";
+import { eq, and, gte, lte, desc, asc, ne, or, isNull } from "drizzle-orm";
 import {
   ListEventsQueryParams,
   CreateEventBody,
@@ -119,8 +119,9 @@ router.post("/events/submit", async (req, res) => {
 router.get("/events/featured", async (req, res) => {
   try {
     const now = new Date();
+    const notExpired = or(gte(eventsTable.endDate, now), and(isNull(eventsTable.endDate), gte(eventsTable.startDate, now)))!;
     const rows = await getEventsWithCategories(
-      [eq(eventsTable.featured, true), eq(eventsTable.status, "published"), gte(eventsTable.startDate, now)],
+      [eq(eventsTable.featured, true), eq(eventsTable.status, "published"), notExpired],
       [desc(eventsTable.monthHighlight), asc(eventsTable.startDate)]
     );
     res.json({ events: rows.map((r) => formatEvent(r.event, r.category)) });
@@ -176,8 +177,10 @@ router.get("/events/upcoming", async (req, res) => {
     const parsed = ListUpcomingEventsQueryParams.safeParse(req.query);
     const limit = parsed.success ? (parsed.data.limit ?? 9) : 9;
 
+    const now = new Date();
+    const notExpired = or(gte(eventsTable.endDate, now), and(isNull(eventsTable.endDate), gte(eventsTable.startDate, now)))!;
     const rows = await getEventsWithCategories(
-      [gte(eventsTable.startDate, new Date()), eq(eventsTable.status, "published")],
+      [notExpired, eq(eventsTable.status, "published")],
       asc(eventsTable.startDate),
       limit
     );
