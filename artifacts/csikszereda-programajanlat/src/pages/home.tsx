@@ -1153,6 +1153,58 @@ function MajalisSection() {
         </div>
       </div>
 
+      {/* ── FELLÉPŐK ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-2">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-1 h-5 rounded-full" style={{ background: "#7c3aed" }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#7c3aed" }}>Fellépők &amp; előadók</span>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-3" style={{ scrollbarWidth: "none" }}>
+          {[
+            { name: "Oláh Ferenc zenekara", day: "pentek", icon: "🎻", sub: "Nótaestet" },
+            { name: "Biró Éva", day: "pentek", icon: "🎤", sub: "Nótaénekesnő" },
+            { name: "Szilágyi Sándor", day: "pentek", icon: "🎤", sub: "Nótaénekes" },
+            { name: "Hargita Székely Néptáncszínház", day: "pentek", icon: "💃", sub: "Folklór műsor" },
+            { name: "Kedves zenekar", day: "pentek", icon: "🎶", sub: "Esti koncert" },
+            { name: "Csíkszeredai fúvószenekar", day: "szombat", icon: "🎺", sub: "Kulturális műsor" },
+            { name: "Vaszi Levente", day: "szombat", icon: "🎤", sub: "Előadóművész" },
+            { name: "Mereklye néptánccsoport", day: "szombat", icon: "💃", sub: "Néptánc" },
+            { name: "FitGym gimnasztika", day: "szombat", icon: "🤸", sub: "Ritmikus bemutatő" },
+            { name: "Csíkmadarasi Népi Zenekar", day: "vasarnap", icon: "🎻", sub: "Magyarnóta" },
+            { name: "Regián Melinda", day: "vasarnap", icon: "🎤", sub: "Nótaénekesnő" },
+            { name: "Néked zenekar", day: "vasarnap", icon: "🎶", sub: "Esti koncert" },
+            { name: "No Sugar zenekar", day: "vasarnap", icon: "🎸", sub: "Esti koncert" },
+            { name: "Ének a csodaszarvasról", day: "hetfo", icon: "🎬", sub: "Jankovics Marcell filmje" },
+          ].map((p) => {
+            const dayMeta: Record<string, { color: string; label: string }> = {
+              pentek:   { color: "#16a34a", label: "Péntek" },
+              szombat:  { color: "#f97316", label: "Szombat" },
+              vasarnap: { color: "#0ea5e9", label: "Vasárnap" },
+              hetfo:    { color: "#7c3aed", label: "Hétfő" },
+            };
+            const meta = dayMeta[p.day];
+            return (
+              <div
+                key={p.name}
+                className="flex-shrink-0 flex flex-col items-center text-center rounded-2xl p-4"
+                style={{ width: 130, background: "white", boxShadow: "0 2px 12px rgba(30,64,175,0.09)", border: "1px solid #e2e8f0" }}
+              >
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-3 shrink-0"
+                  style={{ background: meta.color + "18" }}>
+                  {p.icon}
+                </div>
+                <p className="text-xs font-black leading-snug mb-1.5" style={{ color: "#0f172a" }}>{p.name}</p>
+                <p className="text-[10px] mb-2" style={{ color: "#94a3b8" }}>{p.sub}</p>
+                <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{ background: meta.color + "18", color: meta.color }}>
+                  {meta.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* ── NAPI PROGRAM ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
