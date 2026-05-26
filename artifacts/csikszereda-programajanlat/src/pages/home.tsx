@@ -1131,7 +1131,7 @@ function MajalisSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-2 pb-12 relative z-10">
 
         {/* ── KÉT OSZLOPOS LAYOUT ── */}
-        <div className="grid lg:grid-cols-[2fr_3fr] gap-6 items-start">
+        <div className="grid lg:grid-cols-[2fr_3fr] gap-6 items-stretch">
 
           {/* BAL: Cím + számláló + lineup */}
           <div className="flex flex-col gap-5">
@@ -1271,7 +1271,7 @@ function MajalisSection() {
           </div>
 
           {/* JOBB: Napi program */}
-          <div className="rounded-2xl overflow-hidden" style={{ background: "white", boxShadow: "0 8px 32px rgba(30,64,175,0.1)", border: "1px solid rgba(30,64,175,0.07)" }}>
+          <div className="rounded-2xl overflow-hidden flex flex-col" style={{ background: "white", boxShadow: "0 8px 32px rgba(30,64,175,0.1)", border: "1px solid rgba(30,64,175,0.07)" }}>
             {/* Fejléc */}
             <div className="px-5 pt-5 pb-4" style={{ borderBottom: "1px solid #f1f5f9" }}>
               <div className="flex items-center gap-2 mb-3">
@@ -1299,7 +1299,7 @@ function MajalisSection() {
 
             {/* Aktív nap tartalma */}
             <motion.div key={activeDay} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-              className="px-5 py-4">
+              className="px-5 py-4 flex flex-col flex-1 min-h-0">
               <div className="flex items-center gap-2 mb-2">
                 <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest"
                   style={{ background: dc.pill, color: dc.text }}>{activeData.badge}</span>
@@ -1307,17 +1307,17 @@ function MajalisSection() {
               </div>
               <p className="text-xs mb-4 leading-relaxed" style={{ color: "#64748b" }}>{activeData.lead}</p>
 
-              <div className="flex flex-col" style={{ maxHeight: 420, overflowY: "auto" }}>
+              <div className="flex flex-col flex-1 overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: `${dc.text}40 transparent` }}>
                 {activeData.schedule.map(({ time, label }, i) => (
                   <div key={time + label} className="flex items-stretch">
                     <div className="flex flex-col items-center mr-3" style={{ width: 16 }}>
-                      <div className="w-2 h-2 rounded-full shrink-0 mt-3" style={{ background: dc.text }} />
+                      <div className="w-2 h-2 rounded-full shrink-0 mt-3.5" style={{ background: dc.text }} />
                       {i < activeData.schedule.length - 1 && <div className="w-px flex-1 mt-1" style={{ background: "#e2e8f0" }} />}
                     </div>
-                    <div className="pb-3 flex-1 min-w-0">
+                    <div className="pb-3.5 flex-1 min-w-0">
                       <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="text-[11px] font-black shrink-0" style={{ color: dc.text, minWidth: 60 }}>{time}</span>
-                        <span className="text-xs leading-snug" style={{ color: "#334155" }}>{label}</span>
+                        <span className="text-xs font-black shrink-0" style={{ color: dc.text, minWidth: 64 }}>{time}</span>
+                        <span className="text-sm leading-snug" style={{ color: "#334155" }}>{label}</span>
                       </div>
                     </div>
                   </div>
