@@ -1097,19 +1097,23 @@ function MajalisSection() {
   };
   const dc = dayColors[activeDay] ?? dayColors.pentek;
 
-  const LINEUP_PENTEK = [
-    { name: "Hargita Székely Néptáncszínház", day: "pentek",   time: "máj. 29. · 18:00", photo: "/majalis-hargita-szinhaz.jpg" },
-    { name: "Kedves Zenekar",                 day: "pentek",   time: "máj. 29. · 19:00", photo: "/majalis-kedves-zenekar.jpg" },
-  ];
-  const LINEUP_SZOMBAT = [
-    { name: "Csíkszeredai Fúvószenekar", day: "szombat", time: "máj. 30. · 12:00", photo: "/majalis-csikszeredai-fuvoszenekar.jpg" },
-    { name: "Sárga Rózsák Dalkör",       day: "szombat", time: "máj. 30. · 13:00", photo: "/majalis-sarga-rozsakdalkor.jpg" },
-  ];
-  const LINEUP_VASARNAP = [
-    { name: "Csíkmadarasi Népi Zenekar", day: "vasarnap", time: "máj. 31. · 17:00", photo: "/majalis-muzsikanel.jpg" },
-    { name: "Néked Zenekar",             day: "vasarnap", time: "máj. 31. · 19:00", photo: "/majalis-neked-zenekar.jpg" },
-    { name: "No Sugar Zenekar",          day: "vasarnap", time: "máj. 31. · 20:00", photo: "/majalis-nosugar-zenekar.jpg" },
-  ];
+  const LINEUP_BY_DAY: Record<string, { name: string; time: string; photo: string }[]> = {
+    pentek: [
+      { name: "Hargita Székely Néptáncszínház", time: "18:00", photo: "/majalis-hargita-szinhaz.jpg" },
+      { name: "Kedves Zenekar",                 time: "19:00", photo: "/majalis-kedves-zenekar.jpg" },
+    ],
+    szombat: [
+      { name: "Csíkszeredai Fúvószenekar", time: "12:00", photo: "/majalis-csikszeredai-fuvoszenekar.jpg" },
+      { name: "Sárga Rózsák Dalkör",       time: "13:00", photo: "/majalis-sarga-rozsakdalkor.jpg" },
+    ],
+    vasarnap: [
+      { name: "Csíkmadarasi Népi Zenekar", time: "17:00", photo: "/majalis-muzsikanel.jpg" },
+      { name: "Néked Zenekar",             time: "19:00", photo: "/majalis-neked-zenekar.jpg" },
+      { name: "No Sugar Zenekar",          time: "20:00", photo: "/majalis-nosugar-zenekar.jpg" },
+    ],
+    hetfo: [],
+  };
+  const activeLineup = LINEUP_BY_DAY[activeDay] ?? [];
 
   return (
     <section style={{ background: "linear-gradient(175deg, #0a2540 0%, #0d3321 55%, #0a2540 100%)" }}>
@@ -1133,16 +1137,14 @@ function MajalisSection() {
         {/* ── KÉT OSZLOPOS LAYOUT ── */}
         <div className="grid lg:grid-cols-[2fr_3fr] gap-6 items-stretch">
 
-          {/* BAL: Cím + számláló + lineup */}
-          <div className="flex flex-col gap-5">
-
-            {/* Fejléc kártya */}
-            <div className="rounded-2xl p-6" style={{ background: "white", boxShadow: "0 8px 32px rgba(30,64,175,0.12)", border: "1px solid rgba(30,64,175,0.07)" }}>
+          {/* BAL: csak az infó kártya, h-full hogy a jobb oszlopig nyúljon */}
+          <div className="flex flex-col">
+            <div className="rounded-2xl p-6 flex flex-col flex-1" style={{ background: "white", boxShadow: "0 8px 32px rgba(30,64,175,0.12)", border: "1px solid rgba(30,64,175,0.07)" }}>
               <p className="text-[10px] font-black uppercase tracking-[0.22em] mb-0.5" style={{ color: "#16a34a" }}>Csíkszereda · 2026</p>
               <h2 className="text-4xl font-black leading-none mb-1" style={{ color: "#0f172a", fontFamily: "'Playfair Display', serif" }}>Csíki Majális</h2>
-              <p className="text-sm font-semibold mb-4" style={{ color: "#64748b" }}>A családok hétvégéje · máj. 29. – jún. 1.</p>
+              <p className="text-sm font-semibold mb-5" style={{ color: "#64748b" }}>A családok hétvégéje · máj. 29. – jún. 1.</p>
 
-              <div className="flex items-center gap-3 mb-4 flex-wrap">
+              <div className="flex items-center gap-3 mb-5 flex-wrap">
                 <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "#f0fdf4", color: "#166534" }}>
                   <Calendar className="w-3.5 h-3.5" />
                   {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
@@ -1153,8 +1155,8 @@ function MajalisSection() {
               </div>
 
               {/* Visszaszámláló */}
-              <div className="mb-4">
-                <p className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: "#f97316" }}>Visszaszámláló az eseményig</p>
+              <div className="mb-6">
+                <p className="text-[9px] font-black uppercase tracking-widest mb-2.5" style={{ color: "#f97316" }}>Visszaszámláló az eseményig</p>
                 <div className="flex gap-2">
                   {[
                     { value: pad(timeLeft.days), label: "Nap" },
@@ -1163,109 +1165,22 @@ function MajalisSection() {
                     { value: pad(timeLeft.seconds), label: "Mp" },
                   ].map(({ value, label }) => (
                     <div key={label} className="flex-1 flex flex-col items-center">
-                      <div className="w-full text-center rounded-xl py-2.5" style={{ background: "linear-gradient(135deg,#f97316,#ea580c)", boxShadow: "0 3px 10px rgba(249,115,22,0.3)" }}>
-                        <span className="text-2xl font-black text-white leading-none">{value}</span>
+                      <div className="w-full text-center rounded-xl py-3" style={{ background: "linear-gradient(135deg,#f97316,#ea580c)", boxShadow: "0 3px 10px rgba(249,115,22,0.3)" }}>
+                        <span className="text-3xl font-black text-white leading-none">{value}</span>
                       </div>
-                      <span className="text-[9px] font-bold uppercase tracking-wider mt-1" style={{ color: "#94a3b8" }}>{label}</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider mt-1.5" style={{ color: "#94a3b8" }}>{label}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <Link href={`/esemeny/${event.id}`}>
-                <button className="w-full flex items-center justify-center gap-2 py-2.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02]"
-                  style={{ background: "linear-gradient(135deg,#16a34a,#15803d)", boxShadow: "0 4px 14px rgba(22,163,74,0.3)" }}>
-                  Teljes program megtekintése <ArrowRight className="w-4 h-4" />
-                </button>
-              </Link>
-            </div>
-
-            {/* Lineup – csak fotós fellépők, napok szerint csoportosítva */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-2">
-                <span className="w-1 h-5 rounded-full" style={{ background: "#7c3aed" }} />
-                <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#7c3aed" }}>Fellépők</span>
-              </div>
-
-              {/* Péntek sor — 2 kártya */}
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                    style={{ background: "#f0fdf4", color: "#16a34a" }}>Péntek · máj. 29.</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {LINEUP_PENTEK.map((p) => {
-                    const meta = dayColors[p.day];
-                    return (
-                      <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
-                        style={{ background: "white", boxShadow: "0 4px 16px rgba(30,64,175,0.11)", border: "1px solid #e2e8f0" }}>
-                        <div className="relative overflow-hidden" style={{ height: 130 }}>
-                          <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-center" />
-                          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }} />
-                          <span className="absolute bottom-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
-                            style={{ background: meta.text }}>{p.time.split(" · ")[1]}</span>
-                        </div>
-                        <div className="px-3 py-2.5">
-                          <p className="text-xs font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Szombat sor — 2 kártya */}
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                    style={{ background: "#fff7ed", color: "#f97316" }}>Szombat · máj. 30.</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {LINEUP_SZOMBAT.map((p) => {
-                    const meta = dayColors[p.day];
-                    return (
-                      <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
-                        style={{ background: "white", boxShadow: "0 4px 16px rgba(30,64,175,0.11)", border: "1px solid #e2e8f0" }}>
-                        <div className="relative overflow-hidden" style={{ height: 130 }}>
-                          <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-center" />
-                          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }} />
-                          <span className="absolute bottom-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
-                            style={{ background: meta.text }}>{p.time.split(" · ")[1]}</span>
-                        </div>
-                        <div className="px-3 py-2.5">
-                          <p className="text-xs font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Vasárnap sor — 3 kártya */}
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                    style={{ background: "#f0f9ff", color: "#0ea5e9" }}>Vasárnap · máj. 31.</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2.5">
-                  {LINEUP_VASARNAP.map((p) => {
-                    const meta = dayColors[p.day];
-                    return (
-                      <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
-                        style={{ background: "white", boxShadow: "0 4px 16px rgba(30,64,175,0.11)", border: "1px solid #e2e8f0" }}>
-                        <div className="relative overflow-hidden" style={{ height: 110 }}>
-                          <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-center" />
-                          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }} />
-                          <span className="absolute bottom-1.5 left-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full text-white"
-                            style={{ background: meta.text }}>{p.time.split(" · ")[1]}</span>
-                        </div>
-                        <div className="px-2.5 py-2">
-                          <p className="text-[11px] font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="mt-auto">
+                <Link href={`/esemeny/${event.id}`}>
+                  <button className="w-full flex items-center justify-center gap-2 py-3 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02]"
+                    style={{ background: "linear-gradient(135deg,#16a34a,#15803d)", boxShadow: "0 4px 14px rgba(22,163,74,0.3)" }}>
+                    Teljes program megtekintése <ArrowRight className="w-4 h-4" />
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -1326,6 +1241,45 @@ function MajalisSection() {
             </motion.div>
           </div>
         </div>
+
+        {/* ── AKTÍV NAP FELLÉPŐI (alul, teljes szélesség) ── */}
+        {activeLineup.length > 0 && (
+          <motion.div
+            key={activeDay + "-lineup"}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28 }}
+            className="mt-5"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-1 h-5 rounded-full" style={{ background: dc.text }} />
+              <span className="text-xs font-black uppercase tracking-widest" style={{ color: dc.text }}>
+                {activeData.label} fellépői
+              </span>
+            </div>
+            <div
+              className="grid gap-4"
+              style={{ gridTemplateColumns: `repeat(${activeLineup.length}, minmax(0, 1fr))` }}
+            >
+              {activeLineup.map((p) => (
+                <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
+                  style={{ background: "white", boxShadow: "0 6px 24px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                  <div className="relative overflow-hidden" style={{ height: 200 }}>
+                    <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-center" />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)" }} />
+                    <span className="absolute bottom-3 left-3 text-sm font-black px-3 py-1 rounded-full text-white"
+                      style={{ background: dc.text }}>
+                      {p.time}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3">
+                    <p className="font-black text-base leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
     </section>
   );
