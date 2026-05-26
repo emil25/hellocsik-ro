@@ -1159,23 +1159,20 @@ function MajalisSection() {
           <span className="w-1 h-5 rounded-full" style={{ background: "#7c3aed" }} />
           <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#7c3aed" }}>Fellépők &amp; előadók</span>
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-3" style={{ scrollbarWidth: "none" }}>
-          {[
-            { name: "Oláh Ferenc zenekara", day: "pentek", icon: "🎻", sub: "Nótaestet" },
-            { name: "Biró Éva", day: "pentek", icon: "🎤", sub: "Nótaénekesnő" },
-            { name: "Szilágyi Sándor", day: "pentek", icon: "🎤", sub: "Nótaénekes" },
-            { name: "Hargita Székely Néptáncszínház", day: "pentek", icon: "💃", sub: "Folklór műsor" },
-            { name: "Kedves zenekar", day: "pentek", icon: "🎶", sub: "Esti koncert" },
-            { name: "Csíkszeredai fúvószenekar", day: "szombat", icon: "🎺", sub: "Kulturális műsor" },
-            { name: "Vaszi Levente", day: "szombat", icon: "🎤", sub: "Előadóművész" },
-            { name: "Mereklye néptánccsoport", day: "szombat", icon: "💃", sub: "Néptánc" },
-            { name: "FitGym gimnasztika", day: "szombat", icon: "🤸", sub: "Ritmikus bemutatő" },
-            { name: "Csíkmadarasi Népi Zenekar", day: "vasarnap", icon: "🎻", sub: "Magyarnóta" },
-            { name: "Regián Melinda", day: "vasarnap", icon: "🎤", sub: "Nótaénekesnő" },
-            { name: "Néked zenekar", day: "vasarnap", icon: "🎶", sub: "Esti koncert" },
-            { name: "No Sugar zenekar", day: "vasarnap", icon: "🎸", sub: "Esti koncert" },
-            { name: "Ének a csodaszarvasról", day: "hetfo", icon: "🎬", sub: "Jankovics Marcell filmje" },
-          ].map((p) => {
+        <div className="flex gap-4 overflow-x-auto pb-3" style={{ scrollbarWidth: "none" }}>
+          {([
+            { name: "Kedves Zenekar", day: "pentek", time: "19:00", photo: "/majalis-kedves-zenekar.jpg" },
+            { name: "Oláh Ferenc zenekara", day: "pentek", time: "17:00", icon: "🎻" },
+            { name: "Biró Éva", day: "pentek", time: "17:00", icon: "🎤" },
+            { name: "Hargita Székely Néptáncszínház", day: "pentek", time: "18:00", icon: "💃" },
+            { name: "Csíkszeredai fúvószenekar", day: "szombat", time: "12:00", icon: "🎺" },
+            { name: "Vaszi Levente", day: "szombat", time: "15:15", icon: "🎤" },
+            { name: "Mereklye néptánccsoport", day: "szombat", time: "15:40", icon: "💃" },
+            { name: "Csíkmadarasi Népi Zenekar", day: "vasarnap", time: "17:00", photo: "/majalis-muzsikanel.jpg" },
+            { name: "Néked Zenekar", day: "vasarnap", time: "19:00", photo: "/majalis-neked-zenekar.jpg" },
+            { name: "No Sugar Zenekar", day: "vasarnap", time: "20:00", photo: "/majalis-nosugar-zenekar.jpg" },
+            { name: "Ének a csodaszarvasról", day: "hetfo", time: "18:00", icon: "🎬" },
+          ] as Array<{ name: string; day: string; time: string; photo?: string; icon?: string }>).map((p) => {
             const dayMeta: Record<string, { color: string; label: string }> = {
               pentek:   { color: "#16a34a", label: "Péntek" },
               szombat:  { color: "#f97316", label: "Szombat" },
@@ -1183,18 +1180,37 @@ function MajalisSection() {
               hetfo:    { color: "#7c3aed", label: "Hétfő" },
             };
             const meta = dayMeta[p.day];
+            if (p.photo) {
+              return (
+                <div key={p.name} className="flex-shrink-0 rounded-2xl overflow-hidden flex flex-col"
+                  style={{ width: 160, background: "white", boxShadow: "0 4px 18px rgba(30,64,175,0.13)", border: "1px solid #e2e8f0" }}>
+                  <div className="relative overflow-hidden" style={{ height: 120 }}>
+                    <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-top" />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)" }} />
+                    <span className="absolute bottom-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full text-white"
+                      style={{ background: meta.color }}>
+                      {p.time}
+                    </span>
+                  </div>
+                  <div className="p-3 flex flex-col gap-1.5 flex-1 justify-between">
+                    <p className="text-xs font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
+                    <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full self-start"
+                      style={{ background: meta.color + "18", color: meta.color }}>
+                      {meta.label}
+                    </span>
+                  </div>
+                </div>
+              );
+            }
             return (
-              <div
-                key={p.name}
-                className="flex-shrink-0 flex flex-col items-center text-center rounded-2xl p-4"
-                style={{ width: 130, background: "white", boxShadow: "0 2px 12px rgba(30,64,175,0.09)", border: "1px solid #e2e8f0" }}
-              >
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-3 shrink-0"
-                  style={{ background: meta.color + "18" }}>
+              <div key={p.name} className="flex-shrink-0 flex flex-col items-center text-center rounded-2xl p-3"
+                style={{ width: 120, background: "white", boxShadow: "0 2px 12px rgba(30,64,175,0.08)", border: "1px solid #e2e8f0" }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-2 shrink-0"
+                  style={{ background: meta.color + "15" }}>
                   {p.icon}
                 </div>
-                <p className="text-xs font-black leading-snug mb-1.5" style={{ color: "#0f172a" }}>{p.name}</p>
-                <p className="text-[10px] mb-2" style={{ color: "#94a3b8" }}>{p.sub}</p>
+                <p className="text-[11px] font-black leading-snug mb-1" style={{ color: "#0f172a" }}>{p.name}</p>
+                <p className="text-[9px] mb-1.5" style={{ color: "#94a3b8" }}>{p.time}</p>
                 <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
                   style={{ background: meta.color + "18", color: meta.color }}>
                   {meta.label}
