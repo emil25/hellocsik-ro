@@ -1097,11 +1097,14 @@ function MajalisSection() {
   };
   const dc = dayColors[activeDay] ?? dayColors.pentek;
 
-  const LINEUP = [
-    { name: "Kedves Zenekar",           day: "pentek",   time: "máj. 29. · 19:00", photo: "/majalis-kedves-zenekar.jpg" },
+  const LINEUP_PENTEK = [
+    { name: "Hargita Székely Néptáncszínház", day: "pentek",   time: "máj. 29. · 18:00", photo: "/majalis-hargita-szinhaz.jpg" },
+    { name: "Kedves Zenekar",                 day: "pentek",   time: "máj. 29. · 19:00", photo: "/majalis-kedves-zenekar.jpg" },
+  ];
+  const LINEUP_VASARNAP = [
     { name: "Csíkmadarasi Népi Zenekar", day: "vasarnap", time: "máj. 31. · 17:00", photo: "/majalis-muzsikanel.jpg" },
-    { name: "Néked Zenekar",            day: "vasarnap", time: "máj. 31. · 19:00", photo: "/majalis-neked-zenekar.jpg" },
-    { name: "No Sugar Zenekar",         day: "vasarnap", time: "máj. 31. · 20:00", photo: "/majalis-nosugar-zenekar.jpg" },
+    { name: "Néked Zenekar",             day: "vasarnap", time: "máj. 31. · 19:00", photo: "/majalis-neked-zenekar.jpg" },
+    { name: "No Sugar Zenekar",          day: "vasarnap", time: "máj. 31. · 20:00", photo: "/majalis-nosugar-zenekar.jpg" },
   ];
 
   return (
@@ -1173,32 +1176,65 @@ function MajalisSection() {
               </Link>
             </div>
 
-            {/* Lineup – csak fotós zenekarak, 2x2 grid */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
+            {/* Lineup – csak fotós fellépők, napok szerint csoportosítva */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
                 <span className="w-1 h-5 rounded-full" style={{ background: "#7c3aed" }} />
                 <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#7c3aed" }}>Fellépők</span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {LINEUP.map((p) => {
-                  const meta = dayColors[p.day];
-                  return (
-                    <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
-                      style={{ background: "white", boxShadow: "0 4px 16px rgba(30,64,175,0.11)", border: "1px solid #e2e8f0" }}>
-                      <div className="relative overflow-hidden" style={{ height: 140 }}>
-                        <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-center" />
-                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 50%)" }} />
-                        <span className="absolute bottom-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
-                          style={{ background: meta.text }}>
-                          {p.time}
-                        </span>
+
+              {/* Péntek sor — 2 kártya */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                    style={{ background: "#f0fdf4", color: "#16a34a" }}>Péntek · máj. 29.</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {LINEUP_PENTEK.map((p) => {
+                    const meta = dayColors[p.day];
+                    return (
+                      <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
+                        style={{ background: "white", boxShadow: "0 4px 16px rgba(30,64,175,0.11)", border: "1px solid #e2e8f0" }}>
+                        <div className="relative overflow-hidden" style={{ height: 130 }}>
+                          <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-center" />
+                          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }} />
+                          <span className="absolute bottom-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
+                            style={{ background: meta.text }}>{p.time.split(" · ")[1]}</span>
+                        </div>
+                        <div className="px-3 py-2.5">
+                          <p className="text-xs font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
+                        </div>
                       </div>
-                      <div className="px-3 py-2.5">
-                        <p className="text-xs font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Vasárnap sor — 3 kártya */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                    style={{ background: "#f0f9ff", color: "#0ea5e9" }}>Vasárnap · máj. 31.</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {LINEUP_VASARNAP.map((p) => {
+                    const meta = dayColors[p.day];
+                    return (
+                      <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
+                        style={{ background: "white", boxShadow: "0 4px 16px rgba(30,64,175,0.11)", border: "1px solid #e2e8f0" }}>
+                        <div className="relative overflow-hidden" style={{ height: 110 }}>
+                          <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-center" />
+                          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }} />
+                          <span className="absolute bottom-1.5 left-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-full text-white"
+                            style={{ background: meta.text }}>{p.time.split(" · ")[1]}</span>
+                        </div>
+                        <div className="px-2.5 py-2">
+                          <p className="text-[11px] font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
