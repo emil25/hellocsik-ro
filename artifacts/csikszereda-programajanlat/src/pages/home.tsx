@@ -1089,280 +1089,174 @@ function MajalisSection() {
 
   const activeData = MAJALIS_DAYS.find((d) => d.id === activeDay)!;
 
+  const dayColors: Record<string, { bg: string; text: string; shadow: string; pill: string }> = {
+    pentek:   { bg: "linear-gradient(135deg,#16a34a,#15803d)", text: "#16a34a", shadow: "rgba(22,163,74,0.35)",   pill: "#f0fdf4" },
+    szombat:  { bg: "linear-gradient(135deg,#f97316,#ea580c)", text: "#f97316", shadow: "rgba(249,115,22,0.35)",  pill: "#fff7ed" },
+    vasarnap: { bg: "linear-gradient(135deg,#0ea5e9,#0284c7)", text: "#0ea5e9", shadow: "rgba(14,165,233,0.35)",  pill: "#f0f9ff" },
+    hetfo:    { bg: "linear-gradient(135deg,#7c3aed,#6d28d9)", text: "#7c3aed", shadow: "rgba(124,58,237,0.35)",  pill: "#faf5ff" },
+  };
+  const dc = dayColors[activeDay] ?? dayColors.pentek;
+
+  const LINEUP = [
+    { name: "Kedves Zenekar",           day: "pentek",   time: "máj. 29. · 19:00", photo: "/majalis-kedves-zenekar.jpg" },
+    { name: "Csíkmadarasi Népi Zenekar", day: "vasarnap", time: "máj. 31. · 17:00", photo: "/majalis-muzsikanel.jpg" },
+    { name: "Néked Zenekar",            day: "vasarnap", time: "máj. 31. · 19:00", photo: "/majalis-neked-zenekar.jpg" },
+    { name: "No Sugar Zenekar",         day: "vasarnap", time: "máj. 31. · 20:00", photo: "/majalis-nosugar-zenekar.jpg" },
+  ];
+
   return (
     <section style={{ background: "#dbeafe" }}>
 
-      {/* ── HERO: teljes szélességű plakát ── */}
-      <div className="relative w-full overflow-hidden" style={{ height: "clamp(320px, 46vw, 560px)" }}>
-        <img
-          src="/majalis-plakat.jpg"
-          alt="Csíki Majális plakát"
-          className="absolute inset-0 w-full h-full object-cover object-top"
-        />
-        {/* overlay — alul az ég kék háttérbe olvad */}
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(219,234,254,0) 35%, rgba(219,234,254,0.6) 75%, rgba(219,234,254,1) 100%)" }} />
-
-        {/* Badge bal felül */}
-        <div className="absolute top-6 left-6">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest" style={{ background: "rgba(255,255,255,0.9)", color: "#16a34a", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
+      {/* ── HERO PLAKÁT ── */}
+      <div className="relative w-full overflow-hidden" style={{ height: "clamp(280px, 40vw, 500px)" }}>
+        <img src="/majalis-plakat.jpg" alt="Csíki Majális plakát"
+          className="absolute inset-0 w-full h-full object-cover object-top" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(219,234,254,0) 30%, rgba(219,234,254,0.7) 80%, rgba(219,234,254,1) 100%)" }} />
+        <div className="absolute top-5 left-5">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest"
+            style={{ background: "rgba(255,255,255,0.92)", color: "#16a34a", backdropFilter: "blur(8px)", boxShadow: "0 2px 10px rgba(0,0,0,0.12)" }}>
             <Sparkles className="w-3 h-3" /> Csíkszereda legnagyobb tavaszi ünnepe
           </span>
         </div>
       </div>
 
-      {/* ── INFO KÁRTYA ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 relative z-10">
-        <div className="rounded-2xl p-5 md:p-6 flex flex-wrap items-center justify-between gap-5" style={{ background: "white", boxShadow: "0 8px 32px rgba(30,64,175,0.13)", border: "1px solid rgba(30,64,175,0.08)" }}>
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-0.5" style={{ color: "#16a34a" }}>Csíki</p>
-            <h2 className="text-3xl md:text-4xl font-black leading-none" style={{ color: "#0f172a" }}>Majális</h2>
-            <p className="text-sm font-semibold mt-0.5" style={{ color: "#64748b" }}>A családok hétvégéje · máj. 29. – jún. 1.</p>
-          </div>
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-widest mb-1.5" style={{ color: "#f97316" }}>Visszaszámláló</p>
-            <div className="flex gap-2">
-              {[
-                { value: pad(timeLeft.days), label: "Nap" },
-                { value: pad(timeLeft.hours), label: "Óra" },
-                { value: pad(timeLeft.minutes), label: "Perc" },
-                { value: pad(timeLeft.seconds), label: "Mp" },
-              ].map(({ value, label }) => (
-                <div key={label} className="flex flex-col items-center" style={{ minWidth: 48 }}>
-                  <div className="w-full text-center rounded-xl py-2" style={{ background: "linear-gradient(135deg,#f97316,#ea580c)", boxShadow: "0 3px 10px rgba(249,115,22,0.35)" }}>
-                    <span className="text-xl font-black text-white leading-none">{value}</span>
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider mt-1" style={{ color: "#94a3b8" }}>{label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "#f0fdf4", color: "#166534" }}>
-              <Calendar className="w-3.5 h-3.5" />
-              {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
-            </span>
-            <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "#f0fdf4", color: "#166534" }}>
-              <MapPin className="w-3.5 h-3.5" /> {event.location}
-            </span>
-            <Link href={`/esemeny/${event.id}`}>
-              <button className="flex items-center gap-2 px-5 py-2.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-105" style={{ background: "linear-gradient(135deg,#16a34a,#15803d)", boxShadow: "0 4px 14px rgba(22,163,74,0.35)" }}>
-                Teljes program <ArrowRight className="w-4 h-4" />
-              </button>
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* ── FŐ TARTALOM ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-2 pb-12 relative z-10">
 
-      {/* ── FELLÉPŐK ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-2">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="w-1 h-5 rounded-full" style={{ background: "#7c3aed" }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#7c3aed" }}>Fellépők &amp; előadók</span>
-        </div>
-        <div className="flex gap-4 overflow-x-auto pb-3" style={{ scrollbarWidth: "none" }}>
-          {([
-            { name: "Kedves Zenekar", day: "pentek", time: "19:00", photo: "/majalis-kedves-zenekar.jpg" },
-            { name: "Oláh Ferenc zenekara", day: "pentek", time: "17:00", icon: "🎻" },
-            { name: "Biró Éva", day: "pentek", time: "17:00", icon: "🎤" },
-            { name: "Hargita Székely Néptáncszínház", day: "pentek", time: "18:00", icon: "💃" },
-            { name: "Csíkszeredai fúvószenekar", day: "szombat", time: "12:00", icon: "🎺" },
-            { name: "Vaszi Levente", day: "szombat", time: "15:15", icon: "🎤" },
-            { name: "Mereklye néptánccsoport", day: "szombat", time: "15:40", icon: "💃" },
-            { name: "Csíkmadarasi Népi Zenekar", day: "vasarnap", time: "17:00", photo: "/majalis-muzsikanel.jpg" },
-            { name: "Néked Zenekar", day: "vasarnap", time: "19:00", photo: "/majalis-neked-zenekar.jpg" },
-            { name: "No Sugar Zenekar", day: "vasarnap", time: "20:00", photo: "/majalis-nosugar-zenekar.jpg" },
-            { name: "Ének a csodaszarvasról", day: "hetfo", time: "18:00", icon: "🎬" },
-          ] as Array<{ name: string; day: string; time: string; photo?: string; icon?: string }>).map((p) => {
-            const dayMeta: Record<string, { color: string; label: string }> = {
-              pentek:   { color: "#16a34a", label: "Péntek" },
-              szombat:  { color: "#f97316", label: "Szombat" },
-              vasarnap: { color: "#0ea5e9", label: "Vasárnap" },
-              hetfo:    { color: "#7c3aed", label: "Hétfő" },
-            };
-            const meta = dayMeta[p.day];
-            if (p.photo) {
-              return (
-                <div key={p.name} className="flex-shrink-0 rounded-2xl overflow-hidden flex flex-col"
-                  style={{ width: 160, background: "white", boxShadow: "0 4px 18px rgba(30,64,175,0.13)", border: "1px solid #e2e8f0" }}>
-                  <div className="relative overflow-hidden" style={{ height: 120 }}>
-                    <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-top" />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)" }} />
-                    <span className="absolute bottom-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full text-white"
-                      style={{ background: meta.color }}>
-                      {p.time}
-                    </span>
-                  </div>
-                  <div className="p-3 flex flex-col gap-1.5 flex-1 justify-between">
-                    <p className="text-xs font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
-                    <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full self-start"
-                      style={{ background: meta.color + "18", color: meta.color }}>
-                      {meta.label}
-                    </span>
-                  </div>
-                </div>
-              );
-            }
-            return (
-              <div key={p.name} className="flex-shrink-0 flex flex-col items-center text-center rounded-2xl p-3"
-                style={{ width: 120, background: "white", boxShadow: "0 2px 12px rgba(30,64,175,0.08)", border: "1px solid #e2e8f0" }}>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-2 shrink-0"
-                  style={{ background: meta.color + "15" }}>
-                  {p.icon}
-                </div>
-                <p className="text-[11px] font-black leading-snug mb-1" style={{ color: "#0f172a" }}>{p.name}</p>
-                <p className="text-[9px] mb-1.5" style={{ color: "#94a3b8" }}>{p.time}</p>
-                <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  style={{ background: meta.color + "18", color: meta.color }}>
-                  {meta.label}
+        {/* ── KÉT OSZLOPOS LAYOUT ── */}
+        <div className="grid lg:grid-cols-2 gap-6 items-start">
+
+          {/* BAL: Cím + számláló + lineup */}
+          <div className="flex flex-col gap-5">
+
+            {/* Fejléc kártya */}
+            <div className="rounded-2xl p-6" style={{ background: "white", boxShadow: "0 8px 32px rgba(30,64,175,0.12)", border: "1px solid rgba(30,64,175,0.07)" }}>
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] mb-0.5" style={{ color: "#16a34a" }}>Csíkszereda · 2026</p>
+              <h2 className="text-4xl font-black leading-none mb-1" style={{ color: "#0f172a", fontFamily: "'Playfair Display', serif" }}>Csíki Majális</h2>
+              <p className="text-sm font-semibold mb-4" style={{ color: "#64748b" }}>A családok hétvégéje · máj. 29. – jún. 1.</p>
+
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "#f0fdf4", color: "#166534" }}>
+                  <Calendar className="w-3.5 h-3.5" />
+                  {formatShortDate(event.startDate)}{event.endDate ? ` – ${formatShortDate(event.endDate)}` : ""}
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "#f0fdf4", color: "#166534" }}>
+                  <MapPin className="w-3.5 h-3.5" /> {event.location}
                 </span>
               </div>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* ── NAPI PROGRAM ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+              {/* Visszaszámláló */}
+              <div className="mb-4">
+                <p className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: "#f97316" }}>Visszaszámláló az eseményig</p>
+                <div className="flex gap-2">
+                  {[
+                    { value: pad(timeLeft.days), label: "Nap" },
+                    { value: pad(timeLeft.hours), label: "Óra" },
+                    { value: pad(timeLeft.minutes), label: "Perc" },
+                    { value: pad(timeLeft.seconds), label: "Mp" },
+                  ].map(({ value, label }) => (
+                    <div key={label} className="flex-1 flex flex-col items-center">
+                      <div className="w-full text-center rounded-xl py-2.5" style={{ background: "linear-gradient(135deg,#f97316,#ea580c)", boxShadow: "0 3px 10px rgba(249,115,22,0.3)" }}>
+                        <span className="text-2xl font-black text-white leading-none">{value}</span>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase tracking-wider mt-1" style={{ color: "#94a3b8" }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-        {/* Fejléc */}
-        <div className="flex items-center gap-2 mb-5">
-          <span className="w-1 h-5 rounded-full" style={{ background: "#16a34a" }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#16a34a" }}>Program napok szerint</span>
-        </div>
+              <Link href={`/esemeny/${event.id}`}>
+                <button className="w-full flex items-center justify-center gap-2 py-2.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(135deg,#16a34a,#15803d)", boxShadow: "0 4px 14px rgba(22,163,74,0.3)" }}>
+                  Teljes program megtekintése <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+            </div>
 
-        {/* Nap-tabok — minden napnak saját színe */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {MAJALIS_DAYS.map((day) => {
-            const active = activeDay === day.id;
-            const dayColors: Record<string, { bg: string; shadow: string }> = {
-              pentek:   { bg: "linear-gradient(135deg,#16a34a,#15803d)", shadow: "rgba(22,163,74,0.4)" },
-              szombat:  { bg: "linear-gradient(135deg,#f97316,#ea580c)", shadow: "rgba(249,115,22,0.4)" },
-              vasarnap: { bg: "linear-gradient(135deg,#0ea5e9,#0284c7)", shadow: "rgba(14,165,233,0.4)" },
-              hetfo:    { bg: "linear-gradient(135deg,#7c3aed,#6d28d9)", shadow: "rgba(124,58,237,0.4)" },
-            };
-            const c = dayColors[day.id] ?? dayColors.pentek;
-            return (
-              <button
-                key={day.id}
-                onClick={() => setActiveDay(day.id)}
-                className="transition-all rounded-2xl font-bold text-sm"
-                style={active
-                  ? { background: c.bg, color: "white", padding: "8px 22px", boxShadow: `0 4px 16px ${c.shadow}` }
-                  : { background: "white", color: "#374151", border: "2px solid #e2e8f0", padding: "8px 22px" }
-                }
-              >
-                <span className="block text-[10px] font-black uppercase tracking-wider mb-0.5" style={{ color: active ? "rgba(255,255,255,0.75)" : "#94a3b8" }}>{day.date}</span>
-                {day.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Aktív nap — fehér kártya, sötét szöveg, timeline */}
-        <motion.div
-          key={activeDay}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-          className="rounded-2xl p-6 mb-10"
-          style={{ background: "white", boxShadow: "0 4px 24px rgba(30,64,175,0.1)", border: "1px solid #e2e8f0" }}
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest" style={{ background: "#f0fdf4", color: "#16a34a" }}>{activeData.badge}</span>
-            <p className="font-black text-lg leading-none" style={{ color: "#0f172a" }}>{activeData.label} · {activeData.date}</p>
+            {/* Lineup – csak fotós zenekarak, 2x2 grid */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-1 h-5 rounded-full" style={{ background: "#7c3aed" }} />
+                <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#7c3aed" }}>Fellépők</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {LINEUP.map((p) => {
+                  const meta = dayColors[p.day];
+                  return (
+                    <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
+                      style={{ background: "white", boxShadow: "0 4px 16px rgba(30,64,175,0.11)", border: "1px solid #e2e8f0" }}>
+                      <div className="relative overflow-hidden" style={{ height: 140 }}>
+                        <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-center" />
+                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 50%)" }} />
+                        <span className="absolute bottom-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
+                          style={{ background: meta.text }}>
+                          {p.time}
+                        </span>
+                      </div>
+                      <div className="px-3 py-2.5">
+                        <p className="text-xs font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          <p className="text-sm mb-5" style={{ color: "#64748b", lineHeight: 1.6 }}>{activeData.lead}</p>
 
-          <div className="flex flex-col">
-            {activeData.schedule.map(({ time, label }, i) => {
-              const isPending = time.startsWith("🎵");
-              return (
-                <div key={time + label} className="flex items-stretch">
-                  <div className="flex flex-col items-center mr-4" style={{ width: 20 }}>
-                    <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-3.5" style={{ background: isPending ? "#e2e8f0" : "#16a34a" }} />
-                    {i < activeData.schedule.length - 1 && <div className="w-px flex-1 mt-1" style={{ background: "#e2e8f0" }} />}
-                  </div>
-                  <div className="pb-4 flex-1">
-                    <div className="flex items-baseline gap-3 flex-wrap">
-                      <span className="text-xs font-black shrink-0" style={{ color: isPending ? "#cbd5e1" : "#16a34a", minWidth: 72 }}>{isPending ? "—" : time}</span>
-                      <span className="text-sm" style={{ color: isPending ? "#cbd5e1" : "#1e293b", fontStyle: isPending ? "italic" : "normal" }}>
-                        {isPending ? "Zenei program – hamarosan" : label}
-                      </span>
+          {/* JOBB: Napi program */}
+          <div className="rounded-2xl overflow-hidden" style={{ background: "white", boxShadow: "0 8px 32px rgba(30,64,175,0.1)", border: "1px solid rgba(30,64,175,0.07)" }}>
+            {/* Fejléc */}
+            <div className="px-5 pt-5 pb-4" style={{ borderBottom: "1px solid #f1f5f9" }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-1 h-4 rounded-full" style={{ background: "#16a34a" }} />
+                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#16a34a" }}>Napok szerinti program</span>
+              </div>
+              {/* Nap-tabok */}
+              <div className="grid grid-cols-4 gap-1.5">
+                {MAJALIS_DAYS.map((day) => {
+                  const active = activeDay === day.id;
+                  const c = dayColors[day.id] ?? dayColors.pentek;
+                  return (
+                    <button key={day.id} onClick={() => setActiveDay(day.id)}
+                      className="rounded-xl py-2 px-1 text-center transition-all font-bold text-xs"
+                      style={active
+                        ? { background: c.bg, color: "white", boxShadow: `0 3px 10px ${c.shadow}` }
+                        : { background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0" }}>
+                      <span className="block text-[9px] mb-0.5" style={{ color: active ? "rgba(255,255,255,0.7)" : "#94a3b8" }}>{day.date}</span>
+                      {day.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Aktív nap tartalma */}
+            <motion.div key={activeDay} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+              className="px-5 py-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest"
+                  style={{ background: dc.pill, color: dc.text }}>{activeData.badge}</span>
+                <p className="font-black text-sm" style={{ color: "#0f172a" }}>{activeData.label} · {activeData.date}</p>
+              </div>
+              <p className="text-xs mb-4 leading-relaxed" style={{ color: "#64748b" }}>{activeData.lead}</p>
+
+              <div className="flex flex-col" style={{ maxHeight: 420, overflowY: "auto" }}>
+                {activeData.schedule.map(({ time, label }, i) => (
+                  <div key={time + label} className="flex items-stretch">
+                    <div className="flex flex-col items-center mr-3" style={{ width: 16 }}>
+                      <div className="w-2 h-2 rounded-full shrink-0 mt-3" style={{ background: dc.text }} />
+                      {i < activeData.schedule.length - 1 && <div className="w-px flex-1 mt-1" style={{ background: "#e2e8f0" }} />}
+                    </div>
+                    <div className="pb-3 flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <span className="text-[11px] font-black shrink-0" style={{ color: dc.text, minWidth: 60 }}>{time}</span>
+                        <span className="text-xs leading-snug" style={{ color: "#334155" }}>{label}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        {/* ── KÜLÖNLEGES PROGRAMOK ── */}
-        <div className="flex items-center gap-2 mb-5">
-          <span className="w-1 h-5 rounded-full" style={{ background: "#f97316" }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#f97316" }}>Különleges programok</span>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-5 pb-12">
-          {/* Kézműves vásár — kép TELJESEN látható, nincs nehéz overlay */}
-          <div className="rounded-2xl overflow-hidden" style={{ background: "white", boxShadow: "0 4px 20px rgba(249,115,22,0.12)", border: "2px solid rgba(249,115,22,0.25)" }}>
-            <div className="h-52 overflow-hidden">
-              <img src="/majalis-gyerek.jpg" alt="Kézműves vásár" className="w-full h-full object-cover" />
-            </div>
-            <div className="p-5">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">🛍️</span>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#f97316" }}>Kézműves vásár</p>
-                  <p className="font-black text-base leading-tight" style={{ color: "#0f172a" }}>Helyi mesterek portékái</p>
-                </div>
-              </div>
-              <p className="text-xs leading-relaxed mb-4" style={{ color: "#64748b" }}>
-                Helyi mesteremberek és kisvállalkozók portékái — minden vásárlásod a csíki gazdaságot támogatja.
-              </p>
-              <div className="flex flex-col gap-1.5">
-                {[
-                  { day: "Péntek, máj. 29.", time: "15:00–19:00" },
-                  { day: "Szombat, máj. 30.", time: "10:00–19:00" },
-                  { day: "Vasárnap, máj. 31.", time: "10:00–19:00" },
-                ].map(({ day, time }) => (
-                  <div key={day} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "#fff7ed", border: "1px solid rgba(249,115,22,0.18)" }}>
-                    <span className="text-xs font-medium" style={{ color: "#374151" }}>{day}</span>
-                    <span className="text-xs font-black" style={{ color: "#f97316" }}>{time}</span>
-                  </div>
                 ))}
               </div>
-            </div>
-          </div>
-
-          {/* Gyermekfoglalkozások — kép TELJESEN látható */}
-          <div className="rounded-2xl overflow-hidden" style={{ background: "white", boxShadow: "0 4px 20px rgba(22,163,74,0.12)", border: "2px solid rgba(22,163,74,0.25)" }}>
-            <div className="h-52 overflow-hidden">
-              <img src="/majalis-gyerek-foglalkozas.jpg" alt="Gyermekfoglalkozások" className="w-full h-full object-cover" />
-            </div>
-            <div className="p-5">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">🎨</span>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#16a34a" }}>Gyermekfoglalkozások</p>
-                  <p className="font-black text-base leading-tight" style={{ color: "#0f172a" }}>Alkotóműhelyek gyerekeknek</p>
-                </div>
-              </div>
-              <p className="text-xs leading-relaxed mb-4" style={{ color: "#64748b" }}>
-                Bútorfestés, rongybaba, bőrműves foglalkozás, Székely Gőzös fajátékok, kézműves HelloWuud-al, játszótér és barkácsolás.
-              </p>
-              <div className="flex flex-col gap-1.5">
-                {[
-                  { day: "Szombat, máj. 30.", time: "10:00–18:00" },
-                  { day: "Vasárnap, máj. 31.", time: "10:00–18:00" },
-                  { day: "Hétfő, jún. 1.", time: "10:00–18:00" },
-                ].map(({ day, time }) => (
-                  <div key={day} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "#f0fdf4", border: "1px solid rgba(22,163,74,0.18)" }}>
-                    <span className="text-xs font-medium" style={{ color: "#374151" }}>{day}</span>
-                    <span className="text-xs font-black" style={{ color: "#16a34a" }}>{time}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
