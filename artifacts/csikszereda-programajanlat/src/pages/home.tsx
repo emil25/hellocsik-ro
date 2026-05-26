@@ -1101,6 +1101,10 @@ function MajalisSection() {
     { name: "Hargita Székely Néptáncszínház", day: "pentek",   time: "máj. 29. · 18:00", photo: "/majalis-hargita-szinhaz.jpg" },
     { name: "Kedves Zenekar",                 day: "pentek",   time: "máj. 29. · 19:00", photo: "/majalis-kedves-zenekar.jpg" },
   ];
+  const LINEUP_SZOMBAT = [
+    { name: "Csíkszeredai Fúvószenekar", day: "szombat", time: "máj. 30. · 12:00", photo: "/majalis-csikszeredai-fuvoszenekar.jpg" },
+    { name: "Sárga Rózsák Dalkör",       day: "szombat", time: "máj. 30. · 13:00", photo: "/majalis-sarga-rozsakdalkor.jpg" },
+  ];
   const LINEUP_VASARNAP = [
     { name: "Csíkmadarasi Népi Zenekar", day: "vasarnap", time: "máj. 31. · 17:00", photo: "/majalis-muzsikanel.jpg" },
     { name: "Néked Zenekar",             day: "vasarnap", time: "máj. 31. · 19:00", photo: "/majalis-neked-zenekar.jpg" },
@@ -1108,13 +1112,13 @@ function MajalisSection() {
   ];
 
   return (
-    <section style={{ background: "#dbeafe" }}>
+    <section style={{ background: "linear-gradient(175deg, #0a2540 0%, #0d3321 55%, #0a2540 100%)" }}>
 
       {/* ── HERO PLAKÁT ── */}
       <div className="relative w-full overflow-hidden" style={{ height: "clamp(280px, 40vw, 500px)" }}>
         <img src="/majalis-plakat.jpg" alt="Csíki Majális plakát"
           className="absolute inset-0 w-full h-full object-cover object-top" />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(219,234,254,0) 30%, rgba(219,234,254,0.7) 80%, rgba(219,234,254,1) 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(10,37,64,0) 25%, rgba(10,37,64,0.6) 75%, rgba(10,37,64,1) 100%)" }} />
         <div className="absolute top-5 left-5">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest"
             style={{ background: "rgba(255,255,255,0.92)", color: "#16a34a", backdropFilter: "blur(8px)", boxShadow: "0 2px 10px rgba(0,0,0,0.12)" }}>
@@ -1127,7 +1131,7 @@ function MajalisSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-2 pb-12 relative z-10">
 
         {/* ── KÉT OSZLOPOS LAYOUT ── */}
-        <div className="grid lg:grid-cols-2 gap-6 items-start">
+        <div className="grid lg:grid-cols-[2fr_3fr] gap-6 items-start">
 
           {/* BAL: Cím + számláló + lineup */}
           <div className="flex flex-col gap-5">
@@ -1210,6 +1214,33 @@ function MajalisSection() {
                 </div>
               </div>
 
+              {/* Szombat sor — 2 kártya */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                    style={{ background: "#fff7ed", color: "#f97316" }}>Szombat · máj. 30.</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {LINEUP_SZOMBAT.map((p) => {
+                    const meta = dayColors[p.day];
+                    return (
+                      <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
+                        style={{ background: "white", boxShadow: "0 4px 16px rgba(30,64,175,0.11)", border: "1px solid #e2e8f0" }}>
+                        <div className="relative overflow-hidden" style={{ height: 130 }}>
+                          <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-center" />
+                          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }} />
+                          <span className="absolute bottom-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
+                            style={{ background: meta.text }}>{p.time.split(" · ")[1]}</span>
+                        </div>
+                        <div className="px-3 py-2.5">
+                          <p className="text-xs font-black leading-snug" style={{ color: "#0f172a" }}>{p.name}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Vasárnap sor — 3 kártya */}
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
@@ -1248,17 +1279,17 @@ function MajalisSection() {
                 <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#16a34a" }}>Napok szerinti program</span>
               </div>
               {/* Nap-tabok */}
-              <div className="grid grid-cols-4 gap-1.5">
+              <div className="grid grid-cols-4 gap-2">
                 {MAJALIS_DAYS.map((day) => {
                   const active = activeDay === day.id;
                   const c = dayColors[day.id] ?? dayColors.pentek;
                   return (
                     <button key={day.id} onClick={() => setActiveDay(day.id)}
-                      className="rounded-xl py-2 px-1 text-center transition-all font-bold text-xs"
+                      className="rounded-2xl py-3 px-2 text-center transition-all font-black text-sm"
                       style={active
-                        ? { background: c.bg, color: "white", boxShadow: `0 3px 10px ${c.shadow}` }
-                        : { background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0" }}>
-                      <span className="block text-[9px] mb-0.5" style={{ color: active ? "rgba(255,255,255,0.7)" : "#94a3b8" }}>{day.date}</span>
+                        ? { background: c.bg, color: "white", boxShadow: `0 4px 14px ${c.shadow}`, transform: "scale(1.04)" }
+                        : { background: c.pill, color: c.text, border: `2px solid ${c.text}40` }}>
+                      <span className="block text-[10px] font-bold mb-0.5 opacity-80">{day.date}</span>
                       {day.label}
                     </button>
                   );
