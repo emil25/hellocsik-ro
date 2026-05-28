@@ -1099,19 +1099,25 @@ function MajalisSection() {
 
   const LINEUP_BY_DAY: Record<string, { name: string; time: string; photo: string }[]> = {
     pentek: [
+      { name: "Oláh Ferenc és Zenekara",        time: "17:00", photo: "/majalis-olah-ferenc.jpg" },
       { name: "Hargita Székely Néptáncszínház", time: "18:00", photo: "/majalis-hargita-szinhaz.jpg" },
       { name: "Kedves Zenekar",                 time: "19:00", photo: "/majalis-kedves-zenekar.jpg" },
+      { name: "Tamás Balázs",                   time: "19:00", photo: "/majalis-tamas-balazs.jpg" },
     ],
     szombat: [
-      { name: "Csíkszeredai Fúvószenekar", time: "12:00", photo: "/majalis-csikszeredai-fuvoszenekar.jpg" },
-      { name: "Sárga Rózsák Dalkör",       time: "13:00", photo: "/majalis-sarga-rozsakdalkor.jpg" },
+      { name: "Csíkszeredai Fúvószenekar",  time: "12:00", photo: "/majalis-csikszeredai-fuvoszenekar.jpg" },
+      { name: "Sárga Rózsák Dalkör",        time: "13:00", photo: "/majalis-sarga-rozsakdalkor.jpg" },
+      { name: "Csíki Reménység Dalkör",     time: "14:00", photo: "/majalis-csiki-remenyeseg-dalkor.jpg" },
+      { name: "Vaszi Levente",              time: "15:15", photo: "/majalis-vaszi-levente.jpg" },
     ],
     vasarnap: [
       { name: "Csíkmadarasi Népi Zenekar", time: "17:00", photo: "/majalis-muzsikanel.jpg" },
       { name: "Néked Zenekar",             time: "19:00", photo: "/majalis-neked-zenekar.jpg" },
       { name: "No Sugar Zenekar",          time: "20:00", photo: "/majalis-nosugar-zenekar.jpg" },
     ],
-    hetfo: [],
+    hetfo: [
+      { name: "Biró Julcsi és a Lelkes Zenekar", time: "11:00", photo: "/majalis-gyermeknap-biro-julcsi.jpg" },
+    ],
   };
   const activeLineup = LINEUP_BY_DAY[activeDay] ?? [];
 
@@ -1259,7 +1265,11 @@ function MajalisSection() {
             </div>
             <div
               className="grid gap-4"
-              style={{ gridTemplateColumns: `repeat(${activeLineup.length}, minmax(0, 1fr))` }}
+              style={{
+                gridTemplateColumns: activeLineup.length === 1
+                  ? "minmax(0, 320px)"
+                  : `repeat(${Math.min(activeLineup.length, 4)}, minmax(0, 1fr))`,
+              }}
             >
               {activeLineup.map((p) => (
                 <div key={p.name} className="rounded-2xl overflow-hidden flex flex-col"
