@@ -1080,8 +1080,6 @@ const MAJALIS_DAYS = [
 
 function MajalisSection() {
   const { data: event, isLoading } = useGetEvent(3);
-  const timeLeft = useCountdown(event?.startDate ?? null);
-  const pad = (n: number) => String(n).padStart(2, "0");
   const [activeDay, setActiveDay] = useState("pentek");
 
   if (isLoading) return <Skeleton className="h-[520px] rounded-none" />;
@@ -1158,26 +1156,6 @@ function MajalisSection() {
                 <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "#f0fdf4", color: "#166534" }}>
                   <MapPin className="w-3.5 h-3.5" /> {event.location}
                 </span>
-              </div>
-
-              {/* Visszaszámláló */}
-              <div className="mb-6">
-                <p className="text-[9px] font-black uppercase tracking-widest mb-2.5" style={{ color: "#f97316" }}>Visszaszámláló az eseményig</p>
-                <div className="flex gap-2">
-                  {[
-                    { value: pad(timeLeft.days), label: "Nap" },
-                    { value: pad(timeLeft.hours), label: "Óra" },
-                    { value: pad(timeLeft.minutes), label: "Perc" },
-                    { value: pad(timeLeft.seconds), label: "Mp" },
-                  ].map(({ value, label }) => (
-                    <div key={label} className="flex-1 flex flex-col items-center">
-                      <div className="w-full text-center rounded-xl py-3" style={{ background: "linear-gradient(135deg,#f97316,#ea580c)", boxShadow: "0 3px 10px rgba(249,115,22,0.3)" }}>
-                        <span className="text-3xl font-black text-white leading-none">{value}</span>
-                      </div>
-                      <span className="text-[9px] font-bold uppercase tracking-wider mt-1.5" style={{ color: "#94a3b8" }}>{label}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               <div className="mt-auto">
