@@ -1390,7 +1390,6 @@ export default function Home() {
       <Hero />
       <WeeklyCalendar />
       <UpcomingEvents />
-      <FeaturedProgramSection />
       <CinemaSection />
       <VenuesSection />
       <AddEventSection />
