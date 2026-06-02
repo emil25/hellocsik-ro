@@ -937,6 +937,105 @@ const badgeColors: Record<string, string> = {
   "HAMAROSAN": "#6b7280",
 };
 
+function MetalLegendsSection() {
+  const { data: event, isLoading } = useGetEvent(20);
+  if (isLoading) return <Skeleton className="h-[480px] rounded-none" />;
+  if (!event) return null;
+
+  const TICKET_PRICES = [
+    { label: "El\u0151vétel",  price: "80 RON", note: "jún. 5-ig" },
+    { label: "Helyszínen", price: "90 RON", note: "a koncert napján" },
+  ];
+
+  const BANDS = [
+    { name: "Ramm-brand(t)", sub: "Rammstein tribute \u2022 Csíkszereda", photo: "/metal-legends-rammbrandt.jpg" },
+    { name: "Masterpiece",   sub: "Metallica tribute \u2022 Kolozsvár",  photo: "/metal-legends-masterpiece.jpg" },
+  ];
+
+  return (
+    <section style={{ background: "linear-gradient(160deg, #0a0a0a 0%, #1a0505 45%, #0a0a0a 100%)" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        {/* Fejléc chip */}
+        <div className="flex items-center gap-2 mb-6">
+          <span className="w-1 h-5 rounded-full" style={{ background: "#ef4444" }} />
+          <span className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: "#ef4444" }}>Kiemelt esemény</span>
+        </div>
+
+        {/* Fő layout: plakát bal + infó jobb */}
+        <div className="grid lg:grid-cols-[auto_1fr] gap-8 items-start">
+
+          {/* Plakát */}
+          <div className="mx-auto lg:mx-0 rounded-2xl overflow-hidden shadow-2xl" style={{ width: 280, flexShrink: 0 }}>
+            <img src="/metal-legends-summer-night.jpg" alt="Metal Legends Summer Night plakát"
+              className="w-full h-auto object-cover" />
+          </div>
+
+          {/* Infó */}
+          <div className="flex flex-col justify-between min-h-full">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: "#ef4444" }}>
+                the double trouble tribute show
+              </p>
+              <h2 className="text-4xl lg:text-5xl font-black leading-none mb-4 uppercase" style={{ color: "#ffffff", fontFamily: "'Playfair Display', serif", textShadow: "0 0 40px rgba(239,68,68,0.4)" }}>
+                Metal Legends<br />Summer Night
+              </h2>
+
+              <div className="flex flex-wrap gap-3 mb-5">
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "rgba(239,68,68,0.15)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.3)" }}>
+                  <Calendar className="w-3.5 h-3.5" /> 2026. június 6.
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "rgba(239,68,68,0.15)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.3)" }}>
+                  <MapPin className="w-3.5 h-3.5" /> Ólom Udvar, Csíkszereda
+                </span>
+              </div>
+
+              <p className="text-sm leading-relaxed mb-6" style={{ color: "#9ca3af" }}>
+                Két legendás metal világ találkozik egy estén — ha szereted a Metallica és a Rammstein energiáját, ezt az estét nem akarod kihagyni. 🤘
+              </p>
+
+              {/* Jegyárak */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                {TICKET_PRICES.map(({ label, price, note }) => (
+                  <div key={label} className="rounded-xl px-4 py-3 text-center" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "#6b7280" }}>{label}</p>
+                    <p className="text-xl font-black" style={{ color: "#ffffff" }}>{price}</p>
+                    <p className="text-[10px]" style={{ color: "#6b7280" }}>{note}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <a href="https://www.ambilet.ro/metal-legends-summer-night/" target="_blank" rel="noopener noreferrer">
+              <button className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-sm text-white transition-all hover:scale-[1.03] active:scale-[0.98]"
+                style={{ background: "linear-gradient(135deg,#ef4444,#b91c1c)", boxShadow: "0 4px 20px rgba(239,68,68,0.4)" }}>
+                <Ticket className="w-4 h-4" /> Jegyvásárlás – ambilet.ro <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+              </button>
+            </a>
+          </div>
+        </div>
+
+        {/* Zenekar kártyák */}
+        <div className="grid grid-cols-2 gap-5 mt-8">
+          {BANDS.map((b) => (
+            <div key={b.name} className="rounded-2xl overflow-hidden flex flex-col" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="relative overflow-hidden" style={{ height: 200 }}>
+                <img src={b.photo} alt={b.name} className="w-full h-full object-cover object-top" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 55%)" }} />
+              </div>
+              <div className="px-4 py-3">
+                <p className="font-black text-base text-white leading-tight">{b.name}</p>
+                <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>{b.sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
 function CinemaSection() {
   return (
     <section className="py-16" style={{ background: "linear-gradient(180deg, #fdf8f5 0%, #fce7f3 50%, #ede9fe 100%)" }}>
@@ -1390,6 +1489,7 @@ export default function Home() {
       <Hero />
       <WeeklyCalendar />
       <UpcomingEvents />
+      <MetalLegendsSection />
       <CinemaSection />
       <VenuesSection />
       <AddEventSection />
