@@ -878,28 +878,28 @@ const MOVIES = [
     title: "Leg\u00e9nyb\u00facs\u00fa",
     date: "J\u00fan. 4\u20136.",
     badge: "M\u0170SORON",
-    image: "https://upload.wikimedia.org/wikipedia/hu/thumb/7/78/Leg%C3%A9nyb%C3%BAcs%C3%BA_%282025%29.png/500px-Leg%C3%A9nyb%C3%BAcs%C3%BA_%282025%29.png",
+    image: "/movie-legenybucsu.png",
   },
   {
     id: "m2",
     title: "Black Bag",
     date: "J\u00fan. 4\u20136.",
     badge: "M\u0170SORON",
-    image: "https://image.tmdb.org/t/p/w500/cSY8nNvGaOcBdlFhWm6kbBYOkab.jpg",
+    image: "/movie-black-bag.jpg",
   },
   {
     id: "m3",
     title: "Michael",
     date: "J\u00fan. 4\u20136.",
     badge: "M\u0170SORON",
-    image: "https://image.tmdb.org/t/p/w500/uVFMBXjMhkPPAO1bfpRjJMNHEMt.jpg",
+    image: "/movie-michael.png",
   },
   {
     id: "m4",
     title: "Jurassic World: \u00dajj\u00e1sz\u00fclet\u00e9s",
     date: "J\u00fan. 12-t\u0151l",
     badge: "HAMAROSAN",
-    image: "https://image.tmdb.org/t/p/w500/iAEBiGAnuWqnDUGSpiTLQMhVn8N.jpg",
+    image: "/movie-jurassic-world-rebirth.jpg",
   },
 ];
 
