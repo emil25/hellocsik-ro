@@ -915,53 +915,53 @@ function RegiZeneFesztivalSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-secondary">\u2736</span>
-            <span className="text-xs font-bold text-secondary uppercase tracking-widest">Kiemelt fesztiv\u00e1l</span>
+            <span className="text-secondary">✦</span>
+            <span className="text-xs font-bold text-secondary uppercase tracking-widest">Kiemelt fesztivál</span>
           </div>
-          <h2 className="text-3xl font-bold text-foreground">A ny\u00e1r nagy zenei eseménye</h2>
+          <h2 className="text-3xl font-bold text-foreground">A nyár nagy zenei eseménye</h2>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 items-center bg-card rounded-3xl overflow-hidden border border-card-border shadow-sm">
-          {/* Plak\u00e1t */}
+          {/* Plakát */}
           <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
             <img
               src="/regizene-fesztival-2026.jpg"
-              alt="Cs\u00edkszeredai R\u00e9gizene Fesztiv\u00e1l 2026"
+              alt="Csíkszeredai Régizene Fesztivál 2026"
               className="w-full h-full object-cover object-top"
             />
             <div className="absolute top-4 left-4 flex gap-2">
               <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: "#1E88E5" }}>
-                Fesztiv\u00e1l
+                Fesztivál
               </span>
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/90 text-foreground">K\u00f6z\u00f6ss\u00e9gi</span>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/90 text-foreground">Közösségi</span>
             </div>
           </div>
 
-          {/* R\u00e9szletek */}
+          {/* Részletek */}
           <div className="p-8">
             <p className="text-xs font-bold uppercase tracking-widest text-secondary mb-1">
-              46. jubileumi kiad\u00e1s \u2022 1980 \u00f3ta
+              46. jubileumi kiadás • 1980 óta
             </p>
             <h3 className="text-2xl md:text-3xl font-bold text-primary leading-tight mb-4">
-              Cs\u00edkszeredai R\u00e9gizene Fesztiv\u00e1l 2026
+              Csíkszeredai Régizene Fesztivál 2026
             </h3>
             <p className="text-muted-foreground leading-relaxed mb-6 text-sm">
-              Rom\u00e1nia egyik legnagyobb m\u00faltra visszatekint\u0151 zenei fesztiv\u00e1lja immár 46 \u00e9ve a cs\u00edkszeredai ny\u00e1r elmaradhatatlan r\u00e9sze. A r\u00e9gi zene szerelmesei, a Zeng\u0151 T\u00e9ren sorakoz\u00f3 helyszínek \u00e9s a h\u00e9tnapos program minden koroszt\u00e1ly sz\u00e1m\u00e1ra k\u00ednál felejthetetlen \u00e9lm\u00e9nyeket.
+              Románia egyik legnagyobb múltra visszatekintő zenei fesztiválja immár 46 éve a csíkszeredai nyár elmaradhatatlan része. A régi zene szerelmesei, a Zengő Téren sorakozó helyszínek és a hétnapos program minden korosztály számára kínál felejthetetlen élményeket.
             </p>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
               <div className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2.5">
                 <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
                 <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Id\u0151pont</p>
-                  <p className="text-sm font-semibold text-foreground">2026. j\u00falius 5\u201313.</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Időpont</p>
+                  <p className="text-sm font-semibold text-foreground">2026. július 6–12.</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2.5">
                 <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
                 <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Helysz\u00edn</p>
-                  <p className="text-sm font-semibold text-foreground">Zeng\u0151 T\u00e9r, Cs\u00edkszereda</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Helyszín</p>
+                  <p className="text-sm font-semibold text-foreground">Zengő Tér, Csíkszereda</p>
                 </div>
               </div>
             </div>
@@ -969,7 +969,7 @@ function RegiZeneFesztivalSection() {
             <div className="flex gap-3">
               <a href="https://regizene.ro/fesztivalprogram/" target="_blank" rel="noopener noreferrer">
                 <button className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors">
-                  Fesztiv\u00e1lprogram <ExternalLink className="w-4 h-4" />
+                  Fesztiválprogram <ExternalLink className="w-4 h-4" />
                 </button>
               </a>
               <a href="https://regizene.ro" target="_blank" rel="noopener noreferrer">
