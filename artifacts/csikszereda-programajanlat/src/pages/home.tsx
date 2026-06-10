@@ -909,100 +909,77 @@ const badgeColors: Record<string, string> = {
   "HAMAROSAN": "#6b7280",
 };
 
-function MetalLegendsSection() {
-  const { data: event, isLoading } = useGetEvent(20);
-  if (isLoading) return <Skeleton className="h-[480px] rounded-none" />;
-  if (!event) return null;
-
-  const TICKET_PRICES = [
-    { label: "El\u0151vétel",  price: "80 RON", note: "jún. 5-ig" },
-    { label: "Helyszínen", price: "90 RON", note: "a koncert napján" },
-  ];
-
-  const BANDS = [
-    { name: "Ramm-brand(t)", sub: "Rammstein tribute \u2022 Csíkszereda", photo: "/metal-legends-rammbrandt.jpg" },
-    { name: "Masterpiece",   sub: "Metallica tribute \u2022 Kolozsvár",  photo: "/metal-legends-masterpiece.jpg" },
-  ];
-
+function RegiZeneFesztivalSection() {
   return (
-    <section style={{ background: "linear-gradient(160deg, #0a0a0a 0%, #1a0505 45%, #0a0a0a 100%)" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-        {/* Fejléc chip */}
-        <div className="flex items-center gap-2 mb-6">
-          <span className="w-1 h-5 rounded-full" style={{ background: "#ef4444" }} />
-          <span className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: "#ef4444" }}>Kiemelt esemény</span>
+    <section className="py-16 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-secondary">\u2736</span>
+            <span className="text-xs font-bold text-secondary uppercase tracking-widest">Kiemelt fesztiv\u00e1l</span>
+          </div>
+          <h2 className="text-3xl font-bold text-foreground">A ny\u00e1r nagy zenei eseménye</h2>
         </div>
 
-        {/* Fő layout: plakát bal + infó jobb */}
-        <div className="grid lg:grid-cols-[auto_1fr] gap-8 items-start">
-
-          {/* Plakát */}
-          <div className="mx-auto lg:mx-0 rounded-2xl overflow-hidden shadow-2xl" style={{ width: 280, flexShrink: 0 }}>
-            <img src="/metal-legends-summer-night.jpg" alt="Metal Legends Summer Night plakát"
-              className="w-full h-auto object-cover" />
+        <div className="grid md:grid-cols-2 gap-8 items-center bg-card rounded-3xl overflow-hidden border border-card-border shadow-sm">
+          {/* Plak\u00e1t */}
+          <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
+            <img
+              src="/regizene-fesztival-2026.jpg"
+              alt="Cs\u00edkszeredai R\u00e9gizene Fesztiv\u00e1l 2026"
+              className="w-full h-full object-cover object-top"
+            />
+            <div className="absolute top-4 left-4 flex gap-2">
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: "#1E88E5" }}>
+                Fesztiv\u00e1l
+              </span>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/90 text-foreground">K\u00f6z\u00f6ss\u00e9gi</span>
+            </div>
           </div>
 
-          {/* Infó */}
-          <div className="flex flex-col justify-between min-h-full">
-            <div>
-              <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: "#ef4444" }}>
-                the double trouble tribute show
-              </p>
-              <h2 className="text-4xl lg:text-5xl font-black leading-none mb-4 uppercase" style={{ color: "#ffffff", fontFamily: "'Playfair Display', serif", textShadow: "0 0 40px rgba(239,68,68,0.4)" }}>
-                Metal Legends<br />Summer Night
-              </h2>
+          {/* R\u00e9szletek */}
+          <div className="p-8">
+            <p className="text-xs font-bold uppercase tracking-widest text-secondary mb-1">
+              46. jubileumi kiad\u00e1s \u2022 1980 \u00f3ta
+            </p>
+            <h3 className="text-2xl md:text-3xl font-bold text-primary leading-tight mb-4">
+              Cs\u00edkszeredai R\u00e9gizene Fesztiv\u00e1l 2026
+            </h3>
+            <p className="text-muted-foreground leading-relaxed mb-6 text-sm">
+              Rom\u00e1nia egyik legnagyobb m\u00faltra visszatekint\u0151 zenei fesztiv\u00e1lja immár 46 \u00e9ve a cs\u00edkszeredai ny\u00e1r elmaradhatatlan r\u00e9sze. A r\u00e9gi zene szerelmesei, a Zeng\u0151 T\u00e9ren sorakoz\u00f3 helyszínek \u00e9s a h\u00e9tnapos program minden koroszt\u00e1ly sz\u00e1m\u00e1ra k\u00ednál felejthetetlen \u00e9lm\u00e9nyeket.
+            </p>
 
-              <div className="flex flex-wrap gap-3 mb-5">
-                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "rgba(239,68,68,0.15)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.3)" }}>
-                  <Calendar className="w-3.5 h-3.5" /> 2026. június 6.
-                </span>
-                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "rgba(239,68,68,0.15)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.3)" }}>
-                  <MapPin className="w-3.5 h-3.5" /> Ólom Udvar, Csíkszereda
-                </span>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2.5">
+                <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Id\u0151pont</p>
+                  <p className="text-sm font-semibold text-foreground">2026. j\u00falius 5\u201313.</p>
+                </div>
               </div>
-
-              <p className="text-sm leading-relaxed mb-6" style={{ color: "#9ca3af" }}>
-                Két legendás metal világ találkozik egy estén — ha szereted a Metallica és a Rammstein energiáját, ezt az estét nem akarod kihagyni. 🤘
-              </p>
-
-              {/* Jegyárak */}
-              <div className="flex flex-wrap gap-3 mb-6">
-                {TICKET_PRICES.map(({ label, price, note }) => (
-                  <div key={label} className="rounded-xl px-4 py-3 text-center" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "#6b7280" }}>{label}</p>
-                    <p className="text-xl font-black" style={{ color: "#ffffff" }}>{price}</p>
-                    <p className="text-[10px]" style={{ color: "#6b7280" }}>{note}</p>
-                  </div>
-                ))}
+              <div className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2.5">
+                <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Helysz\u00edn</p>
+                  <p className="text-sm font-semibold text-foreground">Zeng\u0151 T\u00e9r, Cs\u00edkszereda</p>
+                </div>
               </div>
             </div>
 
-            <a href="https://www.ambilet.ro/metal-legends-summer-night/" target="_blank" rel="noopener noreferrer">
-              <button className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-sm text-white transition-all hover:scale-[1.03] active:scale-[0.98]"
-                style={{ background: "linear-gradient(135deg,#ef4444,#b91c1c)", boxShadow: "0 4px 20px rgba(239,68,68,0.4)" }}>
-                <Ticket className="w-4 h-4" /> Jegyvásárlás – ambilet.ro <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-              </button>
-            </a>
+            <div className="flex gap-3">
+              <a href="https://regizene.ro/fesztivalprogram/" target="_blank" rel="noopener noreferrer">
+                <button className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors">
+                  Fesztiv\u00e1lprogram <ExternalLink className="w-4 h-4" />
+                </button>
+              </a>
+              <a href="https://regizene.ro" target="_blank" rel="noopener noreferrer">
+                <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors hover:bg-muted" style={{ border: "1px solid #e2e8f0", color: "#374151" }}>
+                  regizene.ro <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                </button>
+              </a>
+            </div>
           </div>
         </div>
-
-        {/* Zenekar kártyák */}
-        <div className="grid grid-cols-2 gap-5 mt-8">
-          {BANDS.map((b) => (
-            <div key={b.name} className="rounded-2xl overflow-hidden flex flex-col" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <div className="relative overflow-hidden" style={{ height: 200 }}>
-                <img src={b.photo} alt={b.name} className="w-full h-full object-cover object-top" />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 55%)" }} />
-              </div>
-              <div className="px-4 py-3">
-                <p className="font-black text-base text-white leading-tight">{b.name}</p>
-                <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>{b.sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
       </div>
     </section>
   );
@@ -1461,7 +1438,7 @@ export default function Home() {
       <Hero />
       <WeeklyCalendar />
       <UpcomingEvents />
-      <MetalLegendsSection />
+      <RegiZeneFesztivalSection />
       <CinemaSection />
       <VenuesSection />
       <AddEventSection />
