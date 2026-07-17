@@ -909,109 +909,19 @@ const badgeColors: Record<string, string> = {
   "HAMAROSAN": "#6b7280",
 };
 
-const REGIZENE_PERFORMERS = [
-  "Baroque Festival Orchestra",
-  "Barozda '50 – Ünnepi hangverseny",
-  "Concerto Spiralis & Kónya István",
-  "Tessa Roos & Peter Croton",
-  "Vitárius Piroska & Fülöp Mária",
-  "Amaryllis Régizene Együttes",
-  "Musica Historica",
-  "Carmina Renascentia",
-  "Kamerata Barcense",
-  "Pax et Bonum Kamarakórus",
-];
-
-function RegiZeneFesztivalSection() {
-  return (
-    <section className="py-16 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Fejléc */}
-        <div className="flex items-center gap-2 mb-6">
-          <span className="text-secondary">✦</span>
-          <span className="text-xs font-bold text-secondary uppercase tracking-widest">Kiemelt fesztivál · 1980 óta</span>
-        </div>
-
-        {/* Banner kártya */}
-        <div className="rounded-3xl overflow-hidden" style={{ border: "1px solid #e5d5c5" }}>
-
-          {/* Plakát — teljes szélességű, jól látható */}
-          <div className="relative w-full" style={{ aspectRatio: "21/9" }}>
-            <img
-              src="/regizene-fesztival-2026.jpg"
-              alt="Csíkszeredai Régizene Fesztivál 2026 plakát"
-              className="w-full h-full object-cover object-top"
-            />
-            {/* Csak alul halvány átmenet a szöveghez */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/3" style={{ background: "linear-gradient(to bottom, transparent, rgba(26,8,4,0.85))" }} />
-            {/* Dátum + helyszín a plakáton */}
-            <div className="absolute bottom-4 left-6 flex flex-wrap gap-3">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg backdrop-blur-sm" style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                <Calendar className="w-3.5 h-3.5" style={{ color: "#f4c88a" }} />
-                <span className="text-xs font-semibold text-white">2026. július 6–12.</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg backdrop-blur-sm" style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                <MapPin className="w-3.5 h-3.5" style={{ color: "#f4c88a" }} />
-                <span className="text-xs font-semibold text-white">Csíkszereda több helyszínén</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Szöveg rész — világos háttér */}
-          <div className="px-6 py-6" style={{ background: "#fdf6f0" }}>
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
-
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-primary mb-1">Csíkszeredai Régizene Fesztivál 2026</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Románia egyik legnagyobb múltra visszatekintő zenei fesztiválja — 7 nap, hazai és nemzetközi együttesekkel.
-                </p>
-
-                {/* Meghívottak */}
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Meghívott előadók</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {REGIZENE_PERFORMERS.map((name) => (
-                      <span key={name} className="px-2.5 py-1 rounded-full text-xs font-medium bg-card border border-card-border text-foreground">
-                        {name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Gombok */}
-              <div className="flex flex-row md:flex-col gap-2 flex-shrink-0">
-                <a href="https://regizene.ro/fesztivalprogram/" target="_blank" rel="noopener noreferrer">
-                  <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white hover:opacity-90 transition-opacity w-full justify-center" style={{ background: "#8b1a1a" }}>
-                    Fesztiválprogram <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-                  </button>
-                </a>
-                <a href="https://regizene.ro" target="_blank" rel="noopener noreferrer">
-                  <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-muted transition-colors w-full justify-center" style={{ border: "1px solid #e2d0c0", color: "#5a3a2a" }}>
-                    regizene.ro <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-                  </button>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-  );
-}
-
-const TUSVANYOS_TEMAKORK = [
-  "Belpolitika",
-  "Gazdaságpolitika",
-  "Külpolitika",
-  "Társadalom",
-  "Kultúra és identitás",
-  "Ifjúság",
-  "Média",
-  "Erdélyi kérdések",
+const TUSVANYOS_MEGHIVOTTAK = [
+  "Ács János",
+  "Adorján Attila",
+  "Albert Éva",
+  "Ambrózy Áron",
+  "Antal Árpád",
+  "Azbej Tristan",
+  "Bakk Miklós",
+  "Balogh Ákos Gergely",
+  "Banai Péter Benő",
+  "Bánffy Farkas",
+  "Bányai Gábor",
+  "Ambrus Attila",
 ];
 
 function TusványosSection() {
@@ -1057,11 +967,11 @@ function TusványosSection() {
                 </p>
 
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Témakörök</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Meghívott előadók</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {TUSVANYOS_TEMAKORK.map((tema) => (
-                      <span key={tema} className="px-2.5 py-1 rounded-full text-xs font-medium bg-white border text-foreground" style={{ borderColor: "#a8cccc" }}>
-                        {tema}
+                    {TUSVANYOS_MEGHIVOTTAK.map((nev) => (
+                      <span key={nev} className="px-2.5 py-1 rounded-full text-xs font-medium bg-white border text-foreground" style={{ borderColor: "#a8cccc" }}>
+                        {nev}
                       </span>
                     ))}
                   </div>
@@ -1542,7 +1452,6 @@ export default function Home() {
       <Hero />
       <WeeklyCalendar />
       <UpcomingEvents />
-      <RegiZeneFesztivalSection />
       <TusványosSection />
       <CinemaSection />
       <VenuesSection />
