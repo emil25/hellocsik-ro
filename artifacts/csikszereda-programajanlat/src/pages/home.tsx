@@ -876,21 +876,21 @@ const MOVIES = [
   {
     id: "m1",
     title: "Michael",
-    date: "Júl. 11–19.",
+    date: "Júl. 14–26.",
     badge: "MŰSORON",
     image: "/movie-michael.png",
   },
   {
     id: "m2",
     title: "Vaiana",
-    date: "Júl. 11–19.",
+    date: "Júl. 14–26.",
     badge: "MŰSORON",
     image: "/movie-vaiana.png",
   },
   {
     id: "m3",
     title: "Tuner",
-    date: "Júl. 11–19.",
+    date: "Júl. 14–26.",
     badge: "MŰSORON",
     image: "/movie-tuner.png",
   },
@@ -898,7 +898,7 @@ const MOVIES = [
     id: "m4",
     title: "Jurassic World: Újjászületés",
     date: "Júl. 30-tól",
-    badge: "HAMAROSAN",
+    badge: "PREMIER",
     image: "/movie-jurassic-world-rebirth.jpg",
   },
 ];
