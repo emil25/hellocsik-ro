@@ -909,19 +909,16 @@ const badgeColors: Record<string, string> = {
   "HAMAROSAN": "#6b7280",
 };
 
-const TUSVANYOS_MEGHIVOTTAK = [
-  "Ács János",
-  "Adorján Attila",
-  "Albert Éva",
-  "Ambrózy Áron",
-  "Antal Árpád",
-  "Azbej Tristan",
-  "Bakk Miklós",
-  "Balogh Ákos Gergely",
-  "Banai Péter Benő",
-  "Bánffy Farkas",
-  "Bányai Gábor",
-  "Ambrus Attila",
+const TUSVANYOS_KONCERTEK = [
+  "Edda Művek",
+  "Ismerős Arcok",
+  "Anna and the Barbies",
+  "Caramel",
+  "Kowalsky meg a Vega",
+  "4S Street",
+  "Szabó Balázs Bandája",
+  "Magyar Banda",
+  "Horváth Tamás",
 ];
 
 function TusványosSection() {
@@ -967,9 +964,9 @@ function TusványosSection() {
                 </p>
 
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Meghívott előadók</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Nagyszínpadi fellépők</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {TUSVANYOS_MEGHIVOTTAK.map((nev) => (
+                    {TUSVANYOS_KONCERTEK.map((nev) => (
                       <span key={nev} className="px-2.5 py-1 rounded-full text-xs font-medium bg-white border text-foreground" style={{ borderColor: "#a8cccc" }}>
                         {nev}
                       </span>
