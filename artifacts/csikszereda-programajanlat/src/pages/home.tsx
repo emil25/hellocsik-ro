@@ -909,16 +909,16 @@ const badgeColors: Record<string, string> = {
   "HAMAROSAN": "#6b7280",
 };
 
-const TUSVANYOS_KONCERTEK = [
-  "Edda Művek",
-  "Ismerős Arcok",
-  "Anna and the Barbies",
-  "Caramel",
-  "Kowalsky meg a Vega",
-  "4S Street",
-  "Szabó Balázs Bandája",
-  "Magyar Banda",
-  "Horváth Tamás",
+const TUSVANYOS_FELLЕПОК = [
+  { nev: "Edda Művek",            kep: "/tusvanyos/Edda-1.png" },
+  { nev: "Ismerős Arcok",         kep: "/tusvanyos/IsmerosArcok.png" },
+  { nev: "Anna and the Barbies",  kep: "/tusvanyos/post-anna.png" },
+  { nev: "Caramel",               kep: "/tusvanyos/post-car.png" },
+  { nev: "Kowalsky meg a Vega",   kep: "/tusvanyos/post-kowa.png" },
+  { nev: "4S Street",             kep: "/tusvanyos/4sStreet.png" },
+  { nev: "Szabó Balázs Bandája",  kep: "/tusvanyos/post-szabobalazs.png" },
+  { nev: "Magyar Banda",          kep: "/tusvanyos/MagyarBanda.png" },
+  { nev: "Horváth Tamás",         kep: "/tusvanyos/HorvathTamas.png" },
 ];
 
 function TusványosSection() {
@@ -953,40 +953,46 @@ function TusványosSection() {
             </div>
           </div>
 
-          {/* Info panel */}
-          <div className="px-6 py-6" style={{ background: "#f0f7f7" }}>
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
-
-              <div className="flex-1">
-                <h3 className="text-xl font-bold mb-1" style={{ color: "#0d303e" }}>Bálványosi Nyári Szabadegyetem és Diáktábor 2026</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Közép-Európa egyik legnagyobb szabadtéri politikai és szellemi fóruma — 6 nap, százak panelbeszélgetéssel, előadással és kulturális programmal.
+          {/* Info sáv */}
+          <div className="px-6 py-5" style={{ background: "#f0f7f7" }}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold mb-0.5" style={{ color: "#0d303e" }}>Bálványosi Nyári Szabadegyetem és Diáktábor 2026</h3>
+                <p className="text-sm text-muted-foreground">
+                  Közép-Európa egyik legnagyobb politikai és szellemi fóruma — 6 nap panelbeszélgetéssel és kulturális programmal.
                 </p>
-
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Nagyszínpadi fellépők</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {TUSVANYOS_KONCERTEK.map((nev) => (
-                      <span key={nev} className="px-2.5 py-1 rounded-full text-xs font-medium bg-white border text-foreground" style={{ borderColor: "#a8cccc" }}>
-                        {nev}
-                      </span>
-                    ))}
-                  </div>
-                </div>
               </div>
-
-              <div className="flex flex-row md:flex-col gap-2 flex-shrink-0">
+              <div className="flex gap-2 flex-shrink-0">
                 <a href="https://www.tusvanyos.ro/program/" target="_blank" rel="noopener noreferrer">
-                  <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white hover:opacity-90 transition-opacity w-full justify-center" style={{ background: "#0d303e" }}>
+                  <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white hover:opacity-90 transition-opacity whitespace-nowrap" style={{ background: "#0d303e" }}>
                     Program <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                   </button>
                 </a>
                 <a href="https://www.tusvanyos.ro" target="_blank" rel="noopener noreferrer">
-                  <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-muted transition-colors w-full justify-center" style={{ border: "1px solid #a8cccc", color: "#0d303e" }}>
+                  <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-muted transition-colors whitespace-nowrap" style={{ border: "1px solid #a8cccc", color: "#0d303e" }}>
                     tusvanyos.ro <ExternalLink className="w-3.5 h-3.5 opacity-60" />
                   </button>
                 </a>
               </div>
+            </div>
+          </div>
+
+          {/* Fellépők képrács */}
+          <div className="px-6 pb-6" style={{ background: "#f0f7f7", borderTop: "1px solid #d0e8e8" }}>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground pt-5 mb-4">Nagyszínpadi fellépők</p>
+            <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+              {TUSVANYOS_FELLЕПОК.map((f) => (
+                <div key={f.nev} className="flex-shrink-0 w-28 group cursor-default">
+                  <div className="rounded-xl overflow-hidden mb-2" style={{ aspectRatio: "4/5", background: "#0d303e" }}>
+                    <img
+                      src={f.kep}
+                      alt={f.nev}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <p className="text-xs font-semibold text-center leading-tight" style={{ color: "#0d303e" }}>{f.nev}</p>
+                </div>
+              ))}
             </div>
           </div>
 
