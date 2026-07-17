@@ -910,15 +910,16 @@ const badgeColors: Record<string, string> = {
 };
 
 const TUSVANYOS_FELLЕПОК = [
-  { nev: "Edda Művek",            kep: "/tusvanyos/Edda-1.png" },
-  { nev: "Ismerős Arcok",         kep: "/tusvanyos/IsmerosArcok.png" },
-  { nev: "Anna and the Barbies",  kep: "/tusvanyos/post-anna.png" },
-  { nev: "Caramel",               kep: "/tusvanyos/post-car.png" },
-  { nev: "Kowalsky meg a Vega",   kep: "/tusvanyos/post-kowa.png" },
-  { nev: "4S Street",             kep: "/tusvanyos/4sStreet.png" },
-  { nev: "Szabó Balázs Bandája",  kep: "/tusvanyos/post-szabobalazs.png" },
-  { nev: "Magyar Banda",          kep: "/tusvanyos/MagyarBanda.png" },
-  { nev: "Horváth Tamás",         kep: "/tusvanyos/HorvathTamas.png" },
+  { nev: "Ismerős Arcok",              kep: "/tusvanyos/IsmerosArcok.png" },
+  { nev: "Edda Művek",                 kep: "/tusvanyos/Edda-1.png" },
+  { nev: "Magyar Banda",               kep: "/tusvanyos/MagyarBanda.png" },
+  { nev: "Anna and the Barbies",       kep: "/tusvanyos/post-anna.png" },
+  { nev: "Horváth Tamás",              kep: "/tusvanyos/HorvathTamas.png" },
+  { nev: "Holograf",                   kep: "/tusvanyos/post-holo.png" },
+  { nev: "Maszkura és a Tücsökraj",   kep: "/tusvanyos/post-maszkura.png" },
+  { nev: "4S Street",                  kep: "/tusvanyos/4sStreet.png" },
+  { nev: "Szabó Balázs Bandája",       kep: "/tusvanyos/post-szabobalazs.png" },
+  { nev: "Kowalsky meg a Vega",        kep: "/tusvanyos/post-kowa.png" },
 ];
 
 function TusványosSection() {
