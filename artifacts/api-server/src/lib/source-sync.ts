@@ -205,7 +205,7 @@ async function runFirecrawlSync(): Promise<SyncResult> {
         price: event.price?.trim() || null,
         tags: ["automatikus-import", "Firecrawl", source.name],
         newsLinks: [JSON.stringify({ title: source.name, url: eventUrl })],
-        status: "pending",
+        status: "published",
       });
       knownUrls.add(eventUrl);
       knownTitleDates.add(key);
@@ -222,6 +222,15 @@ function syncFirecrawlEvents() {
 }
 
 async function runVisitHarghitaSync(): Promise<SyncResult> {
+  // The external calendars are trusted editorial sources. Promote their older
+  // imports too, so a restart does not leave the public portal empty while
+  // manually submitted events can still wait for review.
+  const pendingImports = await db.select({ id: eventsTable.id, tags: eventsTable.tags, status: eventsTable.status }).from(eventsTable);
+  for (const event of pendingImports) {
+    if (event.status === "pending" && event.tags.some(tag => tag === "automatikus-import")) {
+      await db.update(eventsTable).set({ status: "published", updatedAt: new Date() }).where(eq(eventsTable.id, event.id));
+    }
+  }
   const listing = await fetchHtml(VISIT_HARGHITA_EVENTS);
   const cards = parseCards(listing).slice(0, 40);
   const [existing, categories] = await Promise.all([
@@ -294,7 +303,7 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
         price: null,
         tags: ["automatikus-import", "Visit Harghita"],
         newsLinks: [JSON.stringify({ title: "Visit Harghita", url: sourceUrl })],
-        status: "pending",
+        status: "published",
       });
       knownUrls.add(sourceUrl);
       knownTitleDates.add(key);

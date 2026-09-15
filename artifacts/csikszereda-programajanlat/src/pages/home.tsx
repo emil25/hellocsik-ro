@@ -4,6 +4,7 @@ import { OrbitHero } from "@/components/OrbitHero";
 import { CityGuideHero } from "@/components/CityGuideHero";
 import { SparkHero } from "@/components/SparkHero";
 import { StudioHero } from "@/components/StudioHero";
+import { RegionAtlasHero } from "@/components/RegionAtlasHero";
 import { ActiveSzekelyfold, CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
@@ -1474,20 +1475,21 @@ function ActiveBanners() {
 }
 
 export default function Home() {
-  type HomeDesign = "classic" | "city" | "orbit" | "spark" | "studio";
+  type HomeDesign = "atlas" | "classic" | "city" | "orbit" | "spark" | "studio";
   const [design, setDesign] = useState<HomeDesign>(() => {
     try {
-      const saved = localStorage.getItem("hellocsik-home-design");
-      return saved === "classic" || saved === "city" || saved === "orbit" || saved === "spark" || saved === "studio" ? saved : "classic";
+      const saved = localStorage.getItem("hellocsik-home-design-szekelyfold");
+      return saved === "atlas" || saved === "classic" || saved === "city" || saved === "orbit" || saved === "spark" || saved === "studio" ? saved : "atlas";
     }
-    catch { return "spark"; }
+    catch { return "atlas"; }
   });
   const changeDesign = (value: HomeDesign) => {
     setDesign(value);
-    try { localStorage.setItem("hellocsik-home-design", value); } catch { /* The switch also works without browser storage. */ }
+    try { localStorage.setItem("hellocsik-home-design-szekelyfold", value); } catch { /* The switch also works without browser storage. */ }
   };
   const viewSwitch = (
     <div className={`home-view-toggle ${design === "classic" ? "home-view-toggle-classic" : ""}`} role="group" aria-label="Főoldal dizájnja">
+      <button aria-pressed={design === "atlas"} onClick={() => changeDesign("atlas")}>Régió</button>
       <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
       <button aria-pressed={design === "city"} onClick={() => changeDesign("city")}>Városi</button>
       <button aria-pressed={design === "orbit"} onClick={() => changeDesign("orbit")}>Friss</button>
@@ -1496,8 +1498,8 @@ export default function Home() {
     </div>
   );
   return (
-    <div className={design === "orbit" ? "orbit-home" : design === "city" ? "city-home" : design === "spark" ? "spark-home" : design === "studio" ? "studio-home" : "classic-home"}>
-      {design === "orbit" ? <OrbitHero viewSwitch={viewSwitch} /> : design === "city" ? <CityGuideHero viewSwitch={viewSwitch} /> : design === "spark" ? <SparkHero viewSwitch={viewSwitch} /> : design === "studio" ? <StudioHero viewSwitch={viewSwitch} /> : <Hero viewSwitch={viewSwitch} />}
+    <div className={design === "atlas" ? "region-atlas-home" : design === "orbit" ? "orbit-home" : design === "city" ? "city-home" : design === "spark" ? "spark-home" : design === "studio" ? "studio-home" : "classic-home"}>
+      {design === "atlas" ? <RegionAtlasHero viewSwitch={viewSwitch} /> : design === "orbit" ? <OrbitHero viewSwitch={viewSwitch} /> : design === "city" ? <CityGuideHero viewSwitch={viewSwitch} /> : design === "spark" ? <SparkHero viewSwitch={viewSwitch} /> : design === "studio" ? <StudioHero viewSwitch={viewSwitch} /> : <Hero viewSwitch={viewSwitch} />}
       {design === "classic" && <WeeklyCalendar />}
       <ProgramFinder showHero={false} />
       {design === "orbit" && <WeeklyCalendar />}
