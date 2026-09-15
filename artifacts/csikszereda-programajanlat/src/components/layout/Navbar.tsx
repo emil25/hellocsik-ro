@@ -10,7 +10,7 @@ const navLinks = [
   { href: "/#hetvege", label: "Hétvége" },
   { href: "/naptar", label: "Naptár" },
   { href: "/#kozelgo", label: "Programok" },
-  { href: "/#helyszinek", label: "Helyszínek" },
+  { href: "/helyszinek", label: "Helyszínek" },
   { href: "/erdekel", label: "Érdekel" },
   { href: "/#hozzaadas", label: "Hozzáadás" },
 ];

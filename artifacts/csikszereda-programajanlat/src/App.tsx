@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import CalendarPage from "@/pages/calendar";
 import EventDetail from "@/pages/event-detail";
 import VenuePage from "@/pages/venue";
+import VenuesPage from "@/pages/venues";
 import FavoritesPage from "@/pages/favorites";
 import SubmitPage from "@/pages/submit";
 import AdminPage from "@/pages/admin";
@@ -34,6 +35,7 @@ function Router() {
               <Route path="/" component={Home} />
               <Route path="/naptar" component={CalendarPage} />
               <Route path="/esemeny/:id" component={EventDetail} />
+              <Route path="/helyszinek" component={VenuesPage} />
               <Route path="/helyszin/:slug" component={VenuePage} />
               <Route path="/erdekel" component={FavoritesPage} />
               <Route path="/bekuldese" component={SubmitPage} />

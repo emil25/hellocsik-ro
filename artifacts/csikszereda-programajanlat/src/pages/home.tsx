@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { ProgramFinder } from "@/components/events/ProgramFinder";
 import { OrbitHero } from "@/components/OrbitHero";
-import { CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
+import { ActiveSzekelyfold, CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
 import { motion } from "framer-motion";
-import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink, Plus, CheckCircle2, Building2, Pencil } from "lucide-react";
+import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink, Plus, CheckCircle2, Pencil } from "lucide-react";
 import { Link } from "wouter";
 import helloCsikLogo from "@/assets/hellocsik-logo-nobg.png";
 import {
@@ -1343,7 +1343,7 @@ function FeaturedProgramSection() {
 const VENUE_COLORS = ["#e879f9", "#60a5fa", "#4ade80", "#fbbf24", "#f97316", "#a78bfa", "#34d399", "#fb7185"];
 
 function VenuesSection() {
-  const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
+  const { data } = useListUpcomingEvents({ limit: 100 });
 
   const venues = useMemo(() => {
     const evs = data?.events ?? [];
@@ -1370,7 +1370,8 @@ function VenuesSection() {
             <span className="text-xs font-bold text-primary uppercase tracking-widest">Helyszínek</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Hol történik?</h2>
-          <p className="text-muted-foreground text-sm">Kattints egy jelölőre vagy helyszínre, és megmutatjuk az ottani programokat.</p>
+          <p className="text-muted-foreground text-sm">Kattints egy jelölőre, és megmutatjuk az ottani programokat.</p>
+          <Link href="/helyszinek" className="inline-flex items-center gap-2 mt-4 text-sm font-bold text-primary">Összes helyszín külön oldalon <ArrowRight size={16} /></Link>
         </div>
 
         <div className="flex flex-col gap-6">
@@ -1408,45 +1409,6 @@ function VenuesSection() {
             </div>
           </div>
 
-          {/* Venue grid – dynamic, 2–3 cols */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
-            ) : venues.length === 0 ? (
-              <p className="col-span-3 text-muted-foreground text-sm text-center py-8">Nincs közelgő esemény.</p>
-            ) : (
-              venues.map((venue, i) => {
-                const color = VENUE_COLORS[i % VENUE_COLORS.length];
-                return (
-                  <motion.div
-                    key={venue.name}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05, duration: 0.35 }}
-                    className="h-full"
-                  >
-                    <Link href={`/helyszin/${venue.slug}`} className="bg-card border border-card-border rounded-2xl p-4 flex flex-col gap-2 hover:shadow-md hover:border-primary/30 transition-all h-full group">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: color + "22" }}>
-                          <Building2 className="w-4 h-4" style={{ color }} />
-                        </div>
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
-                          {venue.titles.length}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">{venue.name}</p>
-                        {venue.categories && (
-                          <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{venue.categories}</p>
-                        )}
-                        <p className="text-[11px] font-bold text-primary mt-2">Programok megnyitása →</p>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })
-            )}
-          </div>
         </div>
       </div>
     </section>
@@ -1526,6 +1488,7 @@ export default function Home() {
       <ProgramFinder showHero={false} />
       {design === "orbit" && <WeeklyCalendar />}
       <ActiveBanners />
+      <ActiveSzekelyfold />
       <CloudFestival />
       <CinemaPicks />
       <VenuesSection />

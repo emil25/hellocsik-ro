@@ -37,6 +37,37 @@ export function CloudFestival() {
   </section>;
 }
 
+export function ActiveSzekelyfold() {
+  const { data } = useListUpcomingEvents({ limit: 100 });
+  const event = data?.events.find(item => item.title.toLocaleLowerCase("hu-HU").includes("aktív székelyföld"));
+  if (!event) return null;
+
+  return <section id="aktiv-szekelyfold" className="active-szekely-section">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <p className="active-szekely-eyebrow"><span>●</span> KIEMELT ESEMÉNY · AKTÍV SZÉKELYFÖLD KONFERENCIA</p>
+      <div className="active-szekely-panel">
+        <div className="active-szekely-poster">
+          <img src={asset("visit-aktiv-szekelyfold.png")} alt="Aktív Székelyföld Konferencia 2026 plakát" loading="lazy" />
+        </div>
+        <div className="active-szekely-copy">
+          <span className="active-szekely-label">AKTÍVAN. ITTHON. SZÉKELYFÖLDÖN.</span>
+          <h2>Hosszú élet,<br /><em>jobb életminőség.</em></h2>
+          <p className="active-szekely-lead">Szakemberek, aktív közösségek és döntéshozók találkozója az egészségesebb, mozgásban gazdag jövőért.</p>
+          <div className="active-szekely-meta">
+            <span><CalendarDays size={18} /> 2026. szeptember 25., péntek</span>
+            <span>◆ Karcfalva · Székelyföldi Jégkorong Akadémia</span>
+          </div>
+          <div className="active-szekely-actions">
+            <a href="https://aktivszekelyfold.ro/program" target="_blank" rel="noopener noreferrer">TELJES PROGRAM <ExternalLink size={16} /></a>
+            <Link href={`/esemeny/${event.id}`}>Részletek a portálon <ArrowRight size={16} /></Link>
+          </div>
+          <p className="active-szekely-source">Forrás: aktivszekelyfold.ro · A program folyamatosan frissül.</p>
+        </div>
+      </div>
+    </div>
+  </section>;
+}
+
 type CinemaMovie = { title: string; date: string; imageUrl: string; url: string; status: string };
 
 const fallbackFilms: CinemaMovie[] = [
