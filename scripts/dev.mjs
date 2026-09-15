@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { mkdirSync, existsSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
+import net from "node:net";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -18,6 +19,23 @@ const env = {
 const apiDir = path.join(root, "artifacts/api-server");
 const webDir = path.join(root, "artifacts/csikszereda-programajanlat");
 const children = [];
+
+const isPortAvailable = port => new Promise(resolve => {
+  const server = net.createServer();
+  server.unref();
+  server.once("error", () => resolve(false));
+  server.listen({ host: "127.0.0.1", port }, () => {
+    server.close(() => resolve(true));
+  });
+});
+
+const findAvailablePort = async preferredPort => {
+  for (let port = preferredPort; port < preferredPort + 100; port += 1) {
+    if (await isPortAvailable(port)) return port;
+  }
+  throw new Error(`Nem található szabad port ${preferredPort} közelében.`);
+};
+
 const launch = (args, cwd, extra = {}) => {
   const child = spawn(process.execPath, args, { cwd, env: { ...env, ...extra }, stdio: "inherit", windowsHide: true });
   children.push(child);
@@ -29,16 +47,20 @@ process.on("SIGTERM", () => { shutdown(); process.exit(0); });
 process.on("exit", shutdown);
 const build = launch(["build.mjs"], apiDir);
 build.on("error", error => { console.error(error.message); process.exit(1); });
-build.on("exit", code => {
+build.on("exit", async code => {
   if (code !== 0) process.exit(code ?? 1);
-  const api = launch(["--enable-source-maps", "dist/index.mjs"], apiDir, { PORT: "8080" });
+  const apiPort = await findAvailablePort(8080);
+  const webPort = await findAvailablePort(5173);
+  const api = launch(["--enable-source-maps", "dist/index.mjs"], apiDir, { PORT: String(apiPort) });
   const requireWeb = createRequire(path.join(webDir, "package.json"));
   const vite = path.join(path.dirname(requireWeb.resolve("vite/package.json")), "bin/vite.js");
-  const web = launch([vite, "--host", "127.0.0.1"], webDir, { PORT: "5173", BASE_PATH: "/" });
+  const web = launch([vite, "--host", "127.0.0.1"], webDir, {
+    PORT: String(webPort), BASE_PATH: "/", API_URL: `http://127.0.0.1:${apiPort}`,
+  });
   for (const child of [api, web]) {
     child.on("error", error => { console.error(error.message); process.exit(1); });
     child.on("exit", code => { shutdown(); process.exit(code ?? 0); });
   }
-  console.log("HelloCsík: http://localhost:5173/ | Admin: http://localhost:5173/admin");
+  console.log(`HelloCsík: http://localhost:${webPort}/ | Admin: http://localhost:${webPort}/admin`);
   console.log("A helyi adminjelszó a projekt .env.local fájljában található.");
 });
