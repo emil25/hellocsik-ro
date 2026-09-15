@@ -6,7 +6,17 @@ import { EventCard } from "./EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { eventCountyMatches, REGION_COUNTIES, REGION_DESCRIPTION, type RegionCounty } from "@/lib/region";
+import { REGION_DESCRIPTION } from "@/lib/region";
+
+const CITY_FILTERS = [
+  { name: "Csíkszereda", keys: ["csíkszereda", "miercurea ciuc"] },
+  { name: "Székelyudvarhely", keys: ["székelyudvarhely", "odorheiu secuiesc"] },
+  { name: "Gyergyószentmiklós", keys: ["gyergyószentmiklós", "gheorgheni"] },
+  { name: "Sepsiszentgyörgy", keys: ["sepsiszentgyörgy", "sfântu gheorghe", "sfantu gheorghe"] },
+  { name: "Kézdivásárhely", keys: ["kézdivásárhely", "târgu secuiesc", "targu secuiesc"] },
+  { name: "Marosvásárhely", keys: ["marosvásárhely", "târgu mureș", "targu mures"] },
+  { name: "Szováta", keys: ["szováta", "sovata"] },
+] as const;
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("hu").trim();
 
@@ -15,7 +25,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
   const [category, setCategory] = useState<number | null>(null);
   const [day, setDay] = useState("");
   const [weekend, setWeekend] = useState(false);
-  const [county, setCounty] = useState<RegionCounty | null>(null);
+  const [city, setCity] = useState<string | null>(null);
   const [visible, setVisible] = useState(12);
   const [showFilters, setShowFilters] = useState(false);
   useEffect(() => {
@@ -43,13 +53,13 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
       const end = new Date(event.endDate ?? event.startDate);
       const regionText = `${event.title} ${event.location} ${event.locationAddress ?? ""} ${event.description}`;
       return (!category || event.categoryId === category)
-        && (!county || eventCountyMatches(regionText, county))
+        && (!city || CITY_FILTERS.find(item => item.name === city)?.keys.some(key => normalize(regionText).includes(normalize(key))))
         && (!query.trim() || normalize(`${event.title} ${event.location} ${event.description}`).includes(normalize(query)))
         && (!from || !until || (start < until && end >= from))
         && (!weekend || (start < monday && end >= saturday));
     }).sort((a, b) => Number(b.featured) - Number(a.featured) || Date.parse(a.startDate) - Date.parse(b.startDate));
-  }, [events, query, category, county, day, weekend]);
-  const reset = () => { setQuery(""); setCategory(null); setCounty(null); setDay(""); setWeekend(false); setVisible(12); };
+  }, [events, query, category, city, day, weekend]);
+  const reset = () => { setQuery(""); setCategory(null); setCity(null); setDay(""); setWeekend(false); setVisible(12); };
 
   return <>
     {showHero && <section className="discovery-hero">
@@ -61,11 +71,11 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
           <a className="discovery-primary" href="#kozelgo">Találj programot <ArrowRight size={18} /></a>
           <a className="discovery-secondary" href="#kozelgo" onClick={() => { reset(); setWeekend(true); }}>Ezen a hétvégén <CalendarDays size={18} /></a>
         </div>
-        <p className="discovery-note">Helyi programok. Közös élmények. Egy régió.</p>
+        <p className="discovery-note">Programok városok szerint.</p>
       </div>
       <div className="discovery-photo">
         <img src={`${import.meta.env.BASE_URL}reference/city-center.jpg`} alt="Székelyföldi városkép" fetchPriority="high" />
-        <div className="discovery-photo-caption"><span>HÁROM MEGYE · EGY RITMUS</span><strong>Éld meg Székelyföldet.</strong><p>Programok · helyek · közös élmények</p><a className="block text-xs mt-3 text-white/80 underline" href="https://commons.wikimedia.org/wiki/File:RO_HR_Miercurea_Ciuc_center_1.jpg" target="_blank" rel="noreferrer">Fotó: Andrei Stroe · CC BY-SA 3.0 · Vágott kép</a></div>
+        <div className="discovery-photo-caption"><span>SZÉKELYFÖLDI PROGRAMOK</span><strong>Programok a városokból.</strong><p>Időpont · helyszín · részletek</p><a className="block text-xs mt-3 text-white/80 underline" href="https://commons.wikimedia.org/wiki/File:RO_HR_Miercurea_Ciuc_center_1.jpg" target="_blank" rel="noreferrer">Fotó: Andrei Stroe · CC BY-SA 3.0 · Vágott kép</a></div>
       </div>
     </section>}
     <div id="hetvege" />
@@ -82,7 +92,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
       </div>}
         <div className="flex flex-wrap gap-2 my-5" aria-label="Programkategóriák">
         <Button size="sm" variant={category === null ? "default" : "outline"} aria-pressed={category === null} onClick={() => { setCategory(null); setVisible(12); }}>Minden program</Button>
-        {REGION_COUNTIES.map(item => <Button key={item} size="sm" variant={county === item ? "default" : "outline"} aria-pressed={county === item} onClick={() => { setCounty(county === item ? null : item); setVisible(12); }}>{item} megye</Button>)}
+        {CITY_FILTERS.map(item => <Button key={item.name} size="sm" variant={city === item.name ? "default" : "outline"} aria-pressed={city === item.name} onClick={() => { setCity(city === item.name ? null : item.name); setVisible(12); }}>{item.name}<span className="opacity-60">{events?.filter(event => item.keys.some(key => normalize(`${event.title} ${event.location} ${event.locationAddress ?? ""} ${event.description}`).includes(normalize(key)))).length}</span></Button>)}
         {categoriesQuery.data?.categories.filter(item => events?.some(event => event.categoryId === item.id)).map(item => <Button key={item.id} size="sm" variant={category === item.id ? "default" : "outline"} aria-pressed={category === item.id} onClick={() => { setCategory(item.id); setVisible(12); }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />{item.name}<span className="opacity-60">{events?.filter(event => event.categoryId === item.id).length}</span></Button>)}
       </div>
       {eventsQuery.isLoading ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Programok betöltése">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}</div>
