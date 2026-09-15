@@ -23,6 +23,7 @@ function ImageUploadField({
   const [tab, setTab] = useState<"url" | "upload">("url");
   const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState("");
+  const [imageError, setImageError] = useState(false);
 
   const { uploadFile, isUploading, progress } = useUpload({
     headers: { Authorization: `Bearer ${localStorage.getItem("admin_token") ?? ""}` },
@@ -30,6 +31,7 @@ function ImageUploadField({
       const serveUrl = `/api/storage${res.objectPath}`;
       onChange(serveUrl);
       setUploadedPreview(serveUrl);
+      setImageError(false);
       setUploadError("");
       onBusyChange?.(false);
     },
@@ -67,7 +69,7 @@ function ImageUploadField({
       {tab === "url" ? (
         <input
           value={value}
-          onChange={e => onChange(e.target.value)}
+          onChange={e => { setImageError(false); onChange(e.target.value); }}
           className={inputCls}
           placeholder="https://..."
         />
@@ -92,9 +94,13 @@ function ImageUploadField({
         </div>
       )}
 
-      {preview && (
-        <img src={preview} alt="előnézet" className="mt-2 h-28 w-full object-cover rounded-xl border border-border" />
-      )}
+      {preview && !imageError ? (
+        <img src={preview} alt="előnézet" onError={() => setImageError(true)} className="mt-2 h-28 w-full object-cover rounded-xl border border-border" />
+      ) : preview && imageError ? (
+        <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs text-amber-800">
+          A kép URL-je nem töltődött be. Válaszd a <strong>Feltöltés</strong> fület, vagy adj meg másik kép-URL-t.
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -214,38 +220,45 @@ function FacebookImport({ token, onApply }: { token: string; onApply: (data: Par
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"success" | "warning" | "error">("success");
 
   async function preview() {
     if (!url.trim()) return;
-    setLoading(true); setMessage("");
+    setLoading(true); setMessage(""); setMessageTone("success");
     try {
       const response = await fetch(`${API}/admin/events/preview-facebook`, {
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ url }),
       });
       const data = await response.json();
-      if (!response.ok) { setMessage(data.error ?? "Az előnézet nem tölthető be."); return; }
-      onApply({
-        title: data.title ?? "",
-        description: data.description ?? "",
-        imageUrl: data.imageUrl ?? "",
-        startDate: data.startDate ? toDatetimeLocal(data.startDate) : "",
-        endDate: data.endDate ? toDatetimeLocal(data.endDate) : "",
-        location: data.location ?? "",
+      if (!response.ok) { setMessageTone("error"); setMessage(data.error ?? "Az előnézet nem tölthető be."); return; }
+      const imported: Partial<EventForm> = {
+        ...(data.title?.trim() ? { title: data.title.trim() } : {}),
+        ...(data.description?.trim() ? { description: data.description.trim() } : {}),
+        ...(data.imageUrl?.trim() ? { imageUrl: data.imageUrl.trim() } : {}),
+        ...(data.startDate ? { startDate: toDatetimeLocal(data.startDate) } : {}),
+        ...(data.endDate ? { endDate: toDatetimeLocal(data.endDate) } : {}),
+        ...(data.location?.trim() ? { location: data.location.trim() } : {}),
         ticketUrl: data.sourceUrl ?? url,
         newsLinks: [{ title: "Facebook-esemény", url: data.sourceUrl ?? url }],
-      });
-      setMessage(data.descriptionNeedsManualEntry
-        ? "A cím, kép és Facebook-link bekerült. A Facebook csak automatikus összefoglalót adott, ezért a leírást hagytam üresen – másold be a valódi eseményszöveget."
-        : "A rendelkezésre álló adatok bekerültek. Ellenőrizd a dátumot és helyszínt mentés előtt.");
-    } catch { setMessage("Hálózati hiba az előnézet betöltésekor."); }
+      };
+      onApply(imported);
+      const missing = Array.isArray(data.missingFields) ? data.missingFields.filter((field: unknown): field is string => typeof field === "string") : [];
+      if (missing.length > 0) {
+        setMessageTone("warning");
+        setMessage(`A megtalált adatok bekerültek. Ezt még ellenőrizd vagy töltsd ki: ${missing.join(", ")}.`);
+      } else {
+        setMessageTone("success");
+        setMessage("A cím, leírás, kép, dátum és helyszín bekerült. Ellenőrizd az adatokat mentés előtt.");
+      }
+    } catch { setMessageTone("error"); setMessage("Hálózati hiba az előnézet betöltésekor."); }
     finally { setLoading(false); }
   }
 
   return <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3">
     <label className="block text-xs font-bold text-blue-900 mb-1">Facebook-esemény gyors felvitele</label>
-    <p className="text-xs text-blue-800/80 mb-2">Illeszd be a publikus Facebook-esemény linkjét. A cím, kép és – ha a Facebook átadja – a leírás automatikusan kitöltődik.</p>
+    <p className="text-xs text-blue-800/80 mb-2">Illeszd be a publikus Facebook-esemény linkjét. A rendszer kiolvassa, amit a Facebook átad; a hiányzó adatokat külön jelzi, így csak azt kell pótolnod.</p>
     <div className="flex gap-2"><input type="url" value={url} onChange={e => setUrl(e.target.value)} className={inputCls} placeholder="https://www.facebook.com/events/..." /><button type="button" onClick={preview} disabled={loading || !url.trim()} className="shrink-0 px-3 rounded-xl bg-primary text-white text-xs font-bold disabled:opacity-60">{loading ? "Betöltés..." : "Kitöltés"}</button></div>
-    {message && <p className={`mt-2 text-xs ${message.includes("bekerült") ? "text-green-700" : "text-red-600"}`}>{message}</p>}
+    {message && <p className={`mt-2 text-xs ${messageTone === "success" ? "text-green-700" : messageTone === "warning" ? "text-amber-700" : "text-red-600"}`}>{message}</p>}
   </div>;
 }
 

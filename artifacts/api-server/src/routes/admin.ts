@@ -16,11 +16,23 @@ const htmlEntities: Record<string, string> = {
 };
 
 function decodeHtml(value: string) {
-  return value.replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (entity, key: string) => {
-    if (key.startsWith("#x") || key.startsWith("#X")) return String.fromCodePoint(parseInt(key.slice(2), 16));
-    if (key.startsWith("#")) return String.fromCodePoint(parseInt(key.slice(1), 10));
-    return htmlEntities[key] ?? htmlEntities[key.toLowerCase()] ?? entity;
-  });
+  let decoded = value;
+  // Facebook sometimes double-encodes accents (for example &amp;#xc9;).
+  for (let pass = 0; pass < 3; pass += 1) {
+    const next = decoded.replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (entity, key: string) => {
+      try {
+        if (key.startsWith("#x") || key.startsWith("#X")) return String.fromCodePoint(parseInt(key.slice(2), 16));
+        if (key.startsWith("#")) return String.fromCodePoint(parseInt(key.slice(1), 10));
+      } catch {
+        return entity;
+      }
+      return htmlEntities[key] ?? htmlEntities[key.toLowerCase()] ?? entity;
+    });
+    decoded = next;
+    if (next === value) break;
+    value = next;
+  }
+  return decoded;
 }
 
 function readMeta(html: string, attribute: "property" | "name", value: string) {
@@ -34,7 +46,7 @@ function readFacebookEventDescription(html: string) {
   const match = html.match(/"event_description"\s*:\s*\{"text"\s*:\s*"((?:\\.|[^"\\])*)"/);
   if (!match) return "";
   try {
-    return JSON.parse(`"${match[1]}"`).trim();
+    return decodeHtml(JSON.parse(`"${match[1]}"`).trim());
   } catch {
     return "";
   }
@@ -42,6 +54,66 @@ function readFacebookEventDescription(html: string) {
 
 function isFacebookGeneratedSummary(description: string) {
   return /(?:és\s+további\s+\d+\s+ember|and\s+\d+\s+others|\beveniment\s+în\b|\bevent\s+in\b)/i.test(description);
+}
+
+type StructuredEvent = {
+  name?: string;
+  description?: string;
+  image?: string;
+  startDate?: string;
+  endDate?: string;
+  location?: string;
+};
+
+function readJsonLdEvent(html: string): StructuredEvent {
+  const scripts = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const match of scripts) {
+    try {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(match[1]);
+      } catch {
+        parsed = JSON.parse(decodeHtml(match[1]));
+      }
+      const values = Array.isArray(parsed)
+        ? parsed
+        : parsed && typeof parsed === "object" && Array.isArray((parsed as { "@graph"?: unknown[] })["@graph"])
+          ? (parsed as { "@graph": unknown[] })["@graph"]
+          : [parsed];
+      const event = values.find((value) => {
+        if (!value || typeof value !== "object") return false;
+        const type = (value as { "@type"?: unknown })["@type"];
+        return type === "Event" || (Array.isArray(type) && type.includes("Event"));
+      });
+      if (!event || typeof event !== "object") continue;
+      const item = event as Record<string, unknown>;
+      const image = Array.isArray(item.image) ? item.image[0] : item.image;
+      const location = item.location && typeof item.location === "object"
+        ? (item.location as { name?: unknown }).name
+        : item.location;
+      return {
+        name: typeof item.name === "string" ? decodeHtml(item.name).trim() : undefined,
+        description: typeof item.description === "string" ? decodeHtml(item.description).trim() : undefined,
+        image: typeof image === "string" ? image.trim() : undefined,
+        startDate: typeof item.startDate === "string" ? item.startDate : undefined,
+        endDate: typeof item.endDate === "string" ? item.endDate : undefined,
+        location: typeof location === "string" ? decodeHtml(location).trim() : undefined,
+      };
+    } catch {
+      // Continue with OpenGraph/Facebook fields if JSON-LD is malformed.
+    }
+  }
+  return {};
+}
+
+function facebookEventId(sourceUrl: string) {
+  try {
+    const parsed = new URL(sourceUrl);
+    if (!/(^|\.)facebook\.com$/i.test(parsed.hostname)) return "";
+    return parsed.pathname.match(/^\/events\/(\d+)/i)?.[1] ?? "";
+  } catch {
+    return "";
+  }
 }
 
 router.get("/facebook-events/:eventId/image", async (req, res) => {
@@ -66,11 +138,11 @@ router.get("/facebook-events/:eventId/image", async (req, res) => {
 
 router.post("/admin/events/preview-facebook", requireAdmin, async (req, res) => {
   const sourceUrl = typeof req.body?.url === "string" ? req.body.url.trim() : "";
-  const match = sourceUrl.match(/^https?:\/\/(?:www\.)?facebook\.com\/events\/(\d+)/i);
-  if (!match) { res.status(400).json({ error: "Csak Facebook-esemény linket lehet feldolgozni." }); return; }
+  const eventId = facebookEventId(sourceUrl);
+  if (!eventId) { res.status(400).json({ error: "Csak publikus Facebook-esemény linket lehet feldolgozni (facebook.com/events/...)." }); return; }
 
   try {
-    const canonicalUrl = `https://www.facebook.com/events/${match[1]}/`;
+    const canonicalUrl = `https://www.facebook.com/events/${eventId}/`;
     const [facebookResult, firecrawlResult] = await Promise.allSettled([
       fetch(canonicalUrl, {
         headers: {
@@ -83,26 +155,41 @@ router.post("/admin/events/preview-facebook", requireAdmin, async (req, res) => 
     ]);
     const html = facebookResult.status === "fulfilled" ? facebookResult.value : "";
     const firecrawlEvent = firecrawlResult.status === "fulfilled" ? firecrawlResult.value : null;
-    if (firecrawlResult.status === "rejected") req.log.warn({ err: firecrawlResult.reason, eventId: match[1] }, "Firecrawl Facebook fallback failed");
+    if (firecrawlResult.status === "rejected") req.log.warn({ err: firecrawlResult.reason, eventId }, "Firecrawl Facebook fallback failed");
+    const structuredEvent = readJsonLdEvent(html);
     const rawTitle = readMeta(html, "property", "og:title").replace(/\s*\|\s*Facebook$/i, "");
     const eventDescription = readFacebookEventDescription(html);
     const metaDescription = readMeta(html, "name", "description");
-    const descriptionNeedsManualEntry = !eventDescription && isFacebookGeneratedSummary(metaDescription);
-    let description = eventDescription || (descriptionNeedsManualEntry ? "" : metaDescription);
-    let imageUrl = readMeta(html, "property", "og:image") ? `/api/facebook-events/${match[1]}/image` : "";
-    description = description || firecrawlEvent?.description?.trim() || "";
-    if (!imageUrl && firecrawlEvent?.imageUrl?.trim()) imageUrl = `/api/facebook-events/${match[1]}/image`;
-    const title = rawTitle || firecrawlEvent?.title?.trim() || "";
+    const descriptionCandidates = [
+      eventDescription,
+      structuredEvent.description ?? "",
+      metaDescription,
+      firecrawlEvent?.description?.trim() ?? "",
+    ];
+    const description = descriptionCandidates.find((candidate) => candidate && !isFacebookGeneratedSummary(candidate)) ?? "";
+    const hasImage = Boolean(readMeta(html, "property", "og:image") || structuredEvent.image || firecrawlEvent?.imageUrl?.trim());
+    const imageUrl = hasImage ? `/api/facebook-events/${eventId}/image` : "";
+    const title = rawTitle || structuredEvent.name || firecrawlEvent?.title?.trim() || "";
     if (!title) { res.status(422).json({ error: "A Facebook-eseményből nem olvasható ki a cím." }); return; }
+    const location = firecrawlEvent?.location?.trim() || structuredEvent.location || "";
+    const startDate = firecrawlEvent?.startDate || structuredEvent.startDate;
+    const endDate = firecrawlEvent?.endDate || structuredEvent.endDate;
+    const missingFields = [
+      !description && "leírás",
+      !startDate && "kezdési idő",
+      !location && "helyszín",
+      !imageUrl && "kép",
+    ].filter((field): field is string => Boolean(field));
     res.json({
       title,
       description,
       imageUrl,
       sourceUrl: canonicalUrl,
-      startDate: firecrawlEvent?.startDate,
-      endDate: firecrawlEvent?.endDate,
-      location: firecrawlEvent?.location,
+      startDate,
+      endDate,
+      location,
       descriptionNeedsManualEntry: !description,
+      missingFields,
     });
   } catch (err) {
     req.log.warn({ err }, "Could not preview Facebook event");
@@ -177,7 +264,7 @@ router.post("/admin/events", requireAdmin, async (req, res) => {
       description: (body.description ?? "").trim(),
       location: body.location.trim(),
       locationAddress: body.locationAddress?.trim() || null,
-      imageUrl: body.imageUrl?.trim() || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800",
+      imageUrl: body.imageUrl?.trim() || "/hellocsik-logo.png",
       startDate,
       endDate,
       price: body.price?.trim() || null,
