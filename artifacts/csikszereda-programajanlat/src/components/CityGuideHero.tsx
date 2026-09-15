@@ -18,12 +18,12 @@ export function CityGuideHero({ viewSwitch }: { viewSwitch: ReactNode }) {
   const categories = Array.from(new Set(events.map((event) => event.category?.name).filter(Boolean))).slice(0, 4);
 
   return (
-    <section className="city-guide" aria-label="HelloCsík városi programkalauz">
+    <section className="city-guide" aria-label="HelloCsík székelyföldi programkalauz">
       <div className="city-guide-shell">
         <header className="city-guide-mast">
-          <span className="city-guide-mark"><Compass size={17} /> HELLOCSÍK FELFEDEZŐ</span>
+          <span className="city-guide-mark"><Compass size={17} /> HELLOCSÍK · SZÉKELYFÖLD FELFEDEZŐ</span>
           <div className="city-guide-mast-right">
-            <span className="city-guide-today">{issueLabel()} · Csíkszereda</span>
+            <span className="city-guide-today">{issueLabel()} · Székelyföld</span>
             <div className="city-guide-view-row"><span>Főoldal nézete</span>{viewSwitch}</div>
           </div>
         </header>
@@ -31,8 +31,8 @@ export function CityGuideHero({ viewSwitch }: { viewSwitch: ReactNode }) {
         <div className="city-guide-layout">
           <div className="city-guide-intro">
             <span className="city-guide-kicker"><i /> MA IS TÖRTÉNIK VALAMI</span>
-            <h1>Kapcsolódj ki.<br /><em>Itt, Csíkban.</em></h1>
-            <p>A legjobb helyi programok egy friss, gyorsan átlátható városi kalauzban.</p>
+            <h1>Kapcsolódj ki.<br /><em>Itt, Székelyföldön.</em></h1>
+            <p>Hargita, Kovászna és Maros megye legjobb programjai egy friss, gyorsan átlátható kalauzban.</p>
             <div className="city-guide-actions">
               <a href="#kozelgo" className="city-guide-primary">Mutasd a programokat <ArrowRight size={18} /></a>
               <Link href="/naptar" className="city-guide-calendar"><CalendarDays size={18} /> Naptár</Link>
@@ -71,7 +71,7 @@ export function CityGuideHero({ viewSwitch }: { viewSwitch: ReactNode }) {
               <img src={`${import.meta.env.BASE_URL}reference/city-center.jpg`} alt="Csíkszereda belvárosa" />
               <div className="city-guide-feature-shade" />
               <div className="city-guide-feature-copy">
-                <span>HELLO, CSÍK!</span>
+                <span>HELLO, SZÉKELYFÖLD!</span>
                 <h2>{isLoading ? "Keressük a következő programot…" : "Hamarosan új programok érkeznek."}</h2>
                 {isError && <button className="city-guide-primary" onClick={() => refetch()}>Újrapróbálom</button>}
               </div>

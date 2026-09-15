@@ -24,14 +24,14 @@ export function SparkHero({ viewSwitch }: { viewSwitch: ReactNode }) {
       <div className="spark-shell">
         <header className="spark-mast">
           <div className="spark-brand"><span className="spark-brand-mark"><Sparkles size={15} /></span><span>HELLOCSÍK</span><small>PROGRAMOK · HELYEK · ÉLMÉNYEK</small></div>
-          <div className="spark-mast-meta"><span>{todayLabel()} · Csíkszereda</span><div className="spark-view-row"><span>nézet</span>{viewSwitch}</div></div>
+          <div className="spark-mast-meta"><span>{todayLabel()} · Székelyföld</span><div className="spark-view-row"><span>nézet</span>{viewSwitch}</div></div>
         </header>
 
         <div className="spark-intro-grid">
           <div className="spark-intro">
-            <span className="spark-eyebrow">✦ MAI VÁROSI ADAG</span>
+            <span className="spark-eyebrow">✦ MAI SZÉKELYFÖLDI ADAG</span>
             <h1>A város ma<br /><em>neked játszik.</em></h1>
-            <p>Programok, amikről jó tudni. Válassz gyorsan, indulj könnyedén, és ne maradj le arról, ami Csíkban történik.</p>
+            <p>Programok, amikről jó tudni. Válassz gyorsan, indulj könnyedén, és ne maradj le arról, ami a három megyében történik.</p>
             <div className="spark-actions"><a href="#kozelgo" className="spark-primary">Nézd a programokat <ArrowRight size={18} /></a><Link href="/naptar" className="spark-secondary"><CalendarDays size={17} /> Naptár</Link></div>
             <div className="spark-stats"><span><b>{events.length || "—"}</b> program a radarban</span><span><b>{venues || "—"}</b> helyszín</span></div>
           </div>
@@ -67,7 +67,7 @@ export function SparkHero({ viewSwitch }: { viewSwitch: ReactNode }) {
           </div>)}
         </div>}
       </div>
-      <div className="spark-ticker" aria-hidden="true"><span>CSÍK MA · KERESS EGY JÓ PROGRAMOT · TALÁLKOZZUNK A VÁROSBAN · KONCERT · MOZI · KIÁLLÍTÁS · CSALÁDI NAP ·</span></div>
+      <div className="spark-ticker" aria-hidden="true"><span>SZÉKELYFÖLD MA · KERESS EGY JÓ PROGRAMOT · HARGITA · KOVÁSZNA · MAROS · KONCERT · MOZI · KIÁLLÍTÁS ·</span></div>
     </section>
   );
 }

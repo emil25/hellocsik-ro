@@ -6,6 +6,7 @@ import { EventCard } from "./EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { eventCountyMatches, REGION_COUNTIES, REGION_DESCRIPTION, type RegionCounty } from "@/lib/region";
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("hu").trim();
 
@@ -14,6 +15,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
   const [category, setCategory] = useState<number | null>(null);
   const [day, setDay] = useState("");
   const [weekend, setWeekend] = useState(false);
+  const [county, setCounty] = useState<RegionCounty | null>(null);
   const [visible, setVisible] = useState(12);
   const [showFilters, setShowFilters] = useState(false);
   useEffect(() => {
@@ -39,36 +41,38 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
     return (events ?? []).filter(event => {
       const start = new Date(event.startDate);
       const end = new Date(event.endDate ?? event.startDate);
+      const regionText = `${event.title} ${event.location} ${event.locationAddress ?? ""} ${event.description}`;
       return (!category || event.categoryId === category)
+        && (!county || eventCountyMatches(regionText, county))
         && (!query.trim() || normalize(`${event.title} ${event.location} ${event.description}`).includes(normalize(query)))
         && (!from || !until || (start < until && end >= from))
         && (!weekend || (start < monday && end >= saturday));
     }).sort((a, b) => Number(b.featured) - Number(a.featured) || Date.parse(a.startDate) - Date.parse(b.startDate));
-  }, [events, query, category, day, weekend]);
-  const reset = () => { setQuery(""); setCategory(null); setDay(""); setWeekend(false); setVisible(12); };
+  }, [events, query, category, county, day, weekend]);
+  const reset = () => { setQuery(""); setCategory(null); setCounty(null); setDay(""); setWeekend(false); setVisible(12); };
 
   return <>
     {showHero && <section className="discovery-hero">
       <div className="discovery-copy">
-        <p className="discovery-eyebrow"><MapPin size={16} /> CSÍKSZEREDA ÉS KÖRNYÉKE</p>
+        <p className="discovery-eyebrow"><MapPin size={16} /> SZÉKELYFÖLD · 3 MEGYE</p>
         <h1>Jó helyen vagy.<br /><span>Jó program vár.</span></h1>
-        <p className="discovery-intro">Egy koncert, egy közös este, egy új kedvenc hely. Fedezd fel, mi történik körülötted!</p>
+        <p className="discovery-intro">{REGION_DESCRIPTION} Koncertek, fesztiválok, színház és közösségi élmények a közeledben.</p>
         <div className="flex flex-wrap gap-3 mt-8">
           <a className="discovery-primary" href="#kozelgo">Találj programot <ArrowRight size={18} /></a>
           <a className="discovery-secondary" href="#kozelgo" onClick={() => { reset(); setWeekend(true); }}>Ezen a hétvégén <CalendarDays size={18} /></a>
         </div>
-        <p className="discovery-note">Helyi programok. Közös élmények. Hello, Csík!</p>
+        <p className="discovery-note">Helyi programok. Közös élmények. Egy régió.</p>
       </div>
       <div className="discovery-photo">
-        <img src={`${import.meta.env.BASE_URL}reference/city-center.jpg`} alt="Csíkszereda belvárosa" fetchPriority="high" />
-        <div className="discovery-photo-caption"><span>A VÁROS KÖZEPÉN</span><strong>Éld meg Csíkszeredát.</strong><p>Programok · helyek · közös élmények</p><a className="block text-xs mt-3 text-white/80 underline" href="https://commons.wikimedia.org/wiki/File:RO_HR_Miercurea_Ciuc_center_1.jpg" target="_blank" rel="noreferrer">Fotó: Andrei Stroe · CC BY-SA 3.0 · Vágott kép</a></div>
+        <img src={`${import.meta.env.BASE_URL}reference/city-center.jpg`} alt="Székelyföldi városkép" fetchPriority="high" />
+        <div className="discovery-photo-caption"><span>HÁROM MEGYE · EGY RITMUS</span><strong>Éld meg Székelyföldet.</strong><p>Programok · helyek · közös élmények</p><a className="block text-xs mt-3 text-white/80 underline" href="https://commons.wikimedia.org/wiki/File:RO_HR_Miercurea_Ciuc_center_1.jpg" target="_blank" rel="noreferrer">Fotó: Andrei Stroe · CC BY-SA 3.0 · Vágott kép</a></div>
       </div>
     </section>}
     <div id="hetvege" />
     <div id="picks" />
     <section id="kozelgo" className="program-finder">
       <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
-        <div><p className="discovery-eyebrow">KÖZELGŐ PROGRAMOK</p><h2>Hamarosan Csíkszeredában</h2></div>
+        <div><p className="discovery-eyebrow">KÖZELGŐ PROGRAMOK</p><h2>Hamarosan Székelyföldön</h2></div>
         <div className="flex gap-4"><button className="flex items-center gap-2 text-sm text-primary" aria-expanded={showFilters} onClick={() => setShowFilters(!showFilters)}><Search size={16} /> Keresés és szűrés</button><Link href="/naptar" className="flex items-center gap-2 text-sm font-semibold text-primary">Naptár nézet <ArrowRight size={16} /></Link></div>
       </div>
       {showFilters && <div className="finder-controls">
@@ -76,8 +80,9 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
         <label className="finder-date"><CalendarDays size={19} aria-hidden="true" /><span className="sr-only">Program dátuma</span><Input type="date" aria-label="Program dátuma" value={day} onChange={e => { setDay(e.target.value); setWeekend(false); setVisible(12); }} /></label>
         <Button variant={weekend ? "default" : "outline"} aria-pressed={weekend} onClick={() => { setWeekend(!weekend); setDay(""); setVisible(12); }}>Hétvége</Button>
       </div>}
-      <div className="flex flex-wrap gap-2 my-5" aria-label="Programkategóriák">
+        <div className="flex flex-wrap gap-2 my-5" aria-label="Programkategóriák">
         <Button size="sm" variant={category === null ? "default" : "outline"} aria-pressed={category === null} onClick={() => { setCategory(null); setVisible(12); }}>Minden program</Button>
+        {REGION_COUNTIES.map(item => <Button key={item} size="sm" variant={county === item ? "default" : "outline"} aria-pressed={county === item} onClick={() => { setCounty(county === item ? null : item); setVisible(12); }}>{item} megye</Button>)}
         {categoriesQuery.data?.categories.filter(item => events?.some(event => event.categoryId === item.id)).map(item => <Button key={item.id} size="sm" variant={category === item.id ? "default" : "outline"} aria-pressed={category === item.id} onClick={() => { setCategory(item.id); setVisible(12); }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />{item.name}<span className="opacity-60">{events?.filter(event => event.categoryId === item.id).length}</span></Button>)}
       </div>
       {eventsQuery.isLoading ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Programok betöltése">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}</div>

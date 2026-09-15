@@ -26,7 +26,7 @@ export default function VenuesPage() {
     <section className="bg-gradient-to-br from-[#282453] via-[#4e3dd1] to-[#16835e] text-white py-16 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <p className="flex items-center gap-2 text-xs font-black tracking-[.16em] text-emerald-200 mb-4"><MapPin size={16} /> HELYSZÍNEK</p>
-        <h1 className="text-4xl md:text-6xl font-black tracking-tight max-w-3xl">A város helyei,<br />ahol történik valami.</h1>
+        <h1 className="text-4xl md:text-6xl font-black tracking-tight max-w-3xl">Székelyföld helyei,<br />ahol történik valami.</h1>
         <p className="mt-5 text-white/70 max-w-xl">Válassz helyszínt, és nézd meg az összes közelgő programját.</p>
       </div>
     </section>
@@ -44,7 +44,7 @@ export default function VenuesPage() {
               <span className="rounded-full px-3 py-1 text-xs font-black text-white" style={{ backgroundColor: color }}>{venue.titles.length} program</span>
             </div>
             <h3 className="text-xl font-black text-[#282453] leading-tight mt-6 group-hover:text-[#4e3dd1] transition-colors">{venue.name}</h3>
-            <p className="text-xs text-slate-500 mt-2 line-clamp-1">{venue.address || [...venue.categories].join(" · ") || "Csíkszereda és környéke"}</p>
+            <p className="text-xs text-slate-500 mt-2 line-clamp-1">{venue.address || [...venue.categories].join(" · ") || "Székelyföld és a három megye"}</p>
             <span className="mt-auto pt-5 inline-flex items-center gap-2 text-xs font-black" style={{ color }}>Programok megnyitása <ArrowRight size={15} /></span>
           </Link>;
         })}

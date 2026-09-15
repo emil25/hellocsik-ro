@@ -3,7 +3,9 @@ import { eq } from "drizzle-orm";
 import { extractEventListing, isFirecrawlConfigured, type ExtractedEvent } from "./firecrawl";
 
 const VISIT_HARGHITA_EVENTS = "https://visitharghita.com/hu/events";
-const LOCAL_PLACE = /(?:csíkszereda|miercurea\s+ciuc|csíksomlyó|șumuleu|csík(?:szent|madaras|rákos|szereda|somlyó|szépvíz)?|madéfalva|siculeni|ciceu|szépvíz|frumoasa|sântimbru|sintimbru)/i;
+// Keep automatic imports inside the three-county Székelyföld region.
+// The source sites mix Hungarian and Romanian place names, so both forms are included.
+const REGION_PLACE = /(?:székelyföld|secuime|hargita|harghita|kovászna|covasna|maros|mureș|mures|csíkszereda|miercurea\s+ciuc|csíksomlyó|șumuleu|székelyudvarhely|odorheiu\s+secuiesc|gyergyószentmiklós|gheorgheni|toplița|toplita|székelykeresztúr|cristuru\s+secuiesc|balánbánya|bălan|szováta|sovata|sepsiszentgyörgy|sfântu\s+gheorghe|sfantu\s+gheorghe|kézdivásárhely|târgu\s+secuiesc|targu\s+secuiesc|barót|baraolt|bodzaforduló|întorsura\s+buzăului|marosvásárhely|târgu\s+mureș|targu\s+mures|szászrégen|reghin|erdőszentgyörgy|sângeorgiu\s+de\s+pădure|nyárádszereda|măgherani|madéfalva|siculeni|ciceu|szépvíz|frumoasa|sântimbru|sintimbru)/i;
 const MONTHS: Record<string, number> = {
   januar: 0, "január": 0, februar: 1, "február": 1, marcius: 2, "március": 2,
   aprilis: 3, "április": 3, majus: 4, "május": 4, junius: 5, "június": 5,
@@ -105,7 +107,7 @@ function parseDescription(html: string) {
 function parseLocation(html: string, fallback: string) {
   const address = plainText(html.match(/<p class=["']text-gray-700 line-clamp-1["']>([\s\S]*?)<\/p>/i)?.[1] ?? "");
   const organizer = plainText(html.match(/class=["'][^"']*link-underline-animation[^"']*["'][^>]*>([\s\S]*?)<\/a>/i)?.[1] ?? "");
-  return { location: organizer || fallback || address || "Csíkszereda", address: address || fallback || null };
+  return { location: organizer || fallback || address || "Székelyföld", address: address || fallback || null };
 }
 
 function categoryCandidates(sourceCategory: string) {
@@ -178,7 +180,7 @@ async function runFirecrawlSync(): Promise<SyncResult> {
     for (const event of extracted) {
       const dates = validExtractedEvent(event);
       if (!dates) { skipped++; continue; }
-      if (!LOCAL_PLACE.test(`${event.title} ${event.location} ${event.address ?? ""}`)) { skipped++; continue; }
+      if (!REGION_PLACE.test(`${event.title} ${event.location} ${event.address ?? ""}`)) { skipped++; continue; }
       local++;
 
       const eventUrl = absoluteUrl(event.eventUrl, source.url) ?? source.url;
@@ -269,7 +271,7 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
       const dates = parseDate(html);
       if (!title || !dates || dates.startDate < new Date(Date.now() - 86_400_000)) { skipped++; continue; }
       const place = parseLocation(html, card.location);
-      if (!LOCAL_PLACE.test(`${title} ${card.location} ${place.location} ${place.address ?? ""}`)) { skipped++; continue; }
+      if (!REGION_PLACE.test(`${title} ${card.location} ${place.location} ${place.address ?? ""}`)) { skipped++; continue; }
       local++;
       const key = `${normalize(title)}|${localDateKey(dates.startDate)}`;
       if (knownTitleDates.has(key)) { skipped++; continue; }

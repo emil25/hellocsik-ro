@@ -26,9 +26,9 @@ export function StudioHero({ viewSwitch }: { viewSwitch: ReactNode }) {
 
         <div className="studio-lead-grid">
           <div className="studio-lead-copy">
-            <span className="studio-kicker">CSÍKSZEREDA / PROGRAMIRODA</span>
+            <span className="studio-kicker">SZÉKELYFÖLD / PROGRAMIRODA</span>
             <h1>Programok,<br /><em>jókor.</em></h1>
-            <p>Áttekinthető városi agenda azoknak, akik szeretik előre tudni, mi történik és hol.</p>
+            <p>Áttekinthető régiós agenda azoknak, akik előre tudni szeretnék, mi történik Hargita, Kovászna és Maros megyében.</p>
             <div className="studio-actions"><a href="#kozelgo" className="studio-primary">Agenda megnyitása <ArrowRight size={17} /></a><Link href="/naptar" className="studio-secondary"><CalendarDays size={17} /> Havi naptár</Link></div>
             <div className="studio-rule"><span>FRISSÍTVE</span><strong>MA · 09:40</strong><span>PROGRAMOK</span><strong>{events.length || "—"}</strong></div>
           </div>
@@ -59,7 +59,7 @@ export function StudioHero({ viewSwitch }: { viewSwitch: ReactNode }) {
           </div>)}
         </div>
       </div>
-      <div className="studio-footer-line"><span>HELLOCSÍK / HELYI PROGRAMOK, KÖZÖS ÉLMÉNYEK.</span><span>CSÍKSZEREDA · {editionDate()}</span></div>
+      <div className="studio-footer-line"><span>HELLOCSÍK / SZÉKELYFÖLDI PROGRAMOK, KÖZÖS ÉLMÉNYEK.</span><span>SZÉKELYFÖLD · {editionDate()}</span></div>
     </section>
   );
 }

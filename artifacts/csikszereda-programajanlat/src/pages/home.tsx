@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatTime, formatShortDate } from "@/utils/date-format";
 import { getVenueInfo, venueMapPosition } from "@/lib/venues";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
+import { REGION_COUNTIES, REGION_DESCRIPTION } from "@/lib/region";
 
 function useIsAdmin() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -100,7 +101,7 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
             style={{ backdropFilter: "blur(8px)" }}
           >
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-sm shadow-green-400/50" />
-            <span className="text-xs font-semibold text-white/75 uppercase tracking-wider">Élő · Csíkszereda Események</span>
+            <span className="text-xs font-semibold text-white/75 uppercase tracking-wider">Élő · Székelyföld eseményei</span>
           </motion.div>
 
           <motion.h1
@@ -120,7 +121,7 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
                 backgroundClip: "text",
               }}
             >
-              Csíkszereda?
+              Székelyföldön?
             </span>
           </motion.h1>
 
@@ -130,8 +131,8 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
             transition={{ duration: 0.5, delay: 0.36 }}
             className="text-white/60 text-base leading-relaxed mb-9 max-w-md"
           >
-            Koncertek, fesztiválok, színház, kiállítások és közösségi programok –
-            minden, amit a városban érdemes megnézni, egy helyen, friss információkkal.
+            {REGION_DESCRIPTION} Koncertek, fesztiválok, színház, kiállítások és közösségi programok –
+            minden, amit érdemes megnézni, egy helyen, friss információkkal.
           </motion.p>
 
           <motion.div
@@ -161,6 +162,9 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
               </button>
             </a>
           </motion.div>
+          <div className="flex flex-wrap gap-2 mt-6" aria-label="A portál lefedett megyéi">
+            {REGION_COUNTIES.map(county => <span key={county} className="px-3 py-1 rounded-full border border-white/20 bg-white/10 text-white/80 text-xs font-semibold">{county} megye</span>)}
+          </div>
           <div className="classic-view-row">
             <span>Főoldal nézete</span>
             {viewSwitch}

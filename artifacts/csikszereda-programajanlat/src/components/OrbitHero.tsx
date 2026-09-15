@@ -22,14 +22,14 @@ export function OrbitHero({ viewSwitch }: { viewSwitch: ReactNode }) {
   const venueCount = new Set(events.map((event) => event.location)).size;
 
   return (
-    <section className="orbit-hero" aria-label="HelloCsík városi programtervező">
+    <section className="orbit-hero" aria-label="HelloCsík székelyföldi programtervező">
       <div className="orbit-blob orbit-blob-one" />
       <div className="orbit-blob orbit-blob-two" />
       <div className="orbit-shell">
         <div className="orbit-intro">
-          <span className="orbit-kicker"><Sparkles size={15} /> PROGRAMOK CSÍKSZEREDÁBAN</span>
+          <span className="orbit-kicker"><Sparkles size={15} /> PROGRAMOK SZÉKELYFÖLDÖN</span>
           <h1>Találd meg<br />a <em>mai</em><br />élményed.</h1>
-          <p>Koncertek, mozi, színház és közösségi programok, egyszerűen válogatva.</p>
+          <p>Hargita, Kovászna és Maros megye koncertjei, színházi estéi és közösségi programjai, egyszerűen válogatva.</p>
           <div className="orbit-actions">
             <a href="#kozelgo">Felfedezem <ArrowRight size={18} /></a>
             <Link href="/naptar"><CalendarDays size={18} /> Naptár</Link>
@@ -46,7 +46,7 @@ export function OrbitHero({ viewSwitch }: { viewSwitch: ReactNode }) {
 
         <div className="orbit-stage">
           <div className="orbit-date-bubble"><strong>{currentDay()}</strong><span>{currentMonth()}</span></div>
-          <span className="orbit-city-note">MA CSÍKBAN</span>
+          <span className="orbit-city-note">MA SZÉKELYFÖLDÖN</span>
           {featured ? (
             <div className="orbit-featured-wrap">
               <Link href={`/esemeny/${featured.id}`} className="orbit-featured">
@@ -88,7 +88,7 @@ export function OrbitHero({ viewSwitch }: { viewSwitch: ReactNode }) {
         </div>
       </div>
       <div className="orbit-ticker" aria-hidden="true">
-        <div>MA ESTE · HÉTVÉGI TERVEK · CSALÁDI PROGRAM · KONCERT · SZÍNHÁZ · MOZI · KIÁLLÍTÁS ·</div>
+        <div>MA ESTE · HÉTVÉGI TERVEK · HARGITA · KOVÁSZNA · MAROS · KONCERT · SZÍNHÁZ · MOZI ·</div>
       </div>
     </section>
   );
