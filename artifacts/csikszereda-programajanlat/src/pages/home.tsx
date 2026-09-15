@@ -1474,7 +1474,7 @@ export default function Home() {
   const [design, setDesign] = useState<HomeDesign>(() => {
     try {
       const saved = localStorage.getItem("hellocsik-home-design");
-      return saved === "classic" || saved === "city" || saved === "orbit" || saved === "spark" || saved === "studio" ? saved : "spark";
+      return saved === "classic" || saved === "city" || saved === "orbit" || saved === "spark" || saved === "studio" ? saved : "classic";
     }
     catch { return "spark"; }
   });
