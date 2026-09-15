@@ -3,7 +3,7 @@ export const REGION_COUNTIES = ["Hargita", "Kovászna", "Maros"] as const;
 
 export type RegionCounty = (typeof REGION_COUNTIES)[number];
 
-export const REGION_DESCRIPTION = "Hargita, Kovászna és Maros megye programjai egy helyen.";
+export const REGION_DESCRIPTION = "Székelyföld városainak programjai egy helyen.";
 
 const COUNTY_KEYWORDS: Record<RegionCounty, string[]> = {
   Hargita: [

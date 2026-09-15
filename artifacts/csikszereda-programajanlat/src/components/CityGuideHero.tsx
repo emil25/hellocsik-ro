@@ -32,7 +32,7 @@ export function CityGuideHero({ viewSwitch }: { viewSwitch: ReactNode }) {
           <div className="city-guide-intro">
             <span className="city-guide-kicker"><i /> MA IS TÖRTÉNIK VALAMI</span>
             <h1>Kapcsolódj ki.<br /><em>Itt, Székelyföldön.</em></h1>
-            <p>Hargita, Kovászna és Maros megye legjobb programjai egy friss, gyorsan átlátható kalauzban.</p>
+            <p>Székelyföld városainak programjai egy friss, gyorsan átlátható listában.</p>
             <div className="city-guide-actions">
               <a href="#kozelgo" className="city-guide-primary">Mutasd a programokat <ArrowRight size={18} /></a>
               <Link href="/naptar" className="city-guide-calendar"><CalendarDays size={18} /> Naptár</Link>

@@ -54,7 +54,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
   return <>
     {showHero && <section className="discovery-hero">
       <div className="discovery-copy">
-        <p className="discovery-eyebrow"><MapPin size={16} /> SZÉKELYFÖLD · 3 MEGYE</p>
+        <p className="discovery-eyebrow"><MapPin size={16} /> SZÉKELYFÖLDI PROGRAMOK</p>
         <h1>Jó helyen vagy.<br /><span>Jó program vár.</span></h1>
         <p className="discovery-intro">{REGION_DESCRIPTION} Koncertek, fesztiválok, színház és közösségi élmények a közeledben.</p>
         <div className="flex flex-wrap gap-3 mt-8">

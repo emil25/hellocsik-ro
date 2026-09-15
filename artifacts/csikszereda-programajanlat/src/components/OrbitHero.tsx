@@ -29,7 +29,7 @@ export function OrbitHero({ viewSwitch }: { viewSwitch: ReactNode }) {
         <div className="orbit-intro">
           <span className="orbit-kicker"><Sparkles size={15} /> PROGRAMOK SZÉKELYFÖLDÖN</span>
           <h1>Találd meg<br />a <em>mai</em><br />élményed.</h1>
-          <p>Hargita, Kovászna és Maros megye koncertjei, színházi estéi és közösségi programjai, egyszerűen válogatva.</p>
+          <p>Székelyföld városainak koncertjei, színházi estéi és közösségi programjai, egyszerűen válogatva.</p>
           <div className="orbit-actions">
             <a href="#kozelgo">Felfedezem <ArrowRight size={18} /></a>
             <Link href="/naptar"><CalendarDays size={18} /> Naptár</Link>

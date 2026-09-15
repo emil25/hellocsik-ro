@@ -1489,7 +1489,7 @@ export default function Home() {
   };
   const viewSwitch = (
     <div className={`home-view-toggle ${design === "classic" ? "home-view-toggle-classic" : ""}`} role="group" aria-label="Főoldal dizájnja">
-      <button aria-pressed={design === "atlas"} onClick={() => changeDesign("atlas")}>Régió</button>
+      <button aria-pressed={design === "atlas"} onClick={() => changeDesign("atlas")}>Városok</button>
       <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
       <button aria-pressed={design === "city"} onClick={() => changeDesign("city")}>Városi</button>
       <button aria-pressed={design === "orbit"} onClick={() => changeDesign("orbit")}>Friss</button>

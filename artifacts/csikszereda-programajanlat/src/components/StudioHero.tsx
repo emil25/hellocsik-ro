@@ -28,7 +28,7 @@ export function StudioHero({ viewSwitch }: { viewSwitch: ReactNode }) {
           <div className="studio-lead-copy">
             <span className="studio-kicker">SZÉKELYFÖLD / PROGRAMIRODA</span>
             <h1>Programok,<br /><em>jókor.</em></h1>
-            <p>Áttekinthető régiós agenda azoknak, akik előre tudni szeretnék, mi történik Hargita, Kovászna és Maros megyében.</p>
+            <p>Áttekinthető lista azoknak, akik előre szeretnék tudni, milyen programok lesznek Székelyföld városaiban.</p>
             <div className="studio-actions"><a href="#kozelgo" className="studio-primary">Agenda megnyitása <ArrowRight size={17} /></a><Link href="/naptar" className="studio-secondary"><CalendarDays size={17} /> Havi naptár</Link></div>
             <div className="studio-rule"><span>FRISSÍTVE</span><strong>MA · 09:40</strong><span>PROGRAMOK</span><strong>{events.length || "—"}</strong></div>
           </div>
