@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { ProgramFinder } from "@/components/events/ProgramFinder";
 import { OrbitHero } from "@/components/OrbitHero";
 import { CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
@@ -44,7 +44,7 @@ const STARS = Array.from({ length: 55 }, (_, i) => ({
   dur: ((i * 7) % 25) / 10 + 2.5,
 }));
 
-function Hero() {
+function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
   const { data, isLoading } = useListFeaturedEvents();
   const events = data?.events ?? [];
 
@@ -158,6 +158,10 @@ function Hero() {
               </button>
             </a>
           </motion.div>
+          <div className="classic-view-row">
+            <span>Főoldal nézete</span>
+            {viewSwitch}
+          </div>
         </div>
 
         {/* Right: featured event card + upcoming mini-list */}
@@ -1509,13 +1513,15 @@ export default function Home() {
     setDesign(value);
     try { localStorage.setItem("hellocsik-home-design", value); } catch { /* The switch also works without browser storage. */ }
   };
+  const viewSwitch = (
+    <div className={`home-view-toggle ${design === "classic" ? "home-view-toggle-classic" : ""}`} role="group" aria-label="Főoldal dizájnja">
+      <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
+      <button aria-pressed={design === "orbit"} onClick={() => changeDesign("orbit")}>Friss</button>
+    </div>
+  );
   return (
     <div className={design === "orbit" ? "orbit-home" : "classic-home"}>
-      <div className={`home-view-toggle ${design === "classic" ? "home-view-toggle-classic" : ""}`} role="group" aria-label="Főoldal dizájnja">
-          <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
-          <button aria-pressed={design === "orbit"} onClick={() => changeDesign("orbit")}>Friss</button>
-      </div>
-      {design === "orbit" ? <OrbitHero /> : <Hero />}
+      {design === "orbit" ? <OrbitHero viewSwitch={viewSwitch} /> : <Hero viewSwitch={viewSwitch} />}
       {design === "classic" && <WeeklyCalendar />}
       <ProgramFinder showHero={false} />
       {design === "orbit" && <WeeklyCalendar />}

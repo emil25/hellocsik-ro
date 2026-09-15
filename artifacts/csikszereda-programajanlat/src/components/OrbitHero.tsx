@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useListUpcomingEvents } from "@workspace/api-client-react";
 import { formatShortDate, formatTime } from "@/utils/date-format";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
+import type { ReactNode } from "react";
 import "./orbit-home.css";
 
 function currentDay() {
@@ -13,7 +14,7 @@ function currentMonth() {
   return new Intl.DateTimeFormat("hu-HU", { month: "short" }).format(new Date()).replace(".", "");
 }
 
-export function OrbitHero() {
+export function OrbitHero({ viewSwitch }: { viewSwitch: ReactNode }) {
   const { data, isLoading, isError, refetch } = useListUpcomingEvents({ limit: 100 });
   const events = data?.events ?? [];
   const featured = events.find((event) => event.featured && event.imageUrl) ?? events.find((event) => event.imageUrl) ?? events[0];
@@ -32,6 +33,10 @@ export function OrbitHero() {
           <div className="orbit-actions">
             <a href="#kozelgo">Felfedezem <ArrowRight size={18} /></a>
             <Link href="/naptar"><CalendarDays size={18} /> Naptár</Link>
+          </div>
+          <div className="orbit-view-row">
+            <span>Főoldal nézete</span>
+            {viewSwitch}
           </div>
           <div className="orbit-facts">
             <span><b>{events.length}</b> közelgő program</span>
