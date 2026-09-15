@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { ProgramFinder } from "@/components/events/ProgramFinder";
 import { OrbitHero } from "@/components/OrbitHero";
 import { CityGuideHero } from "@/components/CityGuideHero";
-import { PulseHero } from "@/components/PulseHero";
+import { SparkHero } from "@/components/SparkHero";
 import { ActiveSzekelyfold, CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
@@ -1469,13 +1469,13 @@ function ActiveBanners() {
 }
 
 export default function Home() {
-  type HomeDesign = "classic" | "city" | "orbit" | "pulse";
+  type HomeDesign = "classic" | "city" | "orbit" | "spark";
   const [design, setDesign] = useState<HomeDesign>(() => {
     try {
       const saved = localStorage.getItem("hellocsik-home-design");
-      return saved === "classic" || saved === "city" || saved === "orbit" || saved === "pulse" ? saved : "pulse";
+      return saved === "classic" || saved === "city" || saved === "orbit" || saved === "spark" ? saved : "spark";
     }
-    catch { return "pulse"; }
+    catch { return "spark"; }
   });
   const changeDesign = (value: HomeDesign) => {
     setDesign(value);
@@ -1486,12 +1486,12 @@ export default function Home() {
       <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
       <button aria-pressed={design === "city"} onClick={() => changeDesign("city")}>Városi</button>
       <button aria-pressed={design === "orbit"} onClick={() => changeDesign("orbit")}>Friss</button>
-      <button aria-pressed={design === "pulse"} onClick={() => changeDesign("pulse")}>Pulzus</button>
+      <button aria-pressed={design === "spark"} onClick={() => changeDesign("spark")}>Szikra</button>
     </div>
   );
   return (
-    <div className={design === "orbit" ? "orbit-home" : design === "city" ? "city-home" : design === "pulse" ? "pulse-home" : "classic-home"}>
-      {design === "orbit" ? <OrbitHero viewSwitch={viewSwitch} /> : design === "city" ? <CityGuideHero viewSwitch={viewSwitch} /> : design === "pulse" ? <PulseHero viewSwitch={viewSwitch} /> : <Hero viewSwitch={viewSwitch} />}
+    <div className={design === "orbit" ? "orbit-home" : design === "city" ? "city-home" : design === "spark" ? "spark-home" : "classic-home"}>
+      {design === "orbit" ? <OrbitHero viewSwitch={viewSwitch} /> : design === "city" ? <CityGuideHero viewSwitch={viewSwitch} /> : design === "spark" ? <SparkHero viewSwitch={viewSwitch} /> : <Hero viewSwitch={viewSwitch} />}
       {design === "classic" && <WeeklyCalendar />}
       <ProgramFinder showHero={false} />
       {design === "orbit" && <WeeklyCalendar />}
