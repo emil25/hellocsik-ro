@@ -9,7 +9,7 @@ services:
     runtime: node
     plan: free
     region: frankfurt
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build:app
+    buildCommand: pnpm install --frozen-lockfile && pnpm build:app
     startCommand: pnpm start
     healthCheckPath: /api/healthz
     autoDeployTrigger: commit
