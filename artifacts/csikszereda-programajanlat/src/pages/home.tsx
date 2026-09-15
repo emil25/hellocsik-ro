@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { ProgramFinder } from "@/components/events/ProgramFinder";
-import { CityGuideHero } from "@/components/CityGuideHero";
+import { MosaicHero } from "@/components/MosaicHero";
 import { CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
@@ -1501,27 +1501,24 @@ function ActiveBanners() {
 }
 
 export default function Home() {
-  const [design, setDesign] = useState<"classic" | "city">(() => {
-    try { return localStorage.getItem("hellocsik-home-design") === "classic" ? "classic" : "city"; }
-    catch { return "city"; }
+  const [design, setDesign] = useState<"classic" | "mosaic">(() => {
+    try { return localStorage.getItem("hellocsik-home-design") === "classic" ? "classic" : "mosaic"; }
+    catch { return "mosaic"; }
   });
-  const changeDesign = (value: "classic" | "city") => {
+  const changeDesign = (value: "classic" | "mosaic") => {
     setDesign(value);
     try { localStorage.setItem("hellocsik-home-design", value); } catch { /* The switch also works without browser storage. */ }
   };
   return (
-    <div className={design === "city" ? "city-home" : "classic-home"}>
-      <div className="home-design-bar">
-        <span>Főoldal nézete</span>
-        <div className="home-design-options" role="group" aria-label="Főoldal dizájnja">
+    <div className={design === "mosaic" ? "mosaic-home" : "classic-home"}>
+      <div className={`home-view-toggle ${design === "classic" ? "home-view-toggle-classic" : ""}`} role="group" aria-label="Főoldal dizájnja">
           <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
-          <button aria-pressed={design === "city"} onClick={() => changeDesign("city")}>Városi</button>
-        </div>
+          <button aria-pressed={design === "mosaic"} onClick={() => changeDesign("mosaic")}>Mozaik</button>
       </div>
-      {design === "city" ? <CityGuideHero /> : <Hero />}
+      {design === "mosaic" ? <MosaicHero /> : <Hero />}
       {design === "classic" && <WeeklyCalendar />}
       <ProgramFinder showHero={false} />
-      {design === "city" && <WeeklyCalendar />}
+      {design === "mosaic" && <WeeklyCalendar />}
       <ActiveBanners />
       <CloudFestival />
       <CinemaPicks />
