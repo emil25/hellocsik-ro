@@ -4,6 +4,7 @@ import { Menu, X, Search, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchModal } from "@/components/SearchModal";
 import { useFavorites } from "@/hooks/use-favorites";
+import headerLogo from "@/assets/hellocsik-logo-header.png";
 
 const navLinks = [
   { href: "/#hetvege", label: "Hétvége" },
@@ -27,10 +28,12 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center shrink-0 group">
-              <span className="text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                hellocsík<span className="text-primary">.ro</span>
-              </span>
+            <Link href="/" className="flex items-center shrink-0" aria-label="HelloCsík főoldal">
+              <img
+                src={headerLogo}
+                alt="HelloCsík"
+                className="h-10 sm:h-11 w-auto object-contain"
+              />
             </Link>
 
             {/* Nav pills */}

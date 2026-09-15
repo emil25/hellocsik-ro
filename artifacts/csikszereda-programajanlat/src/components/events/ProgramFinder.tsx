@@ -60,8 +60,8 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
         <p className="discovery-note">Helyi programok. Közös élmények. Hello, Csík!</p>
       </div>
       <div className="discovery-photo">
-        <img src={`${import.meta.env.BASE_URL}miko-castle.jpg`} alt="A Mikó-vár Csíkszeredában" fetchPriority="high" />
-        <div className="discovery-photo-caption"><span>KULTÚRA KÖZELRŐL</span><strong>Éld meg a várost.</strong><p>Csíkszereda · Csíki-medence</p><a className="block text-xs mt-3 text-white/80 underline" href="https://commons.wikimedia.org/wiki/File:Mik%C3%B3_v%C3%A1r_Cs%C3%ADkszereda.jpg" target="_blank" rel="noreferrer">Fotó: Hektor894 · CC BY-SA 3.0 · Vágott kép</a></div>
+        <img src={`${import.meta.env.BASE_URL}reference/city-center.jpg`} alt="Csíkszereda belvárosa" fetchPriority="high" />
+        <div className="discovery-photo-caption"><span>A VÁROS KÖZEPÉN</span><strong>Éld meg Csíkszeredát.</strong><p>Programok · helyek · közös élmények</p><a className="block text-xs mt-3 text-white/80 underline" href="https://commons.wikimedia.org/wiki/File:RO_HR_Miercurea_Ciuc_center_1.jpg" target="_blank" rel="noreferrer">Fotó: Andrei Stroe · CC BY-SA 3.0 · Vágott kép</a></div>
       </div>
     </section>}
     <div id="hetvege" />

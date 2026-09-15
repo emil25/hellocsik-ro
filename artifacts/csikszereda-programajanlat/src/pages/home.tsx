@@ -56,7 +56,8 @@ function Hero() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url(${import.meta.env.BASE_URL}reference/castle.jpg)`,
+          backgroundImage: `url(${import.meta.env.BASE_URL}reference/city-center.jpg)`,
+          backgroundPosition: "center 58%",
         }}
       />
 
