@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { ProgramFinder } from "@/components/events/ProgramFinder";
-import { MagazineHero } from "@/components/MagazineHero";
+import { CityGuideHero } from "@/components/CityGuideHero";
 import { CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
@@ -1501,27 +1501,27 @@ function ActiveBanners() {
 }
 
 export default function Home() {
-  const [design, setDesign] = useState<"classic" | "magazine">(() => {
-    try { return localStorage.getItem("hellocsik-home-design") === "classic" ? "classic" : "magazine"; }
-    catch { return "magazine"; }
+  const [design, setDesign] = useState<"classic" | "city">(() => {
+    try { return localStorage.getItem("hellocsik-home-design") === "classic" ? "classic" : "city"; }
+    catch { return "city"; }
   });
-  const changeDesign = (value: "classic" | "magazine") => {
+  const changeDesign = (value: "classic" | "city") => {
     setDesign(value);
     try { localStorage.setItem("hellocsik-home-design", value); } catch { /* The switch also works without browser storage. */ }
   };
   return (
-    <div className={design === "magazine" ? "magazine-home" : "classic-home"}>
+    <div className={design === "city" ? "city-home" : "classic-home"}>
       <div className="home-design-bar">
         <span>Főoldal nézete</span>
         <div className="home-design-options" role="group" aria-label="Főoldal dizájnja">
           <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
-          <button aria-pressed={design === "magazine"} onClick={() => changeDesign("magazine")}>Magazin</button>
+          <button aria-pressed={design === "city"} onClick={() => changeDesign("city")}>Városi</button>
         </div>
       </div>
-      {design === "magazine" ? <MagazineHero /> : <Hero />}
+      {design === "city" ? <CityGuideHero /> : <Hero />}
       {design === "classic" && <WeeklyCalendar />}
       <ProgramFinder showHero={false} />
-      {design === "magazine" && <WeeklyCalendar />}
+      {design === "city" && <WeeklyCalendar />}
       <ActiveBanners />
       <CloudFestival />
       <CinemaPicks />
