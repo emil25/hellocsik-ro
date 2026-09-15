@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: hellocsik-ro
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build:app
+    startCommand: pnpm start
+    healthCheckPath: /api/healthz
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: FIRECRAWL_API_KEY
+        sync: false

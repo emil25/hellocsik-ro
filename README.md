@@ -47,3 +47,7 @@ A felület a megadott képernyőképet követi: várfotós nyitóoldal, heti nap
 A működő Replit-hivatkozásból hat nyilvános program került át a helyi adatbázisba. Az import előtti mentés a `.local/backups` mappában, az átvett nyilvános adatok a `.local/replit-public-events.json` fájlban találhatók. Ez nem a régi adatbázis teljes mentése. A forrásoldal UTC-ként címkézett helyi időpontjait importáláskor romániai időpontként értelmeztük, hogy az órák a referenciával egyezzenek.
 
 A referenciaoldal képei a `public/reference` mappába kerültek; a forrás-URL-ek a mellette lévő `sources.json` fájlban vannak. A futóverseny eredeti képe 404-es hibát adott, ezért ott jelzett helyettesítő kártyakép látható. A filmkártyák a megadott referencia állapotát tükrözik; az aktuális műsorhoz a mozi oldalára vezetnek.
+
+### Render telepítés
+
+A gyökérben lévő `render.yaml` egy Node webszolgáltatást készít. A `pnpm build:app` felépíti az API-t és a React felületet, a szerver pedig ugyanazon a nyilvános címen szolgálja ki mindkettőt. Telepítéskor tartós PostgreSQL-kapcsolatot kell megadni `DATABASE_URL` néven. Az adatbázis táblái és az alap kategóriák az első induláskor automatikusan létrejönnek. Az `ADMIN_PASSWORD` titkos változó; a `FIRECRAWL_API_KEY` elhagyható, de nélküle a gazdagabb automatikus forrásfrissítés nem fut.
