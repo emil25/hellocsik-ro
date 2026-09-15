@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { ProgramFinder } from "@/components/events/ProgramFinder";
 import { OrbitHero } from "@/components/OrbitHero";
+import { CityGuideHero } from "@/components/CityGuideHero";
+import { PulseHero } from "@/components/PulseHero";
 import { ActiveSzekelyfold, CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
@@ -1467,23 +1469,29 @@ function ActiveBanners() {
 }
 
 export default function Home() {
-  const [design, setDesign] = useState<"classic" | "orbit">(() => {
-    try { return localStorage.getItem("hellocsik-home-design") === "classic" ? "classic" : "orbit"; }
-    catch { return "orbit"; }
+  type HomeDesign = "classic" | "city" | "orbit" | "pulse";
+  const [design, setDesign] = useState<HomeDesign>(() => {
+    try {
+      const saved = localStorage.getItem("hellocsik-home-design");
+      return saved === "classic" || saved === "city" || saved === "orbit" || saved === "pulse" ? saved : "pulse";
+    }
+    catch { return "pulse"; }
   });
-  const changeDesign = (value: "classic" | "orbit") => {
+  const changeDesign = (value: HomeDesign) => {
     setDesign(value);
     try { localStorage.setItem("hellocsik-home-design", value); } catch { /* The switch also works without browser storage. */ }
   };
   const viewSwitch = (
     <div className={`home-view-toggle ${design === "classic" ? "home-view-toggle-classic" : ""}`} role="group" aria-label="Főoldal dizájnja">
       <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
+      <button aria-pressed={design === "city"} onClick={() => changeDesign("city")}>Városi</button>
       <button aria-pressed={design === "orbit"} onClick={() => changeDesign("orbit")}>Friss</button>
+      <button aria-pressed={design === "pulse"} onClick={() => changeDesign("pulse")}>Pulzus</button>
     </div>
   );
   return (
-    <div className={design === "orbit" ? "orbit-home" : "classic-home"}>
-      {design === "orbit" ? <OrbitHero viewSwitch={viewSwitch} /> : <Hero viewSwitch={viewSwitch} />}
+    <div className={design === "orbit" ? "orbit-home" : design === "city" ? "city-home" : design === "pulse" ? "pulse-home" : "classic-home"}>
+      {design === "orbit" ? <OrbitHero viewSwitch={viewSwitch} /> : design === "city" ? <CityGuideHero viewSwitch={viewSwitch} /> : design === "pulse" ? <PulseHero viewSwitch={viewSwitch} /> : <Hero viewSwitch={viewSwitch} />}
       {design === "classic" && <WeeklyCalendar />}
       <ProgramFinder showHero={false} />
       {design === "orbit" && <WeeklyCalendar />}
