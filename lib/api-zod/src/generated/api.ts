@@ -100,6 +100,7 @@ export const ListEventsResponse = zod.object({
         .optional()
         .describe("JSON-encoded news link objects [{title, url}]"),
       createdAt: zod.coerce.date(),
+      updatedAt: zod.coerce.date(),
     }),
   ),
   total: zod.number(),
@@ -160,6 +161,7 @@ export const ListFeaturedEventsResponse = zod.object({
         .optional()
         .describe("JSON-encoded news link objects [{title, url}]"),
       createdAt: zod.coerce.date(),
+      updatedAt: zod.coerce.date(),
     }),
   ),
 });
@@ -201,6 +203,7 @@ export const ListThisWeekEventsResponse = zod.object({
             .optional()
             .describe("JSON-encoded news link objects [{title, url}]"),
           createdAt: zod.coerce.date(),
+          updatedAt: zod.coerce.date(),
         }),
       ),
     }),
@@ -246,6 +249,7 @@ export const ListUpcomingEventsResponse = zod.object({
         .optional()
         .describe("JSON-encoded news link objects [{title, url}]"),
       createdAt: zod.coerce.date(),
+      updatedAt: zod.coerce.date(),
     }),
   ),
 });
@@ -281,6 +285,7 @@ export const GetMonthHighlightResponse = zod.object({
     .optional()
     .describe("JSON-encoded news link objects [{title, url}]"),
   createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
 });
 
 /**
@@ -318,6 +323,7 @@ export const GetEventResponse = zod.object({
     .optional()
     .describe("JSON-encoded news link objects [{title, url}]"),
   createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
 });
 
 /**

@@ -1,27 +1,134 @@
 import { Router } from "express";
 import { db, eventsTable, categoriesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
+import { ADMIN_PASSWORD, requireAdmin } from "../lib/admin-auth";
+import { getLastSourceSync, syncEventSources } from "../lib/source-sync";
+import { extractFacebookEvent, isFirecrawlConfigured } from "../lib/firecrawl";
 
 const router = Router();
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "csikadmin2024";
+const htmlEntities: Record<string, string> = {
+  amp: "&", apos: "'", quot: '"', lt: "<", gt: ">", nbsp: " ",
+  aacute: "á", Aacute: "Á", eacute: "é", Eacute: "É", iacute: "í", Iacute: "Í",
+  oacute: "ó", Oacute: "Ó", odblac: "ő", Odblac: "Ő", uacute: "ú", Uacute: "Ú",
+  udblac: "ű", Udblac: "Ű", acirc: "â", Acirc: "Â", icirc: "î", Icirc: "Î",
+  scirc: "ș", Scirc: "Ș", tcedil: "ț", Tcedil: "Ț",
+};
 
-function requireAdmin(req: any, res: any, next: any) {
-  const auth = req.headers["authorization"] ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  if (token !== ADMIN_PASSWORD) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  next();
+function decodeHtml(value: string) {
+  return value.replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (entity, key: string) => {
+    if (key.startsWith("#x") || key.startsWith("#X")) return String.fromCodePoint(parseInt(key.slice(2), 16));
+    if (key.startsWith("#")) return String.fromCodePoint(parseInt(key.slice(1), 10));
+    return htmlEntities[key] ?? htmlEntities[key.toLowerCase()] ?? entity;
+  });
 }
+
+function readMeta(html: string, attribute: "property" | "name", value: string) {
+  const escaped = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const tag = new RegExp(`<meta[^>]+${attribute}=["']${escaped}["'][^>]+content=["']([^"']+)["'][^>]*>`, "i");
+  const reverse = new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+${attribute}=["']${escaped}["'][^>]*>`, "i");
+  return decodeHtml(html.match(tag)?.[1] ?? html.match(reverse)?.[1] ?? "");
+}
+
+function readFacebookEventDescription(html: string) {
+  const match = html.match(/"event_description"\s*:\s*\{"text"\s*:\s*"((?:\\.|[^"\\])*)"/);
+  if (!match) return "";
+  try {
+    return JSON.parse(`"${match[1]}"`).trim();
+  } catch {
+    return "";
+  }
+}
+
+function isFacebookGeneratedSummary(description: string) {
+  return /(?:és\s+további\s+\d+\s+ember|and\s+\d+\s+others|\beveniment\s+în\b|\bevent\s+in\b)/i.test(description);
+}
+
+router.get("/facebook-events/:eventId/image", async (req, res) => {
+  const eventId = String(req.params.eventId);
+  if (!/^\d{8,}$/.test(eventId)) { res.sendStatus(404); return; }
+
+  try {
+    const response = await fetch(`https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=${eventId}`, {
+      headers: { "user-agent": "facebookexternalhit/1.1" },
+      signal: AbortSignal.timeout(15_000),
+    });
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!response.ok || !contentType.startsWith("image/")) { res.sendStatus(404); return; }
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length < 256 || bytes.length > 10 * 1024 * 1024) { res.sendStatus(422); return; }
+    res.set({ "Content-Type": contentType, "Cache-Control": "public, max-age=86400" }).send(bytes);
+  } catch (err) {
+    req.log.warn({ err, eventId }, "Could not proxy Facebook event image");
+    res.sendStatus(502);
+  }
+});
+
+router.post("/admin/events/preview-facebook", requireAdmin, async (req, res) => {
+  const sourceUrl = typeof req.body?.url === "string" ? req.body.url.trim() : "";
+  const match = sourceUrl.match(/^https?:\/\/(?:www\.)?facebook\.com\/events\/(\d+)/i);
+  if (!match) { res.status(400).json({ error: "Csak Facebook-esemény linket lehet feldolgozni." }); return; }
+
+  try {
+    const canonicalUrl = `https://www.facebook.com/events/${match[1]}/`;
+    const [facebookResult, firecrawlResult] = await Promise.allSettled([
+      fetch(canonicalUrl, {
+        headers: {
+          "user-agent": "Mozilla/5.0 (compatible; HelloCsik event preview)",
+          "accept-language": "hu-HU,hu;q=0.9,en;q=0.7,ro;q=0.5",
+        },
+        signal: AbortSignal.timeout(12_000),
+      }).then(response => response.ok ? response.text() : ""),
+      isFirecrawlConfigured() ? extractFacebookEvent(canonicalUrl) : Promise.resolve(null),
+    ]);
+    const html = facebookResult.status === "fulfilled" ? facebookResult.value : "";
+    const firecrawlEvent = firecrawlResult.status === "fulfilled" ? firecrawlResult.value : null;
+    if (firecrawlResult.status === "rejected") req.log.warn({ err: firecrawlResult.reason, eventId: match[1] }, "Firecrawl Facebook fallback failed");
+    const rawTitle = readMeta(html, "property", "og:title").replace(/\s*\|\s*Facebook$/i, "");
+    const eventDescription = readFacebookEventDescription(html);
+    const metaDescription = readMeta(html, "name", "description");
+    const descriptionNeedsManualEntry = !eventDescription && isFacebookGeneratedSummary(metaDescription);
+    let description = eventDescription || (descriptionNeedsManualEntry ? "" : metaDescription);
+    let imageUrl = readMeta(html, "property", "og:image") ? `/api/facebook-events/${match[1]}/image` : "";
+    description = description || firecrawlEvent?.description?.trim() || "";
+    if (!imageUrl && firecrawlEvent?.imageUrl?.trim()) imageUrl = `/api/facebook-events/${match[1]}/image`;
+    const title = rawTitle || firecrawlEvent?.title?.trim() || "";
+    if (!title) { res.status(422).json({ error: "A Facebook-eseményből nem olvasható ki a cím." }); return; }
+    res.json({
+      title,
+      description,
+      imageUrl,
+      sourceUrl: canonicalUrl,
+      startDate: firecrawlEvent?.startDate,
+      endDate: firecrawlEvent?.endDate,
+      location: firecrawlEvent?.location,
+      descriptionNeedsManualEntry: !description,
+    });
+  } catch (err) {
+    req.log.warn({ err }, "Could not preview Facebook event");
+    res.status(502).json({ error: "A Facebook-esemény előnézete most nem tölthető be." });
+  }
+});
 
 router.post("/admin/login", (req, res) => {
   const { password } = req.body ?? {};
-  if (password === ADMIN_PASSWORD) {
+  if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
     res.json({ token: ADMIN_PASSWORD });
   } else {
     res.status(401).json({ error: "Helytelen jelszó" });
+  }
+});
+
+router.get("/admin/source-sync", requireAdmin, (_req, res) => {
+  res.json({ lastResult: getLastSourceSync() });
+});
+
+router.post("/admin/source-sync", requireAdmin, async (req, res) => {
+  try {
+    res.json(await syncEventSources());
+  } catch (err) {
+    req.log.warn({ err }, "Admin: event source sync failed");
+    res.status(502).json({ error: "A külső eseményforrás most nem érhető el." });
   }
 });
 
@@ -41,6 +148,7 @@ router.get("/admin/events", requireAdmin, async (req, res) => {
         startDate: r.event.startDate.toISOString(),
         endDate: r.event.endDate ? r.event.endDate.toISOString() : null,
         createdAt: r.event.createdAt.toISOString(),
+        updatedAt: r.event.updatedAt.toISOString(),
         category: r.category ?? null,
       })),
     });
@@ -81,7 +189,7 @@ router.post("/admin/events", requireAdmin, async (req, res) => {
       newsLinks,
     }).returning();
 
-    res.status(201).json({ ...created, startDate: created.startDate.toISOString(), createdAt: created.createdAt.toISOString() });
+    res.status(201).json({ ...created, startDate: created.startDate.toISOString(), createdAt: created.createdAt.toISOString(), updatedAt: created.updatedAt.toISOString() });
   } catch (err) {
     req.log.error({ err }, "Admin: failed to create event");
     res.status(500).json({ error: "Internal server error" });
@@ -103,7 +211,8 @@ router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
     if (typeof body.location === "string" && body.location.trim()) patch.location = body.location.trim();
     if (typeof body.locationAddress === "string") patch.locationAddress = body.locationAddress.trim() || null;
     if (typeof body.imageUrl === "string" && body.imageUrl.trim()) patch.imageUrl = body.imageUrl.trim();
-    if (typeof body.ticketUrl === "string") patch.ticketUrl = body.ticketUrl.trim() || null;
+    if (body.ticketUrl === null) patch.ticketUrl = null;
+    else if (typeof body.ticketUrl === "string") patch.ticketUrl = body.ticketUrl.trim() || null;
     if (typeof body.price === "string") patch.price = body.price.trim() || null;
     if (Array.isArray(body.newsLinks)) patch.newsLinks = body.newsLinks.filter((s: unknown) => typeof s === "string");
     if (body.startDate) { const d = new Date(body.startDate); if (!isNaN(d.getTime())) patch.startDate = d; }
@@ -112,6 +221,7 @@ router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
     if (body.categoryId === null) patch.categoryId = null;
     else if (typeof body.categoryId === "number") patch.categoryId = body.categoryId;
     if (Object.keys(patch).length === 0) { res.status(400).json({ error: "No valid fields" }); return; }
+    patch.updatedAt = new Date();
 
     const [updated] = await db
       .update(eventsTable)
@@ -121,7 +231,7 @@ router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
 
     if (!updated) { res.status(404).json({ error: "Not found" }); return; }
 
-    res.json({ ...updated, startDate: updated.startDate.toISOString(), createdAt: updated.createdAt.toISOString() });
+    res.json({ ...updated, startDate: updated.startDate.toISOString(), createdAt: updated.createdAt.toISOString(), updatedAt: updated.updatedAt.toISOString() });
   } catch (err) {
     req.log.error({ err }, "Admin: failed to patch event");
     res.status(500).json({ error: "Internal server error" });

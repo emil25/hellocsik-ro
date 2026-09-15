@@ -33,7 +33,7 @@ pnpm workspace monorepo using TypeScript. This project is a Hungarian-language c
 - Month highlight cinematic section
 - Event detail page with related events
 - Public event submission form at /bekuldese (status=pending, awaits admin approval)
-- Admin dashboard at /admin (password-protected, default: csikadmin2024)
+- Admin dashboard at /admin (password-protected via ADMIN_PASSWORD; local startup generates a password in .env.local)
 - All text in Hungarian
 
 ## Database Schema
@@ -44,7 +44,7 @@ pnpm workspace monorepo using TypeScript. This project is a Hungarian-language c
 ## Admin
 
 - URL: /admin
-- Default password: csikadmin2024 (change via ADMIN_PASSWORD env var)
+- Password: ADMIN_PASSWORD environment variable. Local pnpm dev generates .env.local on first use.
 - Features: approve/reject pending events, toggle featured/month_highlight, delete events
 
 ## Key Commands

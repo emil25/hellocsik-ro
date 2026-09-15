@@ -1,0 +1,78 @@
+[
+  {
+    "file": "cloud-hero.jpg",
+    "url": "https://cloudfestival.ro/hero-poster.jpg?v=20260708-cut",
+    "saved": true
+  },
+  {
+    "file": "cloud-logo.png",
+    "url": "https://cloudfestival.ro/CYF%20logo%20white%20cropped.png",
+    "saved": true
+  },
+  {
+    "file": "mehringer.jpg",
+    "url": "https://cloudfestival.ro/Artists/CYF%20_%20mehringer%20_%20fb%20post.jpg",
+    "saved": true
+  },
+  {
+    "file": "metzker.png",
+    "url": "https://cloudfestival.ro/Artists/CYF%20_%20Metzker%20_%20fb%20post%201.png",
+    "saved": true
+  },
+  {
+    "file": "csinszka.png",
+    "url": "https://cloudfestival.ro/Artists/CYF%20_%20csinszka%20_%209.16%20_%204.5safe%201.png",
+    "saved": true
+  },
+  {
+    "file": "doncs.png",
+    "url": "https://cloudfestival.ro/Artists/Doncs%20lila%201.png",
+    "saved": true
+  },
+  {
+    "file": "czika.png",
+    "url": "https://cloudfestival.ro/Artists/CYF%20_%20Czika%20_%20fb%20post%201.png",
+    "saved": true
+  },
+  {
+    "file": "bozont.jpg",
+    "url": "https://cloudfestival.ro/Artists/CYF%20_%20Bozont%20_%20fb%20post.jpg",
+    "saved": true
+  },
+  {
+    "file": "bonzon.webp",
+    "url": "https://cloudfestival.ro/Artists/bonzon.webp",
+    "saved": true
+  },
+  {
+    "file": "be-toro.webp",
+    "url": "https://cloudfestival.ro/Artists/be-toro.webp",
+    "saved": true
+  },
+  {
+    "file": "pout-pout-fish.webp",
+    "url": "https://api.cinemacsikimozi.ro/api/image/format?image=uploads%2Fmovies%2Fbdb7b064-f748-4d0a-a2a4-c06ded3ae7f2%2Fimages%2FTPPF_main-poster_B1_RO_LR_52491f66-5d28-4dfb-9565-21e6e566dcd2.jpg&width=300&height=450&format=webp",
+    "saved": true
+  },
+  {
+    "file": "spider-man.webp",
+    "url": "https://api.cinemacsikimozi.ro/api/image/format?image=uploads%2Fmovies%2Ffc43e522-234f-412b-b437-39c957c19818%2Fimages%2FSpider-ManBrandNewDay-poster_86bcc52d-db67-4c1a-ab55-3cfc7238e9bc.jpg&width=300&height=450&format=webp",
+    "saved": true
+  },
+  {
+    "file": "running.jpg",
+    "url": "https://images.unsplash.com/photo-1486218119243-13301bc5e9d8?w=800&q=80",
+    "saved": false,
+    "error": "HTTP 404"
+  },
+  {
+    "file": "conference.jpg",
+    "url": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&q=80",
+    "saved": true
+  },
+  {
+    "file": "dance.jpg",
+    "url": "https://images.unsplash.com/photo-1547153760-18fc86324498?w=800&q=80",
+    "saved": true
+  }
+]

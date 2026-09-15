@@ -1,20 +1,10 @@
 import { Router } from "express";
 import { db, bannersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
+import { requireAdmin } from "../lib/admin-auth";
 
 const router = Router();
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "csikadmin2024";
-
-function requireAdmin(req: any, res: any, next: any) {
-  const auth = req.headers["authorization"] ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  if (token !== ADMIN_PASSWORD) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  next();
-}
 
 function serializeBanner(b: typeof bannersTable.$inferSelect) {
   return { ...b, createdAt: b.createdAt.toISOString() };

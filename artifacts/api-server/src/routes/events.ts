@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db, eventsTable, categoriesTable } from "@workspace/db";
 import { eq, and, gte, lte, desc, asc, ne, or, isNull } from "drizzle-orm";
+import { requireAdmin } from "../lib/admin-auth";
 import {
   ListEventsQueryParams,
   CreateEventBody,
@@ -10,12 +11,21 @@ import {
 
 const router = Router();
 
+function eventNotExpired(at = new Date()) {
+  return or(
+    gte(eventsTable.endDate, at),
+    and(isNull(eventsTable.endDate), gte(eventsTable.startDate, at)),
+  )!;
+}
+
 function formatEvent(event: any, category: any) {
+  const { submitterName, submitterEmail, ...publicEvent } = event;
   return {
-    ...event,
+    ...publicEvent,
     startDate: event.startDate.toISOString(),
     endDate: event.endDate ? event.endDate.toISOString() : null,
     createdAt: event.createdAt.toISOString(),
+    updatedAt: event.updatedAt.toISOString(),
     category: category ?? null,
     tags: event.tags ?? [],
     locationAddress: event.locationAddress ?? null,
@@ -35,7 +45,9 @@ async function getEventsWithCategories(conditions: any[] = [], orderBy?: any | a
     .$dynamic();
 
   if (conditions.length > 0) {
-    query = query.where(and(...conditions));
+    query = query.where(and(eq(eventsTable.status, "published"), ...conditions));
+  } else {
+    query = query.where(eq(eventsTable.status, "published"));
   }
 
   if (orderBy) {
@@ -62,7 +74,7 @@ router.get("/events", async (req, res) => {
     }
     const { categoryId, startDate, endDate, featured, limit = 20, offset = 0 } = parsed.data;
 
-    const conditions: any[] = [];
+    const conditions: any[] = [eventNotExpired()];
     if (categoryId !== undefined) conditions.push(eq(eventsTable.categoryId, categoryId));
     if (startDate) conditions.push(gte(eventsTable.startDate, new Date(startDate)));
     if (endDate) conditions.push(lte(eventsTable.startDate, new Date(endDate)));
@@ -84,16 +96,21 @@ router.get("/events", async (req, res) => {
 router.post("/events/submit", async (req, res) => {
   try {
     const body = req.body ?? {};
-    const required = ["title", "description", "imageUrl", "startDate", "location"];
+    const required = ["title", "description", "startDate", "location"];
     for (const f of required) {
-      if (!body[f]) { res.status(400).json({ error: `${f} kötelező` }); return; }
+      if (typeof body[f] !== "string" || !body[f].trim()) { res.status(400).json({ error: `${f} kötelező` }); return; }
+    }
+    const start = new Date(body.startDate);
+    const end = body.endDate ? new Date(body.endDate) : null;
+    if (Number.isNaN(start.getTime()) || (end && (Number.isNaN(end.getTime()) || end < start))) {
+      res.status(400).json({ error: "Érvénytelen dátum vagy dátumtartomány." }); return;
     }
     const [event] = await db
       .insert(eventsTable)
       .values({
         title: body.title,
         description: body.description,
-        imageUrl: body.imageUrl || "https://placehold.co/800x450/e2e8f0/64748b?text=Program",
+        imageUrl: body.imageUrl || "/hellocsik-logo.png",
         startDate: new Date(body.startDate),
         endDate: body.endDate ? new Date(body.endDate) : null,
         location: body.location,
@@ -119,9 +136,8 @@ router.post("/events/submit", async (req, res) => {
 router.get("/events/featured", async (req, res) => {
   try {
     const now = new Date();
-    const notExpired = or(gte(eventsTable.endDate, now), and(isNull(eventsTable.endDate), gte(eventsTable.startDate, now)))!;
     const rows = await getEventsWithCategories(
-      [eq(eventsTable.featured, true), eq(eventsTable.status, "published"), notExpired],
+      [eq(eventsTable.featured, true), eventNotExpired(now)],
       [desc(eventsTable.monthHighlight), asc(eventsTable.startDate)]
     );
     res.json({ events: rows.map((r) => formatEvent(r.event, r.category)) });
@@ -133,10 +149,14 @@ router.get("/events/featured", async (req, res) => {
 
 router.get("/events/this-week", async (req, res) => {
   try {
+    const weekOffset = Number(req.query.weekOffset ?? 0);
+    if (!Number.isInteger(weekOffset) || weekOffset < -52 || weekOffset > 104) {
+      res.status(400).json({ error: "Érvénytelen hét." }); return;
+    }
     const now = new Date();
     const dayOfWeek = now.getDay();
     const monday = new Date(now);
-    monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+    monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7) + weekOffset * 7);
     monday.setHours(0, 0, 0, 0);
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
@@ -145,7 +165,11 @@ router.get("/events/this-week", async (req, res) => {
     const hunDayNames = ["V", "H", "K", "Sze", "Cs", "P", "Szo"];
 
     const rows = await getEventsWithCategories(
-      [gte(eventsTable.startDate, monday), lte(eventsTable.startDate, sunday), eq(eventsTable.status, "published")],
+      [
+        lte(eventsTable.startDate, sunday),
+        or(gte(eventsTable.endDate, monday), and(isNull(eventsTable.endDate), gte(eventsTable.startDate, monday)))!,
+        eventNotExpired(now),
+      ],
       asc(eventsTable.startDate)
     );
 
@@ -153,9 +177,11 @@ router.get("/events/this-week", async (req, res) => {
     for (let i = 0; i < 7; i++) {
       const day = new Date(monday);
       day.setDate(monday.getDate() + i);
-      const dateStr = day.toISOString().slice(0, 10);
+      const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+      const nextDay = new Date(day);
+      nextDay.setDate(day.getDate() + 1);
       const dayEvents = rows
-        .filter((r) => r.event.startDate.toISOString().slice(0, 10) === dateStr)
+        .filter((r) => r.event.startDate < nextDay && (r.event.endDate ?? r.event.startDate) >= day)
         .map((r) => formatEvent(r.event, r.category));
 
       days.push({
@@ -178,9 +204,8 @@ router.get("/events/upcoming", async (req, res) => {
     const limit = parsed.success ? (parsed.data.limit ?? 9) : 9;
 
     const now = new Date();
-    const notExpired = or(gte(eventsTable.endDate, now), and(isNull(eventsTable.endDate), gte(eventsTable.startDate, now)))!;
     const rows = await getEventsWithCategories(
-      [notExpired, eq(eventsTable.status, "published")],
+      [eventNotExpired(now)],
       asc(eventsTable.startDate),
       limit
     );
@@ -194,7 +219,7 @@ router.get("/events/upcoming", async (req, res) => {
 router.get("/events/month-highlight", async (req, res) => {
   try {
     const rows = await getEventsWithCategories(
-      [eq(eventsTable.monthHighlight, true)],
+      [eq(eventsTable.monthHighlight, true), eventNotExpired()],
       asc(eventsTable.startDate),
       1
     );
@@ -321,7 +346,7 @@ router.get("/events/:id", async (req, res) => {
   }
 });
 
-router.post("/events", async (req, res) => {
+router.post("/events", requireAdmin, async (req, res) => {
   try {
     const parsed = CreateEventBody.safeParse(req.body);
     if (!parsed.success) {

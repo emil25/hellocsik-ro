@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchModal } from "@/components/SearchModal";
+import { useFavorites } from "@/hooks/use-favorites";
 
 const navLinks = [
   { href: "/#hetvege", label: "Hétvége" },
-  { href: "/#naptar", label: "Naptár" },
+  { href: "/naptar", label: "Naptár" },
   { href: "/#kozelgo", label: "Programok" },
   { href: "/#helyszinek", label: "Helyszínek" },
+  { href: "/erdekel", label: "Érdekel" },
   { href: "/#hozzaadas", label: "Hozzáadás" },
 ];
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { favoriteIds } = useFavorites();
 
   return (
     <>
@@ -31,7 +34,7 @@ export function Navbar() {
             </Link>
 
             {/* Nav pills */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-1">
               {navLinks.map((link, i) => (
                 <a
                   key={link.href}
@@ -42,13 +45,14 @@ export function Navbar() {
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >
-                  {link.label}
+                  {link.href === "/erdekel" && <Heart className="inline-block w-3.5 h-3.5 mr-1" fill={favoriteIds.length ? "currentColor" : "none"} />}
+                  {link.label}{link.href === "/erdekel" && favoriteIds.length > 0 ? ` (${favoriteIds.length})` : ""}
                 </a>
               ))}
             </nav>
 
             {/* Right actions */}
-            <div className="hidden md:flex items-center gap-1.5">
+            <div className="hidden lg:flex items-center gap-1.5">
               <button
                 onClick={() => setSearchOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
@@ -62,14 +66,17 @@ export function Navbar() {
             </div>
 
             {/* Mobile: search + burger */}
-            <div className="md:hidden flex items-center gap-1">
+            <div className="lg:hidden flex items-center gap-1">
               <button
                 onClick={() => setSearchOpen(true)}
+                aria-label="Programok keresése"
                 className="p-2 rounded-md text-muted-foreground hover:bg-muted transition-colors"
               >
                 <Search className="w-5 h-5" />
               </button>
               <button
+                aria-label={open ? "Menü bezárása" : "Menü megnyitása"}
+                aria-expanded={open}
                 className="p-2 rounded-md text-muted-foreground hover:bg-muted transition-colors"
                 onClick={() => setOpen(!open)}
               >
@@ -85,7 +92,7 @@ export function Navbar() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-gray-100 bg-white overflow-hidden"
+              className="lg:hidden border-t border-gray-100 bg-white overflow-hidden"
             >
               <div className="px-4 py-3 space-y-1">
                 {navLinks.map((link) => (
@@ -95,7 +102,8 @@ export function Navbar() {
                     className="block py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground border-b border-gray-50 last:border-0"
                     onClick={() => setOpen(false)}
                   >
-                    {link.label}
+                    {link.href === "/erdekel" && <Heart className="inline-block w-4 h-4 mr-2" fill={favoriteIds.length ? "currentColor" : "none"} />}
+                    {link.label}{link.href === "/erdekel" && favoriteIds.length > 0 ? ` (${favoriteIds.length})` : ""}
                   </a>
                 ))}
                 <div className="pt-2">

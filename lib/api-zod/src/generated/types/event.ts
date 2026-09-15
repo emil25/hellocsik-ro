@@ -26,4 +26,5 @@ export interface Event {
   /** JSON-encoded news link objects [{title, url}] */
   newsLinks?: string[];
   createdAt: Date;
+  updatedAt: Date;
 }

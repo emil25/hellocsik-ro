@@ -2,15 +2,14 @@ import { format, isToday } from "date-fns";
 import { hu } from "date-fns/locale";
 
 /**
- * All event times are stored as UTC but represent Romania local times
- * (the admin enters "10:00" meaning 10:00 Romania time, stored as 10:00 UTC).
- * So we always display the UTC time values directly, without timezone conversion.
+ * API dates are real instants. Display them in the event's Romanian timezone,
+ * independently of the visitor's timezone, including daylight-saving time.
  */
 function asUTC(dateString: string): Date {
-  const d = new Date(dateString);
+  const d = new Date(new Date(dateString).toLocaleString("sv-SE", { timeZone: "Europe/Bucharest" }).replace(" ", "T"));
   return new Date(
-    d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
-    d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()
+    d.getFullYear(), d.getMonth(), d.getDate(),
+    d.getHours(), d.getMinutes(), d.getSeconds()
   );
 }
 

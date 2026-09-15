@@ -25,6 +25,7 @@ function ImageUploadField({
   const [uploadError, setUploadError] = useState("");
 
   const { uploadFile, isUploading, progress } = useUpload({
+    headers: { Authorization: `Bearer ${localStorage.getItem("admin_token") ?? ""}` },
     onSuccess: (res) => {
       const serveUrl = `/api/storage${res.objectPath}`;
       onChange(serveUrl);
@@ -187,9 +188,7 @@ type Section = "events" | "banners";
 
 function toDatetimeLocal(iso: string) {
   if (!iso) return "";
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+  return new Date(iso).toLocaleString("sv-SE", { timeZone: "Europe/Bucharest" }).replace(" ", "T").slice(0, 16);
 }
 
 type NewsLink = { title: string; url: string };
@@ -211,6 +210,45 @@ const emptyForm = (): EventForm => ({
 const inputCls = "w-full px-3 py-2 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-background";
 const labelCls = "block text-xs font-semibold text-muted-foreground mb-1";
 
+function FacebookImport({ token, onApply }: { token: string; onApply: (data: Partial<EventForm>) => void }) {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function preview() {
+    if (!url.trim()) return;
+    setLoading(true); setMessage("");
+    try {
+      const response = await fetch(`${API}/admin/events/preview-facebook`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ url }),
+      });
+      const data = await response.json();
+      if (!response.ok) { setMessage(data.error ?? "Az előnézet nem tölthető be."); return; }
+      onApply({
+        title: data.title ?? "",
+        description: data.description ?? "",
+        imageUrl: data.imageUrl ?? "",
+        startDate: data.startDate ? toDatetimeLocal(data.startDate) : "",
+        endDate: data.endDate ? toDatetimeLocal(data.endDate) : "",
+        location: data.location ?? "",
+        ticketUrl: data.sourceUrl ?? url,
+        newsLinks: [{ title: "Facebook-esemény", url: data.sourceUrl ?? url }],
+      });
+      setMessage(data.descriptionNeedsManualEntry
+        ? "A cím, kép és Facebook-link bekerült. A Facebook csak automatikus összefoglalót adott, ezért a leírást hagytam üresen – másold be a valódi eseményszöveget."
+        : "A rendelkezésre álló adatok bekerültek. Ellenőrizd a dátumot és helyszínt mentés előtt.");
+    } catch { setMessage("Hálózati hiba az előnézet betöltésekor."); }
+    finally { setLoading(false); }
+  }
+
+  return <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3">
+    <label className="block text-xs font-bold text-blue-900 mb-1">Facebook-esemény gyors felvitele</label>
+    <p className="text-xs text-blue-800/80 mb-2">Illeszd be a publikus Facebook-esemény linkjét. A cím, kép és – ha a Facebook átadja – a leírás automatikusan kitöltődik.</p>
+    <div className="flex gap-2"><input type="url" value={url} onChange={e => setUrl(e.target.value)} className={inputCls} placeholder="https://www.facebook.com/events/..." /><button type="button" onClick={preview} disabled={loading || !url.trim()} className="shrink-0 px-3 rounded-xl bg-primary text-white text-xs font-bold disabled:opacity-60">{loading ? "Betöltés..." : "Kitöltés"}</button></div>
+    {message && <p className={`mt-2 text-xs ${message.includes("bekerült") ? "text-green-700" : "text-red-600"}`}>{message}</p>}
+  </div>;
+}
+
 function EventFormFields({
   form, set, onImageBusyChange
 }: {
@@ -231,7 +269,7 @@ function EventFormFields({
           className={inputCls + " resize-none"} placeholder="Rövid leírás..." />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className={labelCls}>Kezdés *</label>
           <input required type="datetime-local" value={form.startDate} onChange={e => set("startDate", e.target.value)} className={inputCls} />
@@ -252,7 +290,7 @@ function EventFormFields({
         <input value={form.locationAddress} onChange={e => set("locationAddress", e.target.value)} className={inputCls} placeholder="pl. Főtér 1." />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className={labelCls}>Ár</label>
           <input value={form.price} onChange={e => set("price", e.target.value)} className={inputCls} placeholder="pl. 500 RON / Ingyenes" />
@@ -373,6 +411,8 @@ function CreateModal({
     setForm(f => ({ ...f, [field]: val }));
   }
 
+  function applyFacebook(data: Partial<EventForm>) { setForm(f => ({ ...f, ...data })); }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (imageUploading) return;
@@ -413,15 +453,15 @@ function CreateModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 16 }}
-        className="relative bg-card border border-card-border rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
+        className="relative bg-card border border-card-border rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-xl max-h-[96vh] sm:max-h-[90vh] overflow-y-auto"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
           <div>
             <h2 className="text-base font-bold text-foreground">Új esemény létrehozása</h2>
             <p className="text-xs text-muted-foreground">Az esemény azonnal közzéttételre kerül</p>
@@ -431,7 +471,8 @@ function CreateModal({
           </button>
         </div>
 
-        <form onSubmit={save} className="px-6 py-5 space-y-4">
+        <form onSubmit={save} className="px-4 sm:px-6 py-5 space-y-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+          <FacebookImport token={token} onApply={applyFacebook} />
           <CategorySelect form={form} set={set} categories={categories} onImageBusyChange={setImageUploading} />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-3 pt-1">
@@ -521,15 +562,15 @@ function EditModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 16 }}
-        className="relative bg-card border border-card-border rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
+        className="relative bg-card border border-card-border rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-xl max-h-[96vh] sm:max-h-[90vh] overflow-y-auto"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
           <div>
             <h2 className="text-base font-bold text-foreground">Esemény szerkesztése</h2>
             <p className="text-xs text-muted-foreground line-clamp-1">{ev.title}</p>
@@ -539,7 +580,7 @@ function EditModal({
           </button>
         </div>
 
-        <form onSubmit={save} className="px-6 py-5 space-y-4">
+        <form onSubmit={save} className="px-4 sm:px-6 py-5 space-y-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           <CategorySelect form={form} set={set} categories={categories} onImageBusyChange={setImageUploading} />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-3 pt-1">
@@ -633,7 +674,7 @@ function CategorySelect({
           className={inputCls + " resize-none"} placeholder="Rövid leírás..." />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className={labelCls}>Kezdés *</label>
           <input required type="datetime-local" value={form.startDate} onChange={e => set("startDate", e.target.value)} className={inputCls} />
@@ -661,7 +702,7 @@ function CategorySelect({
         <input value={form.locationAddress} onChange={e => { set("locationAddress", e.target.value); setAutoFilled(false); }} className={inputCls} placeholder="pl. Főtér 1." />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className={labelCls}>Ár</label>
           <input value={form.price} onChange={e => set("price", e.target.value)} className={inputCls} placeholder="pl. 500 RON / Ingyenes" />
@@ -878,6 +919,8 @@ export default function AdminPage() {
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [section, setSection] = useState<Section>("events");
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
 
   const fetchEvents = useCallback(async (status: Tab) => {
     if (!token) return;
@@ -926,6 +969,23 @@ export default function AdminPage() {
     setActionId(null);
   }
 
+  async function syncSources() {
+    setSyncing(true); setSyncMessage("");
+    try {
+      const response = await fetch(`${API}/admin/source-sync`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "A forrásfrissítés nem sikerült.");
+      const firecrawlNote = result.firecrawlConfigured === false
+        ? " A Firecrawl API-kulcs még nincs beállítva, ezért most csak a közvetlen forrás frissült."
+        : "";
+      setSyncMessage(`${result.imported} új csíki esemény került a jóváhagyásra váró listába. ${result.skipped} találat már szerepelt vagy nem volt használható.${firecrawlNote}`);
+      setTab("pending");
+      await fetchEvents("pending");
+    } catch (error) {
+      setSyncMessage(error instanceof Error ? error.message : "A forrásfrissítés nem sikerült.");
+    } finally { setSyncing(false); }
+  }
+
   if (!token) return <LoginScreen onLogin={login} />;
 
   const pending = events.filter(e => e.status === "pending");
@@ -965,7 +1025,7 @@ export default function AdminPage() {
       </AnimatePresence>
 
       {/* Top bar */}
-      <div className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+      <div className="bg-card border-b border-border px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sticky top-0 z-30">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
             <Settings className="w-4 h-4 text-white" />
@@ -975,39 +1035,47 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">Kezelőfelület</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={syncSources}
+            disabled={syncing}
+            className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2.5 sm:py-1.5 rounded-lg border border-primary/25 text-primary hover:bg-primary/5 disabled:opacity-60 transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} /> {syncing ? "Források frissítése…" : "Források frissítése"}
+          </button>
           <button
             onClick={() => setCreating(true)}
-            className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
+            className="flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2.5 sm:py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" /> Új esemény
           </button>
           <Link href="/">
-            <button className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">Főoldal</button>
+            <button className="w-full text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 sm:py-1.5 rounded-lg border border-border sm:border-0 hover:bg-muted transition-colors">Főoldal</button>
           </Link>
-          <button onClick={() => fetchEvents(tab)} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+          <button aria-label="Lista frissítése" onClick={() => fetchEvents(tab)} className="p-2.5 sm:p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground border border-border sm:border-0 flex justify-center">
             <RefreshCw className="w-4 h-4" />
           </button>
-          <button onClick={logout} className="flex items-center gap-1.5 text-xs text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
+          <button onClick={logout} className="flex items-center justify-center gap-1.5 text-xs text-red-600 px-3 py-2.5 sm:py-1.5 rounded-lg hover:bg-red-50 border border-red-100 sm:border-0 transition-colors">
             <LogOut className="w-3.5 h-3.5" /> Kilépés
           </button>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-5 sm:py-8">
+        {syncMessage && <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">{syncMessage}</div>}
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8">
           {[
             { icon: Clock, label: "Várakozó", value: events.filter(e=>e.status==="pending").length, color: "text-amber-600", bg: "bg-amber-50" },
             { icon: CalendarCheck, label: "Közzétett", value: events.filter(e=>e.status==="published").length, color: "text-green-700", bg: "bg-green-50" },
             { icon: LayoutDashboard, label: "Hero-ban", value: events.filter(e=>e.featured && e.status==="published").length, color: "text-amber-600", bg: "bg-amber-50" },
           ].map(({ icon: Icon, label, value, color, bg }) => (
-            <div key={label} className="bg-card border border-card-border rounded-2xl p-5 flex items-center gap-4">
+            <div key={label} className="bg-card border border-card-border rounded-2xl p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
               <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center`}>
                 <Icon className={`w-5 h-5 ${color}`} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">{value}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{value}</p>
                 <p className="text-xs text-muted-foreground">{label}</p>
               </div>
             </div>
@@ -1015,13 +1083,13 @@ export default function AdminPage() {
         </div>
 
         {/* Section toggle */}
-        <div className="flex gap-2 mb-6">
+        <div className="grid grid-cols-2 sm:flex gap-2 mb-5 sm:mb-6">
           <button onClick={() => setSection("events")}
-            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${section === "events" ? "bg-primary text-white shadow-sm" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
+            className={`px-4 sm:px-5 py-2.5 sm:py-2 rounded-xl text-sm font-bold transition-all ${section === "events" ? "bg-primary text-white shadow-sm" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
             Események
           </button>
           <button onClick={() => setSection("banners")}
-            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${section === "banners" ? "bg-primary text-white shadow-sm" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
+            className={`px-4 sm:px-5 py-2.5 sm:py-2 rounded-xl text-sm font-bold transition-all ${section === "banners" ? "bg-primary text-white shadow-sm" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
             Bannerek
           </button>
         </div>
@@ -1031,10 +1099,10 @@ export default function AdminPage() {
         ) : (
         <>
         {/* Event Tabs */}
-        <div className="flex gap-1 mb-6 bg-muted p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-6 bg-muted p-1 rounded-xl w-full sm:w-fit overflow-x-auto">
           {tabs.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === t.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`flex-1 sm:flex-none justify-center whitespace-nowrap flex items-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all ${tab === t.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
               {t.label}
               {t.count !== undefined && (
                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${tab === t.key ? "bg-primary/10 text-primary" : "bg-muted-foreground/20 text-muted-foreground"}`}>
@@ -1058,9 +1126,9 @@ export default function AdminPage() {
             <AnimatePresence>
               {events.map(ev => (
                 <motion.div key={ev.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
-                  className={`bg-card border rounded-2xl p-4 flex gap-4 items-start ${ev.status === "pending" ? "border-amber-200 bg-amber-50/30" : "border-card-border"}`}>
+                  className={`bg-card border rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start ${ev.status === "pending" ? "border-amber-200 bg-amber-50/30" : "border-card-border"}`}>
                   {/* Thumb */}
-                  <img src={ev.imageUrl} alt={ev.title} className="w-16 h-16 rounded-xl object-cover shrink-0 bg-muted" />
+                  <img src={ev.imageUrl} alt={ev.title} className="w-full h-36 sm:w-16 sm:h-16 rounded-xl object-cover shrink-0 bg-muted" />
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
@@ -1089,7 +1157,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex flex-col gap-1.5 shrink-0">
+                  <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:flex-col sm:gap-1.5 shrink-0 [&>button]:justify-center [&>button]:min-h-9">
                     {ev.status === "pending" && (
                       <button onClick={() => patch(ev.id, { status: "published" })} disabled={actionId === ev.id}
                         className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">

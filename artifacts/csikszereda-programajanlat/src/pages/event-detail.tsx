@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
-import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2 } from "lucide-react";
+import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2, Database, CalendarPlus, Download } from "lucide-react";
 
 function getEventLinkMeta(url: string, price?: string | null) {
   if (url.includes("facebook.com") || url.includes("fb.com") || url.includes("fb.me")) {
@@ -16,6 +17,10 @@ import { Link } from "wouter";
 import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatShortDate } from "@/utils/date-format";
+import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
+import { getVenueInfo } from "@/lib/venues";
+import { FavoriteButton } from "@/components/events/FavoriteButton";
+import { downloadCalendarFile, googleCalendarUrl } from "@/lib/calendar-links";
 
 function EventCard({ event, index = 0 }: { event: any; index?: number }) {
   return (
@@ -70,6 +75,18 @@ export default function EventDetail() {
     }
   };
 
+  const handleFacebookShare = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+    window.open(url, "facebook-share", "width=680,height=520,noopener,noreferrer");
+  };
+
+  useEffect(() => {
+    if (!event) return;
+    const previousTitle = document.title;
+    document.title = `${event.title} – HelloCsík`;
+    return () => { document.title = previousTitle; };
+  }, [event]);
+
   if (isLoading) {
     return (
       <div>
@@ -91,6 +108,9 @@ export default function EventDetail() {
       </div>
     );
   }
+
+  const source = getEventSource(event.newsLinks);
+  const venue = getVenueInfo(event.location);
 
   return (
     <div>
@@ -118,12 +138,15 @@ export default function EventDetail() {
               <ArrowLeft className="w-4 h-4" /> Vissza
             </button>
           </Link>
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/20 px-3 py-2 rounded-xl"
-          >
-            <Share2 className="w-4 h-4" /> Megosztás
-          </button>
+          <div className="flex items-center gap-2">
+            <FavoriteButton eventId={event.id} className="w-10 h-10" />
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/30 px-3 py-2 rounded-xl"
+            >
+              <Share2 className="w-4 h-4" /> <span className="hidden sm:inline">Megosztás</span>
+            </button>
+          </div>
         </div>
 
         {/* Bottom: category + title */}
@@ -227,7 +250,9 @@ export default function EventDetail() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Helyszín</p>
-                    <p className="font-semibold text-sm text-stone-800 leading-snug">{event.location}</p>
+                    <Link href={`/helyszin/${venue.slug}`} className="font-semibold text-sm text-stone-800 leading-snug hover:text-primary transition-colors inline-flex items-center gap-1">
+                      {event.location} <span aria-hidden="true">→</span>
+                    </Link>
                     {event.locationAddress && (
                       <p className="text-xs text-stone-400 mt-0.5">{event.locationAddress}</p>
                     )}
@@ -246,6 +271,37 @@ export default function EventDetail() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-5 py-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-sky-50">
+                    <Database className="w-4 h-4 text-sky-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">Forrás és frissítés</p>
+                    {source.url ? (
+                      <a href={source.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-sm text-primary hover:underline">
+                        {source.title} <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <p className="font-semibold text-sm text-stone-800">{source.title}</p>
+                    )}
+                    <p className="text-xs text-stone-400 mt-1">Frissítve: {formatRefreshDate(event.updatedAt ?? event.createdAt)}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={handleFacebookShare} className="col-span-2 py-3 px-3 rounded-xl bg-[#1877f2] text-white text-sm font-bold hover:bg-[#1669d5] transition-colors flex items-center justify-center gap-2">
+                  <span className="font-black text-base">f</span> Megosztás Facebookon
+                </button>
+                <a href={googleCalendarUrl(event)} target="_blank" rel="noopener noreferrer" className="py-3 px-2 rounded-xl border border-stone-200 bg-white text-stone-700 text-xs font-bold hover:bg-stone-50 transition-colors flex items-center justify-center gap-1.5 text-center">
+                  <CalendarPlus className="w-4 h-4 text-primary" /> Google Naptár
+                </a>
+                <button onClick={() => downloadCalendarFile(event)} className="py-3 px-2 rounded-xl border border-stone-200 bg-white text-stone-700 text-xs font-bold hover:bg-stone-50 transition-colors flex items-center justify-center gap-1.5 text-center">
+                  <Download className="w-4 h-4 text-primary" /> Naptárfájl
+                </button>
               </div>
 
               {/* CTA buttons */}
@@ -270,7 +326,7 @@ export default function EventDetail() {
         </div>
 
         {/* Related news */}
-        <RelatedNews newsLinks={(event as any).newsLinks ?? []} />
+        <RelatedNews newsLinks={(event.newsLinks ?? []).slice(1)} />
 
         {/* Related events */}
         {related.length > 0 && (

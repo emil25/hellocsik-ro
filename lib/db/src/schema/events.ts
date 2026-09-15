@@ -23,8 +23,9 @@ export const eventsTable = pgTable("events", {
   submitterName: text("submitter_name"),
   submitterEmail: text("submitter_email"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const insertEventSchema = createInsertSchema(eventsTable).omit({ id: true, createdAt: true });
+export const insertEventSchema = createInsertSchema(eventsTable).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type EventRow = typeof eventsTable.$inferSelect;

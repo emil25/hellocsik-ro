@@ -454,6 +454,9 @@ components:
         createdAt:
           type: string
           format: date-time
+        updatedAt:
+          type: string
+          format: date-time
       required:
         - id
         - title
@@ -465,6 +468,7 @@ components:
         - monthHighlight
         - tags
         - createdAt
+        - updatedAt
 
     CreateEventBody:
       type: object

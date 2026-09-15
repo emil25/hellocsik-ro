@@ -1,4 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
+import { ProgramFinder } from "@/components/events/ProgramFinder";
+import { MagazineHero } from "@/components/MagazineHero";
+import { CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
+import { useQuery } from "@tanstack/react-query";
+import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
 import { motion } from "framer-motion";
 import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink, Plus, CheckCircle2, Building2, Pencil } from "lucide-react";
 import { Link } from "wouter";
@@ -12,11 +17,12 @@ import {
   useListEvents,
   useGetEvent,
   useListBanners,
-  type Event as ApiEvent,
   type Banner,
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatTime, formatShortDate } from "@/utils/date-format";
+import { getVenueInfo, venueMapPosition } from "@/lib/venues";
+import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
 
 function useIsAdmin() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -50,7 +56,7 @@ function Hero() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url(https://upload.wikimedia.org/wikipedia/commons/b/b9/RO_HR_Miercurea_Ciuc_Miko_castle.jpg)`,
+          backgroundImage: `url(${import.meta.env.BASE_URL}reference/castle.jpg)`,
         }}
       />
 
@@ -286,13 +292,22 @@ function Hero() {
 // ─── WEEKLY CALENDAR ────────────────────────────────────────────────────────
 
 function WeeklyCalendar() {
-  const { data, isLoading } = useListThisWeekEvents();
+  const [weekOffset, setWeekOffset] = useState(0);
+  const { data, isLoading, isError } = useQuery<ListThisWeekEvents200>({
+    queryKey: ["weekly-calendar", weekOffset],
+    queryFn: async () => {
+      const response = await fetch(`/api/events/this-week?weekOffset=${weekOffset}`);
+      if (!response.ok) throw new Error("A naptár nem tölthető be.");
+      return response.json();
+    },
+  });
   const { data: catData } = useListCategories();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedCat, setSelectedCat] = useState<number | null>(null);
   const days = data?.days ?? [];
-  const today = new Date().toISOString().slice(0, 10);
-  const activeDay = selectedDay ?? today;
+  const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Bucharest" });
+  const activeDay = selectedDay ?? (weekOffset === 0 ? today : days[0]?.date);
+  const changeWeek = (direction: number) => { setWeekOffset(value => value + direction); setSelectedDay(null); };
   const selectedDayData = days.find(d => d.date === activeDay);
   const categories = catData?.categories ?? [];
 
@@ -324,9 +339,9 @@ function WeeklyCalendar() {
   })();
 
   return (
-    <section id="naptar" className="py-16 bg-background">
+    <section id="heti-naptar" className="py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex flex-wrap gap-4 items-start justify-between mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-4 h-4 text-primary" />
@@ -335,17 +350,18 @@ function WeeklyCalendar() {
             <h2 className="text-3xl font-bold text-foreground mb-1">Mi lesz a héten?</h2>
             <p className="text-muted-foreground text-sm">Válassz napot, és nézd meg az aznapi programokat.</p>
           </div>
-          <div className="hidden md:flex items-center gap-2 mt-2">
-            <button className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
+          <div className="flex items-center gap-2 mt-2">
+            <button aria-label="Előző hét" onClick={() => changeWeek(-1)} disabled={weekOffset <= -52} className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40">
               <ChevronLeft className="w-4 h-4" />
             </button>
             <span className="text-sm text-muted-foreground font-medium px-2">{weekLabel}</span>
-            <button className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors">
+            <button aria-label="Következő hét" onClick={() => changeWeek(1)} disabled={weekOffset >= 104} className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
 
+        {isError && <p role="alert" className="text-destructive mb-4">A naptár nem tölthető be. Próbáld újra később.</p>}
         {/* Day selector */}
         {isLoading ? (
           <div className="grid grid-cols-7 gap-2 mb-6">
@@ -490,9 +506,9 @@ function UpcomingEvents() {
               {sorted.length} program · {featuredCount > 0 && <span className="font-medium text-amber-600">{featuredCount} kihagyhatatlan</span>}
             </p>
           </div>
-          <a href="#naptar" className="hidden md:flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
+          <Link href="/naptar" className="hidden md:flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
             Naptár nézet <ArrowRight className="w-3.5 h-3.5" />
-          </a>
+          </Link>
         </div>
 
         {/* Category filter pills */}
@@ -632,6 +648,7 @@ function UpcomingEvents() {
                     <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" /><span className="truncate">{event.location?.split("–")[0].trim()}</span></span>
                   </div>
                   <h3 className="font-bold text-base text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors flex-1">{event.title}</h3>
+                  <p className="text-[10px] text-muted-foreground/80 line-clamp-1 mb-2">Forrás: {getEventSource(event.newsLinks).title} · {formatRefreshDate(event.updatedAt ?? event.createdAt)}</p>
                   <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
                     <span className="text-xs text-muted-foreground">{!event.price || event.price === "Ingyenes" ? "Ingyenes" : event.price}</span>
                     <span className="flex items-center gap-1 text-primary text-xs font-bold">Részletek <ArrowRight className="w-3 h-3" /></span>
@@ -673,6 +690,7 @@ function UpcomingEvents() {
                     <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" /><span className="truncate">{event.location?.split("–")[0].trim()}</span></span>
                   </div>
                   <h3 className="font-bold text-base text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-amber-700 transition-colors flex-1">{event.title}</h3>
+                  <p className="text-[10px] text-muted-foreground/80 line-clamp-1 mb-2">Forrás: {getEventSource(event.newsLinks).title} · {formatRefreshDate(event.updatedAt ?? event.createdAt)}</p>
                   <div className="flex items-center justify-between mt-auto pt-2 border-t border-amber-200/60">
                     <span className="text-xs text-muted-foreground">{!event.price || event.price === "Ingyenes" ? "Ingyenes" : event.price}</span>
                     <span className="flex items-center gap-1 text-amber-600 text-xs font-bold">Részletek <ArrowRight className="w-3 h-3" /></span>
@@ -1324,23 +1342,17 @@ function VenuesSection() {
 
   const venues = useMemo(() => {
     const evs = data?.events ?? [];
-    // Normalize venue names so minor variants map to a canonical form
-    const ALIASES: Record<string, string> = {
-      "Cinema Csíki Mozi": "Csíki Mozi",
-      "Cinema Csiki Mozi": "Csíki Mozi",
-    };
-    const map = new Map<string, { titles: string[]; categories: Set<string> }>();
+    const map = new Map<string, { info: ReturnType<typeof getVenueInfo>; titles: string[]; categories: Set<string> }>();
     for (const ev of evs) {
       if (!ev.location) continue;
-      const raw = ev.location.split("–")[0].split("-")[0].trim();
-      const name = ALIASES[raw] ?? raw;
-      if (!map.has(name)) map.set(name, { titles: [], categories: new Set() });
-      const entry = map.get(name)!;
+      const info = getVenueInfo(ev.location);
+      if (!map.has(info.slug)) map.set(info.slug, { info, titles: [], categories: new Set() });
+      const entry = map.get(info.slug)!;
       entry.titles.push(ev.title);
       if (ev.category?.name) entry.categories.add(ev.category.name);
     }
     return Array.from(map.entries())
-      .map(([name, val]) => ({ name, titles: val.titles, categories: [...val.categories].join(", ") }))
+      .map(([, val]) => ({ ...val.info, titles: val.titles, categories: [...val.categories].join(", ") }))
       .sort((a, b) => b.titles.length - a.titles.length);
   }, [data]);
 
@@ -1353,19 +1365,42 @@ function VenuesSection() {
             <span className="text-xs font-bold text-primary uppercase tracking-widest">Helyszínek</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Hol történik?</h2>
-          <p className="text-muted-foreground text-sm">A város legfontosabb kulturális helyszínei egy pillantásra.</p>
+          <p className="text-muted-foreground text-sm">Kattints egy jelölőre vagy helyszínre, és megmutatjuk az ottani programokat.</p>
         </div>
 
         <div className="flex flex-col gap-6">
           {/* Map – full width */}
-          <div className="rounded-2xl overflow-hidden border border-card-border shadow-sm" style={{ height: "280px" }}>
+          <div className="relative rounded-2xl overflow-hidden border border-card-border shadow-sm bg-emerald-50" style={{ height: "320px" }}>
             <iframe
               title="Csíkszereda térkép"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=25.7800%2C46.3500%2C25.8300%2C46.3900&layer=mapnik&marker=46.3690%2C25.8020"
-              className="w-full h-full"
-              style={{ border: 0 }}
+              src="https://www.openstreetmap.org/export/embed.html?bbox=25.7800%2C46.3500%2C25.8300%2C46.3900&layer=mapnik"
+              className="w-full h-full opacity-80"
+              style={{ border: 0, pointerEvents: "none" }}
               loading="lazy"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" />
+            {venues.map((venue, index) => {
+              const position = venueMapPosition(venue);
+              if (!position) return null;
+              const color = VENUE_COLORS[index % VENUE_COLORS.length];
+              return (
+                <Link
+                  key={`marker-${venue.slug}`}
+                  href={`/helyszin/${venue.slug}`}
+                  title={`${venue.name}: ${venue.titles.length} program`}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 z-10 group"
+                  style={position}
+                >
+                  <span className="relative flex items-center justify-center w-9 h-9 rounded-full text-white text-xs font-black border-2 border-white shadow-lg transition-transform group-hover:scale-125 group-focus:scale-125" style={{ backgroundColor: color }}>
+                    {venue.titles.length}
+                    <span className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-stone-900/90 px-2 py-1 text-[10px] font-semibold opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">{venue.name}</span>
+                  </span>
+                </Link>
+              );
+            })}
+            <div className="absolute left-3 bottom-3 rounded-xl bg-white/95 px-3 py-2 text-[11px] font-semibold text-stone-700 shadow-sm">
+              A szám a közelgő programokat jelöli
+            </div>
           </div>
 
           {/* Venue grid – dynamic, 2–3 cols */}
@@ -1383,22 +1418,25 @@ function VenuesSection() {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05, duration: 0.35 }}
-                    className="bg-card border border-card-border rounded-2xl p-4 flex flex-col gap-2 hover:shadow-md transition-shadow"
+                    className="h-full"
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: color + "22" }}>
-                        <Building2 className="w-4 h-4" style={{ color }} />
+                    <Link href={`/helyszin/${venue.slug}`} className="bg-card border border-card-border rounded-2xl p-4 flex flex-col gap-2 hover:shadow-md hover:border-primary/30 transition-all h-full group">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: color + "22" }}>
+                          <Building2 className="w-4 h-4" style={{ color }} />
+                        </div>
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
+                          {venue.titles.length}
+                        </span>
                       </div>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
-                        {venue.titles.length}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm text-foreground leading-snug line-clamp-2">{venue.name}</p>
-                      {venue.categories && (
-                        <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{venue.categories}</p>
-                      )}
-                    </div>
+                      <div>
+                        <p className="font-bold text-sm text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">{venue.name}</p>
+                        {venue.categories && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{venue.categories}</p>
+                        )}
+                        <p className="text-[11px] font-bold text-primary mt-2">Programok megnyitása →</p>
+                      </div>
+                    </Link>
                   </motion.div>
                 );
               })
@@ -1450,14 +1488,42 @@ function AddEventSection() {
 
 // ─── PAGE ────────────────────────────────────────────────────────────────────
 
+function ActiveBanners() {
+  const { data } = useListBanners();
+  if (!data?.banners.length) return null;
+  return <section aria-label="Hirdetések" className="max-w-7xl mx-auto px-5 sm:px-8 py-6 grid sm:grid-cols-2 gap-5">
+    {data.banners.slice().sort((a, b) => a.position - b.position).map(banner => {
+      const content = <img src={banner.imageUrl} alt={banner.title} loading="lazy" className="w-full rounded-xl" />;
+      return <div key={banner.id} className={banner.displayType === "full" ? "sm:col-span-2" : ""}><p className="text-xs text-muted-foreground mb-2">Hirdetés</p>{banner.linkUrl ? <a href={banner.linkUrl} target="_blank" rel="noopener noreferrer">{content}</a> : content}</div>;
+    })}
+  </section>;
+}
+
 export default function Home() {
+  const [design, setDesign] = useState<"classic" | "magazine">(() => {
+    try { return localStorage.getItem("hellocsik-home-design") === "classic" ? "classic" : "magazine"; }
+    catch { return "magazine"; }
+  });
+  const changeDesign = (value: "classic" | "magazine") => {
+    setDesign(value);
+    try { localStorage.setItem("hellocsik-home-design", value); } catch { /* The switch also works without browser storage. */ }
+  };
   return (
-    <div>
-      <Hero />
-      <WeeklyCalendar />
-      <UpcomingEvents />
-      <TusványosSection />
-      <CinemaSection />
+    <div className={design === "magazine" ? "magazine-home" : "classic-home"}>
+      <div className="home-design-bar">
+        <span>Főoldal nézete</span>
+        <div className="home-design-options" role="group" aria-label="Főoldal dizájnja">
+          <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
+          <button aria-pressed={design === "magazine"} onClick={() => changeDesign("magazine")}>Magazin</button>
+        </div>
+      </div>
+      {design === "magazine" ? <MagazineHero /> : <Hero />}
+      {design === "classic" && <WeeklyCalendar />}
+      <ProgramFinder showHero={false} />
+      {design === "magazine" && <WeeklyCalendar />}
+      <ActiveBanners />
+      <CloudFestival />
+      <CinemaPicks />
       <VenuesSection />
       <AddEventSection />
     </div>
