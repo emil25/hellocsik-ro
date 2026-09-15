@@ -1,8 +1,14 @@
+databases:
+  - name: hellocsik-ro-db
+    plan: free
+    region: frankfurt
+
 services:
   - type: web
     name: hellocsik-ro
     runtime: node
     plan: free
+    region: frankfurt
     buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build:app
     startCommand: pnpm start
     healthCheckPath: /api/healthz
@@ -11,7 +17,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: hellocsik-ro-db
+          property: connectionString
       - key: ADMIN_PASSWORD
         generateValue: true
       - key: FIRECRAWL_API_KEY
