@@ -116,6 +116,43 @@ function facebookEventId(sourceUrl: string) {
   }
 }
 
+function normalizeComparable(value: string) {
+  return value
+    .toLocaleLowerCase("hu-HU")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+}
+
+function normalizeSourceUrl(value: string) {
+  try {
+    const parsed = new URL(value);
+    parsed.hash = "";
+    parsed.search = "";
+    return parsed.toString().replace(/\/$/, "").toLowerCase();
+  } catch {
+    return value.trim().toLowerCase().replace(/\/$/, "");
+  }
+}
+
+function sourceUrls(newsLinks: unknown) {
+  if (!Array.isArray(newsLinks)) return [];
+  return newsLinks.flatMap((raw) => {
+    if (typeof raw !== "string") return [];
+    try {
+      const parsed = JSON.parse(raw) as { url?: unknown };
+      return typeof parsed.url === "string" && parsed.url.trim() ? [normalizeSourceUrl(parsed.url)] : [];
+    } catch {
+      return [];
+    }
+  });
+}
+
+function dateKey(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
 router.get("/facebook-events/:eventId/image", async (req, res) => {
   const eventId = String(req.params.eventId);
   if (!/^\d{8,}$/.test(eventId)) { res.sendStatus(404); return; }
@@ -258,6 +295,27 @@ router.post("/admin/events", requireAdmin, async (req, res) => {
     const endDate = body.endDate ? new Date(body.endDate) : null;
 
     const newsLinks = Array.isArray(body.newsLinks) ? body.newsLinks.filter((s: unknown) => typeof s === "string") : [];
+    const incomingTitle = normalizeComparable(String(body.title));
+    const incomingLocation = normalizeComparable(String(body.location));
+    const incomingDate = dateKey(startDate);
+    const incomingSources = sourceUrls(newsLinks);
+    const existingEvents = await db
+      .select({ id: eventsTable.id, title: eventsTable.title, location: eventsTable.location, startDate: eventsTable.startDate, newsLinks: eventsTable.newsLinks })
+      .from(eventsTable);
+    const duplicate = existingEvents.find((event) => {
+      const sameSource = incomingSources.length > 0 && sourceUrls(event.newsLinks).some((url) => incomingSources.includes(url));
+      const sameEventDetails = normalizeComparable(event.title) === incomingTitle
+        && normalizeComparable(event.location) === incomingLocation
+        && dateKey(event.startDate) === incomingDate;
+      return sameSource || sameEventDetails;
+    });
+    if (duplicate) {
+      res.status(409).json({
+        error: `Ez az esemény már szerepel az oldalon: „${duplicate.title}”. Szerkeszd a meglévő bejegyzést, vagy ellenőrizd a dátumot és a helyszínt.`,
+        duplicateId: duplicate.id,
+      });
+      return;
+    }
 
     const [created] = await db.insert(eventsTable).values({
       title: body.title.trim(),
