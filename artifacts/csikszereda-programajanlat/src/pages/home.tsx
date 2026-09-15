@@ -1385,8 +1385,8 @@ function VenuesSection() {
           {/* Map – full width */}
           <div className="relative rounded-2xl overflow-hidden border border-card-border shadow-sm bg-emerald-50" style={{ height: "320px" }}>
             <iframe
-              title="Csíkszereda térkép"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=25.7800%2C46.3500%2C25.8300%2C46.3900&layer=mapnik"
+              title="Székelyföld térkép"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=24.8000%2C45.6000%2C26.5000%2C46.9000&layer=mapnik"
               className="w-full h-full opacity-80"
               style={{ border: 0, pointerEvents: "none" }}
               loading="lazy"
