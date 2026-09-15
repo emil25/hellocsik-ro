@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { ProgramFinder } from "@/components/events/ProgramFinder";
-import { MosaicHero } from "@/components/MosaicHero";
+import { OrbitHero } from "@/components/OrbitHero";
 import { CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
@@ -1501,24 +1501,24 @@ function ActiveBanners() {
 }
 
 export default function Home() {
-  const [design, setDesign] = useState<"classic" | "mosaic">(() => {
-    try { return localStorage.getItem("hellocsik-home-design") === "classic" ? "classic" : "mosaic"; }
-    catch { return "mosaic"; }
+  const [design, setDesign] = useState<"classic" | "orbit">(() => {
+    try { return localStorage.getItem("hellocsik-home-design") === "classic" ? "classic" : "orbit"; }
+    catch { return "orbit"; }
   });
-  const changeDesign = (value: "classic" | "mosaic") => {
+  const changeDesign = (value: "classic" | "orbit") => {
     setDesign(value);
     try { localStorage.setItem("hellocsik-home-design", value); } catch { /* The switch also works without browser storage. */ }
   };
   return (
-    <div className={design === "mosaic" ? "mosaic-home" : "classic-home"}>
+    <div className={design === "orbit" ? "orbit-home" : "classic-home"}>
       <div className={`home-view-toggle ${design === "classic" ? "home-view-toggle-classic" : ""}`} role="group" aria-label="Főoldal dizájnja">
           <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
-          <button aria-pressed={design === "mosaic"} onClick={() => changeDesign("mosaic")}>Mozaik</button>
+          <button aria-pressed={design === "orbit"} onClick={() => changeDesign("orbit")}>Friss</button>
       </div>
-      {design === "mosaic" ? <MosaicHero /> : <Hero />}
+      {design === "orbit" ? <OrbitHero /> : <Hero />}
       {design === "classic" && <WeeklyCalendar />}
       <ProgramFinder showHero={false} />
-      {design === "mosaic" && <WeeklyCalendar />}
+      {design === "orbit" && <WeeklyCalendar />}
       <ActiveBanners />
       <CloudFestival />
       <CinemaPicks />
