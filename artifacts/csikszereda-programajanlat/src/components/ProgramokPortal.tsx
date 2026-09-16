@@ -2,6 +2,7 @@ import { ArrowUpRight, CalendarDays, ChevronRight, MapPin, Search } from "lucide
 import { Link } from "wouter";
 import { useListUpcomingEvents } from "@workspace/api-client-react";
 import { formatShortDate, formatTime } from "@/utils/date-format";
+import { useEffect } from "react";
 import "./programok-portal.css";
 
 const CITY_NAMES = ["Csíkszereda", "Székelyudvarhely", "Gyergyószentmiklós", "Sepsiszentgyörgy", "Kézdivásárhely", "Marosvásárhely"];
@@ -18,6 +19,11 @@ function cityLabel(value: string) {
 }
 
 export function ProgramokPortal() {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = "programok.ro – Székelyföld programjai";
+    return () => { document.title = previousTitle; };
+  }, []);
   const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
   const events = data?.events ?? [];
   const lead = events.find(event => event.featured && event.imageUrl) ?? events.find(event => event.imageUrl) ?? events[0];
