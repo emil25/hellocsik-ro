@@ -13,6 +13,7 @@ import FavoritesPage from "@/pages/favorites";
 import SubmitPage from "@/pages/submit";
 import AdminPage from "@/pages/admin";
 import NotFound from "@/pages/not-found";
+import { ProgramokPortal } from "@/components/ProgramokPortal";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +28,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/admin" component={AdminPage} />
+      <Route path="/programok" component={ProgramokPortal} />
       <Route>
         <div className="flex flex-col min-h-screen">
           <Navbar />
