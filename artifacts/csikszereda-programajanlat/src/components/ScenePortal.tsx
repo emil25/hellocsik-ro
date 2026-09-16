@@ -40,7 +40,7 @@ export function ScenePortal() {
     <header className="scene-header">
       <Link href="/" className="scene-logo" aria-label="műsor főoldal"><span className="scene-logo-mark">m</span><span>műsor<span className="scene-logo-dot">.</span>ro</span></Link>
       <div className="scene-header-note">PROGRAMNAPTÁR <span>/</span> SZÉKELYFÖLD</div>
-      <nav className="scene-nav" aria-label="Fő navigáció"><a href="#ma">Ma</a><a href="#folyam">Programfolyam</a><a href="#varosok">Városok</a><Link href="/naptar">Naptár</Link></nav>
+      <nav className="scene-nav" aria-label="Fő navigáció"><a href="#ma" className="scene-nav-current">Ma</a><a href="#folyam">Programfolyam</a><a href="#varosok">Városok</a><Link href="/naptar">Naptár</Link></nav>
       <Link href="/bekuldese" className="scene-add">Esemény hozzáadása <ArrowUpRight size={15} /></Link>
     </header>
 
