@@ -7,10 +7,16 @@ export const INITIAL_SCHEMA_SQL = `
   CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY, name TEXT NOT NULL, slug TEXT NOT NULL UNIQUE, color TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS organizers (
+    id SERIAL PRIMARY KEY, slug TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, bio TEXT NOT NULL DEFAULT '',
+    city TEXT NOT NULL DEFAULT 'Székelyföld', website TEXT, logo_url TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT now(), updated_at TIMESTAMP NOT NULL DEFAULT now()
+  );
   CREATE TABLE IF NOT EXISTS events (
     id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL,
     image_url TEXT NOT NULL, start_date TIMESTAMP NOT NULL, end_date TIMESTAMP,
-    location TEXT NOT NULL, location_address TEXT, category_id INTEGER REFERENCES categories(id),
+    location TEXT NOT NULL, location_address TEXT, category_id INTEGER REFERENCES categories(id), organizer_id INTEGER REFERENCES organizers(id),
     featured BOOLEAN NOT NULL DEFAULT false, month_highlight BOOLEAN NOT NULL DEFAULT false,
     ticket_url TEXT, price TEXT, tags TEXT[] NOT NULL DEFAULT '{}', news_links TEXT[] NOT NULL DEFAULT '{}',
     status TEXT NOT NULL DEFAULT 'published', submitter_name TEXT, submitter_email TEXT,
@@ -28,6 +34,7 @@ export const INITIAL_SCHEMA_SQL = `
     ('Mozi', 'mozi', '#525184'), ('Közösség', 'kozosseg', '#675d38')
   ON CONFLICT (slug) DO NOTHING;
   ALTER TABLE events ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT now();
+  ALTER TABLE events ADD COLUMN IF NOT EXISTS organizer_id INTEGER REFERENCES organizers(id);
 `;
 
 // Local bootstrap only. Production PostgreSQL keeps its Drizzle schema workflow.

@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Footer } from "@/components/layout/Footer";
 import Home from "@/pages/home";
 import CalendarPage from "@/pages/calendar";
 import EventDetail from "@/pages/event-detail";
@@ -34,6 +33,7 @@ function OrganizersRoute() { return <SitePage><OrganizersPage /></SitePage>; }
 function OrganizerProfileRoute() { return <SitePage><OrganizerProfilePage /></SitePage>; }
 function OrganizerHubRoute() { return <SitePage><OrganizerHubPage /></SitePage>; }
 function PricingRoute() { return <SitePage><PricingPage /></SitePage>; }
+function DefaultHomeRoute() { return <Home />; }
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,7 +60,7 @@ function Router() {
           <Navbar />
           <main className="flex-grow pt-16">
             <Switch>
-              <Route path="/" component={Home} />
+              <Route path="/" component={DefaultHomeRoute} />
               <Route path="/naptar" component={CalendarPage} />
               <Route path="/esemeny/:id" component={EventDetail} />
               <Route path="/helyszinek" component={VenuesPage} />

@@ -8,6 +8,7 @@ import bannersRouter from "./banners";
 import localStorageRouter from "./local-storage";
 import newsletterRouter from "./newsletter";
 import cinemaRouter from "./cinema";
+import organizersRouter from "./organizers";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(storageRouter);
 router.use(bannersRouter);
 router.use(newsletterRouter);
 router.use(cinemaRouter);
+router.use(organizersRouter);
 
 export default router;

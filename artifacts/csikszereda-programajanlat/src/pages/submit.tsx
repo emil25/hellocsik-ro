@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Send, CheckCircle2, MapPin, Calendar, Tag, Link2, User, Mail, Image, FileText, DollarSign } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -22,6 +22,10 @@ export default function SubmitPage() {
   const [location] = useLocation();
   const organizerSlug = new URLSearchParams(location.split("?")[1] ?? "").get("organizer") ?? "";
   const organizer = getOrganizer(organizerSlug);
+  const [organizerToken, setOrganizerToken] = useState<string | null>(null);
+  useEffect(() => {
+    setOrganizerToken(window.localStorage.getItem("organizer_token"));
+  }, []);
   const { data: catData } = useListCategories();
   const categories = catData?.categories ?? [];
 
@@ -58,9 +62,12 @@ export default function SubmitPage() {
     setLoading(true);
     try {
       const startDateTime = form.startDate + "T" + form.startTime + ":00";
-      const res = await fetch("/api/events/submit", {
+      const endpoint = organizerToken ? "/api/organizers/me/events" : "/api/events/submit";
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (organizerToken) headers.Authorization = `Bearer ${organizerToken}`;
+      const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           title: form.title,
           description: form.description,

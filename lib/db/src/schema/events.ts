@@ -2,6 +2,7 @@ import { pgTable, serial, text, boolean, timestamp, integer } from "drizzle-orm/
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { categoriesTable } from "./categories";
+import { organizersTable } from "./organizers";
 
 export const eventsTable = pgTable("events", {
   id: serial("id").primaryKey(),
@@ -13,6 +14,7 @@ export const eventsTable = pgTable("events", {
   location: text("location").notNull(),
   locationAddress: text("location_address"),
   categoryId: integer("category_id").references(() => categoriesTable.id),
+  organizerId: integer("organizer_id").references(() => organizersTable.id),
   featured: boolean("featured").notNull().default(false),
   monthHighlight: boolean("month_highlight").notNull().default(false),
   ticketUrl: text("ticket_url"),
