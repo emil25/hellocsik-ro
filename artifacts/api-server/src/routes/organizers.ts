@@ -106,6 +106,50 @@ router.post("/organizers/me/events", requireOrganizer, async (req, res) => {
   }
 });
 
+router.patch("/organizers/me/events/:id", requireOrganizer, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) { res.status(400).json({ error: "Érvénytelen eseményazonosító." }); return; }
+  try {
+    const existing = await db.select().from(eventsTable).where(and(eq(eventsTable.id, id), eq(eventsTable.organizerId, res.locals.organizer.id))).limit(1);
+    if (!existing[0]) { res.status(404).json({ error: "Az esemény nem található a fiókodban." }); return; }
+    const body = req.body ?? {};
+    const patch: Record<string, unknown> = {};
+    for (const field of ["title", "description", "location", "locationAddress", "imageUrl", "ticketUrl", "price"] as const) {
+      if (typeof body[field] !== "string") continue;
+      const value = body[field].trim();
+      if (["title", "description", "location"].includes(field) && !value) { res.status(400).json({ error: "A cím, leírás és helyszín nem lehet üres." }); return; }
+      patch[field] = value || (field === "imageUrl" ? "/hellocsik-logo.png" : null);
+    }
+    if (typeof body.startDate === "string") {
+      const start = new Date(body.startDate);
+      if (Number.isNaN(start.getTime())) { res.status(400).json({ error: "Érvénytelen kezdési dátum." }); return; }
+      patch.startDate = start;
+    }
+    if (typeof body.endDate === "string" || body.endDate === null) {
+      if (body.endDate === null || body.endDate === "") patch.endDate = null;
+      else {
+        const end = new Date(body.endDate);
+        if (Number.isNaN(end.getTime())) { res.status(400).json({ error: "Érvénytelen befejezési dátum." }); return; }
+        patch.endDate = end;
+      }
+    }
+    if (body.categoryId === null) patch.categoryId = null;
+    else if (typeof body.categoryId === "number" && Number.isInteger(body.categoryId)) patch.categoryId = body.categoryId;
+    if (["free", "featured", "homepage"].includes(body.promotionPlan)) {
+      patch.promotionPlan = body.promotionPlan;
+      patch.promotionStatus = body.promotionPlan === "free" ? "none" : "requested";
+    }
+    if (Object.keys(patch).length === 0) { res.status(400).json({ error: "Nincs módosítható adat." }); return; }
+    patch.status = "pending";
+    patch.updatedAt = new Date();
+    const [updated] = await db.update(eventsTable).set(patch).where(eq(eventsTable.id, id)).returning();
+    res.json({ ok: true, id: updated.id, status: updated.status });
+  } catch (error) {
+    req.log.error({ error }, "Organizer event update failed");
+    res.status(500).json({ error: "Az esemény módosítása nem sikerült." });
+  }
+});
+
 router.get("/organizers/:slug", async (req, res) => {
   try {
     const rows = await db.select().from(organizersTable).where(eq(organizersTable.slug, req.params.slug)).limit(1);
