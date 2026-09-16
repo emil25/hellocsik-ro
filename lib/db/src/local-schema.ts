@@ -17,6 +17,7 @@ export const INITIAL_SCHEMA_SQL = `
     id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL,
     image_url TEXT NOT NULL, start_date TIMESTAMP NOT NULL, end_date TIMESTAMP,
     location TEXT NOT NULL, location_address TEXT, category_id INTEGER REFERENCES categories(id), organizer_id INTEGER REFERENCES organizers(id),
+    promotion_plan TEXT NOT NULL DEFAULT 'free', promotion_status TEXT NOT NULL DEFAULT 'none',
     featured BOOLEAN NOT NULL DEFAULT false, month_highlight BOOLEAN NOT NULL DEFAULT false,
     ticket_url TEXT, price TEXT, tags TEXT[] NOT NULL DEFAULT '{}', news_links TEXT[] NOT NULL DEFAULT '{}',
     status TEXT NOT NULL DEFAULT 'published', submitter_name TEXT, submitter_email TEXT,
@@ -35,6 +36,8 @@ export const INITIAL_SCHEMA_SQL = `
   ON CONFLICT (slug) DO NOTHING;
   ALTER TABLE events ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT now();
   ALTER TABLE events ADD COLUMN IF NOT EXISTS organizer_id INTEGER REFERENCES organizers(id);
+  ALTER TABLE events ADD COLUMN IF NOT EXISTS promotion_plan TEXT NOT NULL DEFAULT 'free';
+  ALTER TABLE events ADD COLUMN IF NOT EXISTS promotion_status TEXT NOT NULL DEFAULT 'none';
 `;
 
 // Local bootstrap only. Production PostgreSQL keeps its Drizzle schema workflow.

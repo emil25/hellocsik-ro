@@ -20,7 +20,9 @@ function Field({ label, icon: Icon, children, hint }: { label: string; icon?: an
 
 export default function SubmitPage() {
   const [location] = useLocation();
-  const organizerSlug = new URLSearchParams(location.split("?")[1] ?? "").get("organizer") ?? "";
+  const query = new URLSearchParams(location.split("?")[1] ?? "");
+  const organizerSlug = query.get("organizer") ?? "";
+  const requestedPromotion = query.get("csomag") === "fooldal" ? "homepage" : query.get("csomag") === "kiemelt" ? "featured" : "free";
   const organizer = getOrganizer(organizerSlug);
   const [organizerToken, setOrganizerToken] = useState<string | null>(null);
   useEffect(() => {
@@ -41,6 +43,7 @@ export default function SubmitPage() {
     categoryId: "",
     price: "",
     ticketUrl: "",
+    promotionPlan: requestedPromotion,
     submitterName: organizer?.name ?? "",
     submitterEmail: "",
   });
@@ -81,6 +84,7 @@ export default function SubmitPage() {
           ticketUrl: form.ticketUrl || undefined,
           submitterName: form.submitterName || undefined,
           submitterEmail: form.submitterEmail || undefined,
+          promotionPlan: form.promotionPlan,
         }),
       });
       if (!res.ok) {
@@ -118,7 +122,7 @@ export default function SubmitPage() {
               </button>
             </Link>
             <button
-              onClick={() => { setSuccess(false); setForm({ title:"",description:"",imageUrl:"",startDate:"",startTime:"18:00",endDate:"",location:"",locationAddress:"",categoryId:"",price:"",ticketUrl:"",submitterName: organizer?.name ?? "",submitterEmail:"" }); }}
+              onClick={() => { setSuccess(false); setForm({ title:"",description:"",imageUrl:"",startDate:"",startTime:"18:00",endDate:"",location:"",locationAddress:"",categoryId:"",price:"",ticketUrl:"",promotionPlan: requestedPromotion,submitterName: organizer?.name ?? "",submitterEmail:"" }); }}
               className="px-5 py-2.5 rounded-xl border border-border text-foreground font-semibold hover:bg-muted transition-colors"
             >
               Másik program
@@ -192,6 +196,14 @@ export default function SubmitPage() {
           {/* Details */}
           <div className="bg-card border border-card-border rounded-2xl p-6 space-y-5">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Részletek</p>
+
+            <Field label="Megjelenés" icon={DollarSign} hint="Az alap megjelenés ingyenes. A kiemelési díj eseményenként egyszeri; beküldés után egyeztetünk.">
+              <select className={inputClass} value={form.promotionPlan} onChange={e => set("promotionPlan", e.target.value)}>
+                <option value="free">Alap megjelenés · 0 RON</option>
+                <option value="featured">Kiemelt · 49 RON / esemény · egyszeri</option>
+                <option value="homepage">Főoldal+ · 99 RON / esemény · egyszeri</option>
+              </select>
+            </Field>
 
             <Field label="Kategória" icon={Tag}>
               <select className={inputClass} value={form.categoryId} onChange={e => set("categoryId", e.target.value)}>

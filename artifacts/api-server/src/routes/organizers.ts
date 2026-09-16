@@ -96,8 +96,9 @@ router.post("/organizers/me/events", requireOrganizer, async (req, res) => {
   const parsed = CreateEventBody.safeParse({ ...req.body, imageUrl: req.body?.imageUrl || "/hellocsik-logo.png" });
   if (!parsed.success) { res.status(400).json({ error: "Hiányzó vagy hibás eseményadatok.", details: parsed.error }); return; }
   const data = parsed.data;
+  const requestedPlan = ["free", "featured", "homepage"].includes(req.body?.promotionPlan) ? req.body.promotionPlan : "free";
   try {
-    const [event] = await db.insert(eventsTable).values({ title: data.title, description: data.description, imageUrl: data.imageUrl, startDate: new Date(data.startDate), endDate: data.endDate ? new Date(data.endDate) : null, location: data.location, locationAddress: data.locationAddress ?? null, categoryId: data.categoryId ?? null, organizerId: res.locals.organizer.id, featured: false, monthHighlight: false, ticketUrl: data.ticketUrl ?? null, price: data.price ?? null, tags: data.tags ?? [], status: "pending", submitterName: res.locals.organizer.name, submitterEmail: res.locals.organizer.email }).returning();
+    const [event] = await db.insert(eventsTable).values({ title: data.title, description: data.description, imageUrl: data.imageUrl, startDate: new Date(data.startDate), endDate: data.endDate ? new Date(data.endDate) : null, location: data.location, locationAddress: data.locationAddress ?? null, categoryId: data.categoryId ?? null, organizerId: res.locals.organizer.id, promotionPlan: requestedPlan, promotionStatus: requestedPlan === "free" ? "none" : "requested", featured: false, monthHighlight: false, ticketUrl: data.ticketUrl ?? null, price: data.price ?? null, tags: data.tags ?? [], status: "pending", submitterName: res.locals.organizer.name, submitterEmail: res.locals.organizer.email }).returning();
     res.status(201).json({ ok: true, id: event.id, status: event.status });
   } catch (error) {
     req.log.error({ error }, "Organizer event submission failed");

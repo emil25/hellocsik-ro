@@ -15,6 +15,8 @@ export const eventsTable = pgTable("events", {
   locationAddress: text("location_address"),
   categoryId: integer("category_id").references(() => categoriesTable.id),
   organizerId: integer("organizer_id").references(() => organizersTable.id),
+  promotionPlan: text("promotion_plan").notNull().default("free"),
+  promotionStatus: text("promotion_status").notNull().default("none"),
   featured: boolean("featured").notNull().default(false),
   monthHighlight: boolean("month_highlight").notNull().default(false),
   ticketUrl: text("ticket_url"),

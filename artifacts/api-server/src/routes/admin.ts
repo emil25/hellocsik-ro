@@ -350,6 +350,7 @@ router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
     const patch: Record<string, unknown> = {};
     if (typeof body.featured === "boolean") patch.featured = body.featured;
     if (typeof body.monthHighlight === "boolean") patch.monthHighlight = body.monthHighlight;
+    if (["none", "requested", "paid", "declined"].includes(body.promotionStatus)) patch.promotionStatus = body.promotionStatus;
     if (["published", "pending", "rejected"].includes(body.status)) patch.status = body.status;
     if (typeof body.title === "string" && body.title.trim()) patch.title = body.title.trim();
     if (typeof body.description === "string") patch.description = body.description.trim();

@@ -46,7 +46,7 @@ export default function PricingPage() {
             {plan.featured && <div className="pricing-popular">AJÁNLOTT</div>}
             <div className="pricing-card-title"><div><h2>{plan.name}</h2><p>{plan.note}</p></div>{plan.featured ? <Star size={21} fill="currentColor" /> : <Megaphone size={20} />}</div>
             <div className="pricing-price"><strong>{plan.price}</strong><span>{plan.suffix}</span></div>
-            <Link href={plan.price === "0" ? "/bekuldese" : "/szervezoi-felulet?kiemeles=1"} className={plan.featured ? "pricing-cta pricing-cta-dark" : "pricing-cta"}>{plan.cta}<ArrowRight size={16} /></Link>
+            <Link href={plan.price === "0" ? "/bekuldese" : `/szervezoi-felulet?kiemeles=1&csomag=${plan.price === "49" ? "kiemelt" : "fooldal"}`} className={plan.featured ? "pricing-cta pricing-cta-dark" : "pricing-cta"}>{plan.cta}<ArrowRight size={16} /></Link>
             <ul>{plan.features.map((feature) => <li key={feature}><Check size={15} /> {feature}</li>)}</ul>
           </article>)}
         </div>

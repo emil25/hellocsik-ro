@@ -175,6 +175,7 @@ function LoginScreen({ onLogin }: { onLogin: (t: string) => void }) {
 type EventRow = {
   id: number; title: string; description: string; location: string; locationAddress?: string;
   startDate: string; endDate?: string; status: string; featured: boolean; monthHighlight: boolean;
+  promotionPlan?: string; promotionStatus?: string;
   submitterName?: string; submitterEmail?: string; imageUrl: string; ticketUrl?: string;
   price?: string; createdAt: string; categoryId?: number; newsLinks?: string[];
   category?: { id: number; name: string; color: string } | null;
@@ -1158,6 +1159,9 @@ export default function AdminPage() {
                       {ev.monthHighlight && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Hó ajánlata</span>
                       )}
+                      {ev.promotionStatus === "requested" && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{ev.promotionPlan === "homepage" ? "Főoldal+ kérés" : "Kiemelés kérés"}</span>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground mb-1">
                       {new Date(ev.startDate).toLocaleDateString("hu-HU", { year: "numeric", month: "long", day: "numeric" })} · {ev.location}
@@ -1201,6 +1205,12 @@ export default function AdminPage() {
                       className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-colors ${ev.monthHighlight ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
                       <Crown className="w-3 h-3" /> Hó ajánlata
                     </button>
+                    {ev.promotionStatus === "requested" && (
+                      <button onClick={() => patch(ev.id, { featured: true, promotionStatus: "paid" })} disabled={actionId === ev.id}
+                        className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                        <CheckCircle2 className="w-3 h-3" /> Kiemelés aktiválása
+                      </button>
+                    )}
                     <button onClick={() => del(ev.id)} disabled={actionId === ev.id}
                       className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
                       <Trash2 className="w-3 h-3" /> Töröl
