@@ -31,7 +31,10 @@ export function ScenePortal() {
   const lead = events[0];
   const rail = events.slice(1, 5);
   const stream = events.slice(1, 8);
-  const image = (event: typeof lead | undefined, index: number) => event?.imageUrl || `${import.meta.env.BASE_URL}reference/${FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]}`;
+  const imageStyle = (event: typeof lead | undefined, index: number) => {
+    const fallback = `${import.meta.env.BASE_URL}reference/${FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]}`;
+    return { backgroundImage: event?.imageUrl ? `url("${event.imageUrl}"), url("${fallback}")` : `url("${fallback}")` };
+  };
 
   return <div className="scene-page">
     <header className="scene-header">
@@ -44,11 +47,11 @@ export function ScenePortal() {
     <main>
       <section className="scene-hero" id="ma">
         <div className="scene-hero-date"><span>MA</span><strong>16</strong><b>SZEPTEMBER<br />SZERDA</b><i /></div>
-        <div className="scene-hero-copy"><div className="scene-kicker"><span /> AMI MA TÖRTÉNIK</div><h1>Ne maradj<br /><em>otthon.</em></h1><p>Programok és események Székelyföld városaiból, időrendben.</p><div className="scene-actions"><a href="#folyam" className="scene-primary">Mai programok <ChevronRight size={17} /></a><Link href="/naptar" className="scene-secondary"><CalendarDays size={16} /> Naptár</Link></div><div className="scene-hero-meta"><span><strong>{events.length || "—"}</strong> közelgő esemény</span><span><strong>{new Set(events.map(event => cityLabel(`${event.title} ${event.location}`))).size || "—"}</strong> város</span></div></div>
+        <div className="scene-hero-copy"><div className="scene-kicker"><span /> MAI PROGRAMOK</div><h1>Programok<br /><em>ma.</em></h1><p>Programok és események Székelyföld városaiból, időrendben.</p><div className="scene-actions"><a href="#folyam" className="scene-primary">Mai programok <ChevronRight size={17} /></a><Link href="/naptar" className="scene-secondary"><CalendarDays size={16} /> Naptár</Link></div><div className="scene-hero-meta"><span><strong>{events.length || "—"}</strong> közelgő esemény</span><span><strong>{new Set(events.map(event => cityLabel(`${event.title} ${event.location}`))).size || "—"}</strong> város</span></div></div>
         <div className="scene-collage">
-          <div className="scene-collage-main" style={{ backgroundImage: `url("${image(lead, 0)}")` }}><span>KIEMELT</span><b>{lead ? formatShortDate(lead.startDate) : "—"}</b></div>
-          <div className="scene-collage-tile scene-collage-tile-a" style={{ backgroundImage: `url("${image(events[1], 1)}")` }}><span>02</span></div>
-          <div className="scene-collage-tile scene-collage-tile-b" style={{ backgroundImage: `url("${image(events[2], 2)}")` }}><span>03</span></div>
+          <div className="scene-collage-main" style={imageStyle(lead, 0)}><span>KIEMELT</span><b>{lead ? formatShortDate(lead.startDate) : "—"}</b></div>
+          <div className="scene-collage-tile scene-collage-tile-a" style={imageStyle(events[1], 1)}><span>02</span></div>
+          <div className="scene-collage-tile scene-collage-tile-b" style={imageStyle(events[2], 2)}><span>03</span></div>
           <div className="scene-collage-caption">KÉPES PROGRAMNAPTÁR <b>2026</b></div>
         </div>
         <div className="scene-lead"><div className="scene-lead-tag">{lead?.category?.name ?? "PROGRAM"}</div>{lead ? <Link href={`/esemeny/${lead.id}`}><h2>{lead.title}</h2><p><MapPin size={13} /> {lead.location || "Székelyföld"}<span><Clock3 size={13} /> {formatTime(lead.startDate)}</span></p></Link> : <h2>{isLoading ? "Programok betöltése…" : "Nincs mai program."}</h2>}</div>
