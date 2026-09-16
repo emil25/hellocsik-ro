@@ -29,6 +29,7 @@ function Router() {
     <Switch>
       <Route path="/admin" component={AdminPage} />
       <Route path="/programok" component={ProgramokPortal} />
+      <Route path="/" component={ProgramokPortal} />
       <Route>
         <div className="flex flex-col min-h-screen">
           <Navbar />
