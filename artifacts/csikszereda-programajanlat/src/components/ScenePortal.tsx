@@ -1,13 +1,19 @@
-import { ArrowUpRight, CalendarDays, ChevronRight, MapPin, Search, SlidersHorizontal, Sparkles } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronRight, MapPin, Search, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { useListUpcomingEvents } from "@workspace/api-client-react";
 import { formatShortDate, formatTime } from "@/utils/date-format";
 import { useEffect } from "react";
 import "./scene-portal.css";
 
-const FALLBACK_IMAGES = ["cloud-hero.jpg", "city-center.jpg", "visit-aktiv-szekelyfold.png", "visit-halottember.jpg", "visit-kamarazenekar.JPG", "visit-masok-elete.png"];
+const FALLBACK_IMAGES = [
+  "cloud-hero.jpg",
+  "city-center.jpg",
+  "visit-aktiv-szekelyfold.png",
+  "visit-halottember.jpg",
+  "visit-kamarazenekar.JPG",
+  "visit-masok-elete.png",
+];
 const CITY_NAMES = ["Csíkszereda", "Székelyudvarhely", "Gyergyószentmiklós", "Sepsiszentgyörgy", "Kézdivásárhely", "Marosvásárhely"];
-const NODE_POSITIONS = [{ left: "8%", top: "22%" }, { left: "22%", top: "69%" }, { left: "48%", top: "9%" }, { left: "73%", top: "18%" }, { left: "84%", top: "61%" }, { left: "45%", top: "82%" }];
 
 function cityLabel(value: string) {
   const text = value.toLocaleLowerCase("hu-HU");
@@ -30,36 +36,118 @@ export function ScenePortal() {
   const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
   const events = data?.events ?? [];
   const lead = events[0];
-  const nodes = events.slice(1, 7);
-  const nextEvents = events.slice(0, 4);
+  const today = events.slice(0, 3);
+  const next = events.slice(1, 6);
   const dates = [...new Set(events.slice(0, 8).map(event => formatShortDate(event.startDate)))];
   const imageStyle = (event: typeof lead | undefined, index: number) => {
-    const fallback = `${import.meta.env.BASE_URL}reference/${FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]}`;
-    return { backgroundImage: event?.imageUrl ? `url("${event.imageUrl}"), url("${fallback}")` : `url("${fallback}")` };
+    const fallback = import.meta.env.BASE_URL + "reference/" + FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+    return {
+      backgroundImage: event?.imageUrl
+        ? 'url("' + event.imageUrl + '"), url("' + fallback + '")'
+        : 'url("' + fallback + '")',
+    };
   };
+  const cityCount = (city: string) => new Set(
+    events
+      .filter(event => cityLabel((event.title || "") + " " + (event.location || "")) === cityLabel(city))
+      .map(event => event.id),
+  ).size;
 
-  return <div className="scene-page pulse-page">
-    <header className="pulse-header">
-      <Link href="/" className="pulse-logo" aria-label="programok.ro főoldal"><span className="pulse-logo-mark"><i /><i /><i /></span><span>programok<span>.ro</span></span></Link>
-      <div className="pulse-search"><Search size={17} /><span>Mit keresel? koncert, film, helyszín...</span><kbd>⌘ K</kbd></div>
-      <nav className="pulse-nav" aria-label="Fő navigáció"><a href="#korkep" className="pulse-nav-active">Körkép</a><a href="#ma">Ma</a><a href="#varosok">Városok</a><Link href="/naptar">Naptár</Link></nav>
-      <Link href="/bekuldese" className="pulse-submit">+ Beküldés</Link>
+  return <div className="scene-page poster-page">
+    <header className="poster-header">
+      <Link href="/" className="poster-logo" aria-label="programok.ro főoldal">
+        <span className="poster-logo-mark"><i /><i /><i /></span>
+        <span>programok<span>.ro</span></span>
+      </Link>
+      <nav className="poster-nav" aria-label="Fő navigáció">
+        <a href="#felfedezes" className="poster-nav-active">Felfedezés</a>
+        <a href="#ma">Ma</a>
+        <a href="#varosok">Városok</a>
+        <Link href="/naptar">Naptár</Link>
+      </nav>
+      <div className="poster-header-actions">
+        <div className="poster-search"><Search size={16} /><span>Keresés</span></div>
+        <Link href="/bekuldese" className="poster-submit">+ Esemény beküldése</Link>
+      </div>
     </header>
 
     <main>
-      <section className="pulse-hero" id="korkep">
-        <div className="pulse-hero-copy"><div className="pulse-hero-kicker"><span className="pulse-live-dot" /> SZÉKELYFÖLDI KÖRKÉP <b>2026.09.16.</b></div><h1>Mi történik<br /><em>körülötted?</em></h1><p>Minden, ami ma este történik. Válassz várost, időpontot vagy hangulatot.</p><div className="pulse-quick-filter"><a href="#ma" className="pulse-filter-active">Ma <strong>{events.length || "—"}</strong></a><a href="#ma">Ezen a héten</a><a href="#varosok">Város szerint</a></div><div className="pulse-hero-links"><a href="#ma" className="pulse-btn pulse-btn-dark">Programok megnyitása <ChevronRight size={16} /></a><Link href="/naptar" className="pulse-btn pulse-btn-light"><CalendarDays size={16} /> Naptár</Link></div></div>
-        <div className="pulse-map" aria-label="Mai események térképe"><div className="pulse-map-grid" /><div className="pulse-map-ring pulse-map-ring-one" /><div className="pulse-map-ring pulse-map-ring-two" /><div className="pulse-map-center"><strong>16</strong><span>SZEPTEMBER<br />SZERDA</span><b>{events.length || "—"} PROGRAM</b></div>{nodes.map((event, index) => <Link href={`/esemeny/${event.id}`} className={`pulse-node pulse-node-${index + 1}`} style={NODE_POSITIONS[index]} key={event.id}><i /><span>{event.title}</span><b>{formatTime(event.startDate)}</b></Link>)}<div className="pulse-map-caption"><Sparkles size={13} /> MAI PROGRAMOK <span>VÁLASSZ EGY PONTOT</span></div></div>
-        <div className="pulse-feature" style={imageStyle(lead, 0)}><div className="pulse-feature-shade" /><span>KIEMELT</span><div><small>{lead?.category?.name ?? "PROGRAM"}</small><h2>{lead?.title ?? (isLoading ? "Programok betöltése…" : "Nincs kiemelt program")}</h2><p><MapPin size={13} /> {lead?.location || "Székelyföld"}</p></div><Link href={lead ? `/esemeny/${lead.id}` : "/naptar"} aria-label="Kiemelt esemény megnyitása"><ArrowUpRight size={18} /></Link></div>
+      <section className="poster-hero" id="felfedezes">
+        <div className="poster-hero-copy">
+          <div className="poster-issue"><span>PROGRAMOK.RO</span><b>01 / 06</b></div>
+          <div className="poster-date"><span>2026</span><strong>16</strong><span>SZEPTEMBER<br />SZERDA</span></div>
+          <h1>MA<br /><em>ESTE</em><b>.</b></h1>
+          <p>{events.length || "—"} program Székelyföldön. Koncert, film, színház, vásár és minden, amiért érdemes elindulni.</p>
+          <div className="poster-hero-actions">
+            <a href="#ma" className="poster-btn poster-btn-primary">Mai programok <ChevronRight size={17} /></a>
+            <Link href="/naptar" className="poster-btn poster-btn-ghost"><CalendarDays size={16} /> Naptár</Link>
+          </div>
+        </div>
+        <div className="poster-hero-art">
+          <div className="poster-shape poster-shape-yellow" />
+          <div className="poster-shape poster-shape-coral" />
+          <div className="poster-shape poster-shape-blue" />
+          <div className="poster-stamp"><Sparkles size={12} /><span>HELYBEN<br />TÖRTÉNIK</span></div>
+          <div className="poster-main-art" style={imageStyle(lead, 0)}>
+            <div className="poster-main-art-overlay" />
+            <div className="poster-art-top"><span>KIEMELT PROGRAM</span><b>{lead?.category?.name ?? "MAI ESEMÉNY"}</b></div>
+            <div className="poster-art-bottom">
+              <span>{lead ? formatTime(lead.startDate) : "—"} · {lead?.location || "Székelyföld"}</span>
+              <h2>{lead?.title ?? (isLoading ? "Programok betöltése…" : "Nincs kiemelt program")}</h2>
+              <Link href={lead ? "/esemeny/" + lead.id : "/naptar"} aria-label="Kiemelt esemény megnyitása"><ArrowUpRight size={19} /></Link>
+            </div>
+          </div>
+          <div className="poster-art-number">16<span>SEP</span></div>
+          <div className="poster-art-caption">CSÍK · UDV · GYERGYÓ<br />KULTÚRA / ZENE / MOZGÁS</div>
+        </div>
+        <div className="poster-hero-index" aria-hidden="true"><span>SCROLL</span><i /></div>
       </section>
 
-      <section className="pulse-now" id="ma"><div className="pulse-section-title"><span className="pulse-section-index">01</span><div><span className="pulse-label">MOST A KÖRNYÉKEN</span><h2>A következő programok</h2></div><Link href="/naptar">Teljes naptár <ArrowUpRight size={15} /></Link></div><div className="pulse-now-layout"><div className="pulse-now-reel">{nextEvents.map((event, index) => <Link href={`/esemeny/${event.id}`} className={`pulse-now-card pulse-now-card-${index + 1}`} key={event.id}><div className="pulse-now-image" style={imageStyle(event, index + 1)}><span>{formatShortDate(event.startDate)}</span><b>{formatTime(event.startDate)}</b></div><div className="pulse-now-info"><small>{event.category?.name ?? "PROGRAM"}</small><h3>{event.title}</h3><p><MapPin size={12} /> {event.location || "Székelyföld"}</p></div></Link>)}</div><aside className="pulse-next"><span className="pulse-label">KÖVETKEZŐ</span><strong>{nextEvents[0] ? formatTime(nextEvents[0].startDate) : "—"}</strong><b>{nextEvents[0]?.title ?? "Programok betöltése…"}</b><p>{nextEvents[0]?.location || "Székelyföld"}</p><Link href={nextEvents[0] ? `/esemeny/${nextEvents[0].id}` : "/naptar"}>Megnyitás <ArrowUpRight size={14} /></Link></aside></div></section>
+      <div className="poster-ticker" aria-label="Mai események">
+        <div><span>MA ESTE</span><b>ÉLŐ PROGRAMOK</b><i>✦</i><span>CSÍKSZEREDA</span><b>SZÉKELYUDVARHELY</b><i>✦</i><span>GYERGYÓ</span><b>SEPSI</b><i>✦</i></div>
+      </div>
 
-      <section className="pulse-week"><div className="pulse-section-title"><span className="pulse-section-index">02</span><div><span className="pulse-label">IDŐPONTOK</span><h2>Mikor érsz rá?</h2></div><span className="pulse-week-note"><SlidersHorizontal size={14} /> Szűrés kategória szerint</span></div><div className="pulse-week-track">{dates.map((date, index) => <a href="#ma" className={index === 0 ? "pulse-week-selected" : ""} key={date}><span>{String(index + 16).padStart(2, "0")}</span><b>{date.split(" ")[0]}</b><small>{date.split(" ")[1] ?? ""}</small><i>{events.filter(event => formatShortDate(event.startDate) === date).length || "0"}</i></a>)}<Link href="/naptar" className="pulse-week-more">Naptár <ArrowUpRight size={15} /></Link></div></section>
+      <section className="poster-today" id="ma">
+        <div className="poster-section-head">
+          <div><span className="poster-section-kicker">01 / MOST TÖRTÉNIK</span><h2>Válassz<br /><em>programot.</em></h2></div>
+          <div className="poster-head-note"><span>Ma, szeptember 16.</span><strong>{events.length || "—"} esemény</strong><Link href="/naptar">Teljes naptár <ArrowUpRight size={15} /></Link></div>
+        </div>
+        <div className="poster-showcase">
+          <div className="poster-primary-list">
+            {today.map((event, index) => <Link href={"/esemeny/" + event.id} className={"poster-event-poster poster-event-" + (index + 1)} key={event.id}>
+              <div className="poster-event-image" style={imageStyle(event, index + 1)}>
+                <span className="poster-event-date">{formatShortDate(event.startDate)}</span>
+                <b className="poster-event-time">{formatTime(event.startDate)}</b>
+              </div>
+              <div className="poster-event-copy"><span>{event.category?.name ?? "PROGRAM"}</span><h3>{event.title}</h3><p><MapPin size={13} /> {event.location || "Székelyföld"}</p><ArrowUpRight size={18} /></div>
+            </Link>)}
+          </div>
+          <aside className="poster-next-panel">
+            <span className="poster-section-kicker">KÖVETKEZIK</span>
+            <strong>{next[0] ? formatShortDate(next[0].startDate) : "—"}</strong>
+            <h3>{next[0]?.title ?? "Programok betöltése…"}</h3>
+            <p><MapPin size={13} /> {next[0]?.location || "Székelyföld"}</p>
+            <Link href={next[0] ? "/esemeny/" + next[0].id : "/naptar"}>Megnyitás <ArrowUpRight size={15} /></Link>
+            <div className="poster-next-list">{next.slice(1, 4).map(event => <Link href={"/esemeny/" + event.id} key={event.id}><span>{formatTime(event.startDate)}</span><b>{event.title}</b><ArrowUpRight size={13} /></Link>)}</div>
+          </aside>
+        </div>
+      </section>
 
-      <section className="pulse-cities" id="varosok"><div className="pulse-section-title"><span className="pulse-section-index">03</span><div><span className="pulse-label">HELYSZÍN</span><h2>Merre induljunk?</h2></div></div><div className="pulse-city-grid">{CITY_NAMES.map((city, index) => <a href="#ma" key={city}><span>0{index + 1}</span><strong>{city}</strong><small>{new Set(events.filter(event => cityLabel(`${event.title} ${event.location}`) === cityLabel(city)).map(event => event.id)).size || 0} program</small><ArrowUpRight size={16} /></a>)}</div></section>
-      <section className="pulse-invite"><span className="pulse-invite-mark">+</span><div><span className="pulse-label">SAJÁT ESEMÉNY</span><h2>Kerüljön fel a térképre.</h2></div><Link href="/bekuldese" className="pulse-btn pulse-btn-dark">Beküldés <ArrowUpRight size={16} /></Link></section>
+      <section className="poster-dates">
+        <div className="poster-section-head poster-dates-head"><div><span className="poster-section-kicker">02 / NAPTÁR</span><h2>Mikor<br /><em>érsz rá?</em></h2></div><span className="poster-date-hint">A következő napok programjai</span></div>
+        <div className="poster-date-row">
+          {dates.map((date, index) => <a href="#ma" className={index === 0 ? "poster-date-active" : ""} key={date}><span>{String(index + 16).padStart(2, "0")}</span><b>{date.split(" ")[0]}</b><small>{date.split(" ")[1] || ""}</small><i>{events.filter(event => formatShortDate(event.startDate) === date).length}</i></a>)}
+          <Link href="/naptar" className="poster-date-calendar">Naptár <ArrowUpRight size={16} /></Link>
+        </div>
+      </section>
+
+      <section className="poster-cities" id="varosok">
+        <div className="poster-section-head poster-cities-head"><div><span className="poster-section-kicker">03 / ÚTVONAL</span><h2>Merre<br /><em>indulsz?</em></h2></div><Link href="/helyszinek">Minden helyszín <ArrowUpRight size={15} /></Link></div>
+        <div className="poster-city-lines">{CITY_NAMES.map((city, index) => <a href="#ma" key={city}><span>0{index + 1}</span><strong>{city}</strong><small>{cityCount(city)} program</small><ArrowUpRight size={17} /></a>)}</div>
+      </section>
+
+      <section className="poster-invite"><div className="poster-invite-shape">+</div><div><span className="poster-section-kicker">SAJÁT ESEMÉNY?</span><h2>Tedd fel a programod.</h2></div><Link href="/bekuldese" className="poster-btn poster-btn-primary">Beküldés <ArrowUpRight size={16} /></Link></section>
     </main>
-    <footer className="pulse-footer"><span className="pulse-footer-logo">programok.ro</span><span>Székelyföld programjai egy helyen.</span><span>© 2026</span></footer>
+    <footer className="poster-footer"><span className="poster-footer-logo">programok<span>.ro</span></span><span>Székelyföld programjai egy helyen.</span><span>© 2026</span></footer>
   </div>;
 }
