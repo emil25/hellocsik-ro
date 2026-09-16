@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Send, CheckCircle2, MapPin, Calendar, Tag, Link2, User, Mail, Image, FileText, DollarSign } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { useListCategories } from "@workspace/api-client-react";
 import { getOrganizer } from "@/data/organizers";
 
@@ -19,8 +19,7 @@ function Field({ label, icon: Icon, children, hint }: { label: string; icon?: an
 }
 
 export default function SubmitPage() {
-  const [location] = useLocation();
-  const query = new URLSearchParams(location.split("?")[1] ?? "");
+  const query = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   const organizerSlug = query.get("organizer") ?? "";
   const requestedPromotion = query.get("csomag") === "fooldal" ? "homepage" : query.get("csomag") === "kiemelt" ? "featured" : "free";
   const organizer = getOrganizer(organizerSlug);
@@ -151,6 +150,7 @@ export default function SubmitPage() {
           <h1 className="text-3xl font-bold text-foreground mt-1 mb-2">Van saját programod?</h1>
           <p className="text-muted-foreground">Töltsd ki az alábbi formot és mi felülvizsgáljuk, majd közzétesszük az oldalon.</p>
           {organizer && <div className="mt-4 rounded-xl border border-[#cce5a5] bg-[#eff8dc] px-4 py-3 text-sm text-[#31553a]"><strong>{organizer.name}</strong> profiljához küldöd be ezt a programot. Több eseményt is beküldhetsz egymás után.</div>}
+          {requestedPromotion !== "free" && <div className="mt-4 rounded-xl border border-[#cce5a5] bg-[#eff8dc] px-4 py-3 text-sm text-[#31553a]">A kiválasztott csomag: <strong>{requestedPromotion === "homepage" ? "Főoldal+ · 99 RON / esemény" : "Kiemelt · 49 RON / esemény"}</strong>. A díjról a beküldés után egyeztetünk.</div>}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">

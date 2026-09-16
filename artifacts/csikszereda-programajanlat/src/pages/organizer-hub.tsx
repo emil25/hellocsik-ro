@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, CalendarDays, CheckCircle2, FilePlus2, Image, LayoutDashboard, LogIn, LogOut, MapPin, Plus, UserRound } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import "@/components/organizer-portal.css";
 
 type Organizer = { id: number; slug: string; name: string; bio: string; city: string; website?: string | null };
@@ -13,8 +13,7 @@ function formatDate(value: string) {
 }
 
 export default function OrganizerHubPage() {
-  const [location] = useLocation();
-  const query = new URLSearchParams(location.split("?")[1] ?? "");
+  const query = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   const highlightRequested = query.get("kiemeles") === "1";
   const promotionPlan = query.get("csomag") === "fooldal" ? "homepage" : "featured";
   const promotionLabel = promotionPlan === "homepage" ? "Főoldal+ (99 RON / esemény)" : "Kiemelt (49 RON / esemény)";
