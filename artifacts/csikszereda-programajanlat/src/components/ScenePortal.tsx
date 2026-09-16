@@ -1,11 +1,11 @@
-import { ArrowUpRight, CalendarDays, ChevronRight, MapPin, Search, Sparkles } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronRight, MapPin, Search, SlidersHorizontal } from "lucide-react";
 import { Link } from "wouter";
 import { useListUpcomingEvents } from "@workspace/api-client-react";
 import { formatShortDate, formatTime } from "@/utils/date-format";
 import { useEffect } from "react";
 import "./scene-portal.css";
 
-const FALLBACK_IMAGES = ["cloud-hero.jpg", "city-center.jpg", "visit-aktiv-szekelyfold.png", "visit-halottember.jpg", "visit-kamarazenekar.JPG"];
+const FALLBACK_IMAGES = ["cloud-hero.jpg", "city-center.jpg", "visit-aktiv-szekelyfold.png", "visit-halottember.jpg", "visit-kamarazenekar.JPG", "visit-masok-elete.png"];
 const CITY_NAMES = ["Csíkszereda", "Székelyudvarhely", "Gyergyószentmiklós", "Sepsiszentgyörgy", "Kézdivásárhely", "Marosvásárhely"];
 
 function cityLabel(value: string) {
@@ -29,57 +29,35 @@ export function ScenePortal() {
   const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
   const events = data?.events ?? [];
   const lead = events[0];
-  const cards = events.slice(1, 6);
+  const visibleEvents = events.slice(1, 7);
+  const dates = [...new Set(events.slice(0, 6).map(event => formatShortDate(event.startDate)))];
   const imageStyle = (event: typeof lead | undefined, index: number) => {
     const fallback = `${import.meta.env.BASE_URL}reference/${FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]}`;
     return { backgroundImage: event?.imageUrl ? `url("${event.imageUrl}"), url("${fallback}")` : `url("${fallback}")` };
   };
 
-  return <div className="scene-page stage-page">
-    <header className="scene-header stage-header">
-      <Link href="/" className="scene-logo stage-logo" aria-label="programok.ro főoldal"><span className="stage-logo-mark">✦</span><span>programok<span className="scene-logo-dot">.ro</span></span></Link>
-      <div className="stage-header-note">SZÉKELYFÖLDI ESEMÉNYEK</div>
-      <nav className="scene-nav stage-nav" aria-label="Fő navigáció"><a href="#felfedezes" className="scene-nav-current">Felfedezés</a><a href="#ma">Ma</a><a href="#varosok">Városok</a><Link href="/naptar">Naptár</Link></nav>
-      <button className="stage-search" type="button" aria-label="Keresés"><Search size={18} /></button>
-      <Link href="/bekuldese" className="scene-add stage-add">Esemény hozzáadása <ArrowUpRight size={15} /></Link>
+  return <div className="scene-page orbit-page">
+    <header className="orbit-header">
+      <Link href="/" className="orbit-logo" aria-label="programok.ro főoldal"><span className="orbit-logo-mark"><i /></span><span>programok<span>.ro</span></span></Link>
+      <nav className="orbit-nav" aria-label="Fő navigáció"><a href="#felfedezes" className="orbit-nav-active">Felfedezés</a><a href="#ma">Ma</a><a href="#varosok">Városok</a><Link href="/naptar">Naptár</Link></nav>
+      <div className="orbit-header-tools"><button type="button" aria-label="Keresés"><Search size={17} /></button><Link href="/bekuldese" className="orbit-submit">Program beküldése <ArrowUpRight size={14} /></Link></div>
     </header>
 
     <main>
-      <section className="stage-hero" id="felfedezes">
-        <div className="stage-hero-top"><span className="stage-overline"><Sparkles size={14} /> ESEMÉNYEK, AMIKRE ÉRDEMES ELINDULNI</span><span className="stage-date-line">2026. SZEPTEMBER 16. · SZERDA</span></div>
-        <div className="stage-hero-content">
-          <div className="stage-hero-copy">
-            <span className="stage-eyebrow">CSÍK · GYERGYÓ · UDVARHELY · SEPSI</span>
-            <h1>Találj rá<br /><em>ma.</em></h1>
-            <p>Egy helyen a koncertek, filmek, kiállítások és programok, amelyek megtöltik a városokat.</p>
-            <div className="stage-actions"><a href="#ma" className="stage-primary">Mai programok <ChevronRight size={17} /></a><Link href="/naptar" className="stage-secondary"><CalendarDays size={16} /> Teljes naptár</Link></div>
-            <div className="stage-hero-meta"><span><strong>{events.length || "—"}</strong><small>közelgő esemény</small></span><span><strong>{new Set(events.map(event => cityLabel(`${event.title} ${event.location}`))).size || "—"}</strong><small>város programjai</small></span></div>
-          </div>
-          <div className="stage-art" aria-label="Kiemelt események">
-            <div className="stage-orb stage-orb-one" /><div className="stage-orb stage-orb-two" />
-            <div className="stage-poster" style={imageStyle(lead, 0)}><span className="stage-poster-label">KIEMELT PROGRAM</span><span className="stage-poster-date">{lead ? formatShortDate(lead.startDate) : "MA"}</span><div className="stage-poster-gradient" /><div className="stage-poster-caption"><b>{lead?.category?.name ?? "PROGRAM"}</b><h2>{lead?.title ?? (isLoading ? "Programok betöltése…" : "Nézd meg, mi történik ma.")}</h2><span><MapPin size={13} /> {lead?.location || "Székelyföld"}</span></div></div>
-            <div className="stage-float-card stage-float-card-one" style={imageStyle(cards[0], 1)}><span>01</span><b>{cards[0] ? formatTime(cards[0].startDate) : "—"}</b></div>
-            <div className="stage-float-card stage-float-card-two" style={imageStyle(cards[1], 2)}><span>02</span><b>{cards[1] ? formatShortDate(cards[1].startDate) : "—"}</b></div>
-            <div className="stage-sticker"><strong>16</strong><span>SZEPT.<br />2026</span></div>
-          </div>
-        </div>
-        <div className="stage-scroll-hint"><span>GÖRGESS</span><i /></div>
+      <section className="orbit-hero" id="felfedezes">
+        <div className="orbit-hero-word">PROGRAMOK</div>
+        <div className="orbit-hero-copy"><span className="orbit-label">SZÉKELYFÖLD · MA</span><div className="orbit-date"><strong>16</strong><span>SZEPT.<br />SZERDA</span></div><h1>Mit néznél<br /><em>ma?</em></h1><p>Koncertek, előadások, filmek és helyek egy mozdulatra.</p><div className="orbit-hero-actions"><a href="#ma" className="orbit-btn orbit-btn-dark">Nézd meg <ChevronRight size={17} /></a><Link href="/naptar" className="orbit-btn orbit-btn-light"><CalendarDays size={16} /> Naptár</Link></div></div>
+        <div className="orbit-hero-feature" style={imageStyle(lead, 0)}><div className="orbit-hero-feature-shade" /><div className="orbit-feature-top"><span>MAI KIEMELT</span><b>{lead ? formatTime(lead.startDate) : "—"}</b></div><div className="orbit-feature-bottom"><span>{lead?.category?.name ?? "PROGRAM"}</span><h2>{lead?.title ?? (isLoading ? "Programok betöltése…" : "Nincs kiemelt program")}</h2><p><MapPin size={14} /> {lead?.location || "Székelyföld"}</p></div><Link href={lead ? `/esemeny/${lead.id}` : "/naptar"} className="orbit-feature-open" aria-label="Kiemelt esemény megnyitása"><ArrowUpRight size={19} /></Link></div>
+        <div className="orbit-hero-corner"><span>{events.length || "—"}</span><small>közelgő<br />program</small></div>
       </section>
 
-      <section className="stage-citybar" id="varosok"><span className="stage-citybar-title">VÁLASSZ VÁROST</span>{CITY_NAMES.map((city, index) => <a href="#ma" key={city}><i>0{index + 1}</i>{city}</a>)}<button type="button" aria-label="Keresés"><Search size={16} /></button></section>
+      <section className="orbit-datebar" id="ma"><div className="orbit-datebar-title"><span>PROGRAMOK</span><b>következő napok</b></div><div className="orbit-dates">{dates.map((date, index) => <a href="#esemenyfal" className={index === 0 ? "is-selected" : ""} key={date}><strong>{date.split(" ")[1] ?? date}</strong><small>{date.split(" ")[0]}</small></a>)}<a href="#esemenyfal" className="orbit-date-more"><SlidersHorizontal size={15} /> Szűrés</a></div></section>
 
-      <section className="stage-showcase" id="ma"><div className="stage-section-head"><div><span className="stage-eyebrow">KÖVETKEZIK</span><h2>A következő napok</h2></div><Link href="/naptar" className="stage-view-all">Minden esemény <ArrowUpRight size={15} /></Link></div>
-        <div className="stage-cards">
-          {cards.map((event, index) => <Link href={`/esemeny/${event.id}`} className={`stage-event-card stage-event-card-${index + 1}`} key={event.id}>
-            <div className="stage-event-image" style={imageStyle(event, index + 1)}><span>{formatShortDate(event.startDate)}</span><b>{formatTime(event.startDate)}</b></div>
-            <div className="stage-event-body"><span className="stage-event-category">{event.category?.name ?? "PROGRAM"}</span><h3>{event.title}</h3><p><MapPin size={13} /> {event.location || "Székelyföld"}</p></div><ArrowUpRight className="stage-event-arrow" size={17} />
-          </Link>)}
-          {!isLoading && cards.length === 0 && <div className="stage-empty">Még nincs több közelgő esemény. <Link href="/bekuldese">Küldj be egy programot <ArrowUpRight size={14} /></Link></div>}
-        </div>
-      </section>
+      <section className="orbit-wall" id="esemenyfal"><div className="orbit-wall-heading"><div><span className="orbit-label">AMIKOR ELINDULSZ</span><h2>Válassz egy programot.</h2></div><span className="orbit-wall-count">{events.length || "—"} esemény<br />folyamatosan frissítve</span></div><div className="orbit-wall-grid">{visibleEvents.map((event, index) => <Link href={`/esemeny/${event.id}`} className={`orbit-wall-card orbit-wall-card-${index + 1}`} key={event.id}><div className="orbit-wall-image" style={imageStyle(event, index + 1)}><span>{formatShortDate(event.startDate)}</span><b>{formatTime(event.startDate)}</b><i>{String(index + 1).padStart(2, "0")}</i></div><div className="orbit-wall-body"><span>{event.category?.name ?? "PROGRAM"}</span><h3>{event.title}</h3><p><MapPin size={13} /> {event.location || "Székelyföld"}</p></div><ArrowUpRight className="orbit-wall-arrow" size={17} /></Link>)}{!isLoading && visibleEvents.length === 0 && <div className="orbit-empty">Még nincs több közelgő esemény. <Link href="/bekuldese">Program beküldése <ArrowUpRight size={14} /></Link></div>}</div></section>
 
-      <section className="stage-invite"><div className="stage-invite-mark">+</div><div><span className="stage-eyebrow">TE IS ISMERSZ EGY JÓ PROGRAMOT?</span><h2>Kerüljön fel a programok.ro-ra.</h2></div><Link href="/bekuldese" className="stage-primary">Beküldöm <ArrowUpRight size={16} /></Link></section>
+      <section className="orbit-city-section" id="varosok"><div className="orbit-city-intro"><span className="orbit-label">HELYSZÍNEK</span><h2>Hol történik?</h2><p>Fedezd fel a városokat egyenként.</p><Link href="/helyszinek">Összes helyszín <ArrowUpRight size={15} /></Link></div><div className="orbit-city-list">{CITY_NAMES.map((city, index) => <a href="#ma" key={city}><span>0{index + 1}</span><strong>{city}</strong><ArrowUpRight size={16} /></a>)}</div></section>
+      <section className="orbit-invite"><span className="orbit-invite-number">+</span><div><span className="orbit-label">SAJÁT PROGRAMOD VAN?</span><h2>Küldd be egy perc alatt.</h2></div><Link href="/bekuldese" className="orbit-btn orbit-btn-dark">Beküldés <ArrowUpRight size={16} /></Link></section>
     </main>
-    <footer className="scene-footer stage-footer"><span className="stage-footer-logo">programok.ro</span><span>Programok Székelyföld városaiból.</span><span>© 2026</span></footer>
+    <footer className="orbit-footer"><span className="orbit-footer-logo">programok.ro</span><span>Székelyföld programjai egy helyen.</span><span>© 2026</span></footer>
   </div>;
 }
