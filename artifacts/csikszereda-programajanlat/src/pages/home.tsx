@@ -1474,9 +1474,11 @@ function ActiveBanners() {
   </section>;
 }
 
-export default function Home() {
-  type HomeDesign = "atlas" | "classic" | "city" | "orbit" | "spark" | "studio";
+type HomeDesign = "atlas" | "classic" | "city" | "orbit" | "spark" | "studio";
+
+export default function Home({ initialDesign }: { initialDesign?: HomeDesign } = {}) {
   const [design, setDesign] = useState<HomeDesign>(() => {
+    if (initialDesign) return initialDesign;
     try {
       const saved = localStorage.getItem("hellocsik-home-design-szekelyfold");
       return saved === "atlas" || saved === "classic" || saved === "city" || saved === "orbit" || saved === "spark" || saved === "studio" ? saved : "atlas";

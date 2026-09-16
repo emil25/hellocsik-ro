@@ -16,6 +16,10 @@ import NotFound from "@/pages/not-found";
 import { ProgramokPortal } from "@/components/ProgramokPortal";
 import { ScenePortal } from "@/components/ScenePortal";
 
+function ClassicHomeRoute() {
+  return <Home initialDesign="classic" />;
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -31,7 +35,7 @@ function Router() {
       <Route path="/admin" component={AdminPage} />
       <Route path="/programok" component={ProgramokPortal} />
       <Route path="/plakatfal" component={ScenePortal} />
-      <Route path="/" component={ProgramokPortal} />
+      <Route path="/" component={ClassicHomeRoute} />
       <Route>
         <div className="flex flex-col min-h-screen">
           <Navbar />
