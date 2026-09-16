@@ -424,7 +424,7 @@ function WeeklyCalendar() {
               Nincs ilyen kategóriájú esemény ezen a napon.
             </p>
           ) : (
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {filteredDayEvents.map(ev => (
                 <Link key={ev.id} href={`/esemeny/${ev.id}`}>
                   <article className="group h-full overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer">
