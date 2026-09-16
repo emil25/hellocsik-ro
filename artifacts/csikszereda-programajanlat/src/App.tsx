@@ -1,8 +1,10 @@
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
+import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import { Footer } from "@/components/layout/Footer";
 import Home from "@/pages/home";
 import CalendarPage from "@/pages/calendar";
@@ -15,10 +17,23 @@ import AdminPage from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 import { ProgramokPortal } from "@/components/ProgramokPortal";
 import { ScenePortal } from "@/components/ScenePortal";
+import OrganizersPage from "@/pages/organizers";
+import OrganizerProfilePage from "@/pages/organizer-profile";
+import OrganizerHubPage from "@/pages/organizer-hub";
+import PricingPage from "@/pages/pricing";
 
 function ClassicHomeRoute() {
-  return <Home initialDesign="classic" />;
+  return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16"><Home initialDesign="classic" /></main><Footer /></div>;
 }
+
+function SitePage({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16">{children}</main><Footer /></div>;
+}
+
+function OrganizersRoute() { return <SitePage><OrganizersPage /></SitePage>; }
+function OrganizerProfileRoute() { return <SitePage><OrganizerProfilePage /></SitePage>; }
+function OrganizerHubRoute() { return <SitePage><OrganizerHubPage /></SitePage>; }
+function PricingRoute() { return <SitePage><PricingPage /></SitePage>; }
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +50,10 @@ function Router() {
       <Route path="/admin" component={AdminPage} />
       <Route path="/programok" component={ProgramokPortal} />
       <Route path="/plakatfal" component={ScenePortal} />
+      <Route path="/szervezok" component={OrganizersRoute} />
+      <Route path="/szervezo/:slug" component={OrganizerProfileRoute} />
+      <Route path="/szervezoi-felulet" component={OrganizerHubRoute} />
+      <Route path="/arak" component={PricingRoute} />
       <Route path="/" component={ClassicHomeRoute} />
       <Route>
         <div className="flex flex-col min-h-screen">

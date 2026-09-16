@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Send, CheckCircle2, MapPin, Calendar, Tag, Link2, User, Mail, Image, FileText, DollarSign } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useListCategories } from "@workspace/api-client-react";
+import { getOrganizer } from "@/data/organizers";
 
 function Field({ label, icon: Icon, children, hint }: { label: string; icon?: any; children: React.ReactNode; hint?: string }) {
   return (
@@ -18,6 +19,9 @@ function Field({ label, icon: Icon, children, hint }: { label: string; icon?: an
 }
 
 export default function SubmitPage() {
+  const [location] = useLocation();
+  const organizerSlug = new URLSearchParams(location.split("?")[1] ?? "").get("organizer") ?? "";
+  const organizer = getOrganizer(organizerSlug);
   const { data: catData } = useListCategories();
   const categories = catData?.categories ?? [];
 
@@ -33,7 +37,7 @@ export default function SubmitPage() {
     categoryId: "",
     price: "",
     ticketUrl: "",
-    submitterName: "",
+    submitterName: organizer?.name ?? "",
     submitterEmail: "",
   });
   const [loading, setLoading] = useState(false);
@@ -107,7 +111,7 @@ export default function SubmitPage() {
               </button>
             </Link>
             <button
-              onClick={() => { setSuccess(false); setForm({ title:"",description:"",imageUrl:"",startDate:"",startTime:"18:00",endDate:"",location:"",locationAddress:"",categoryId:"",price:"",ticketUrl:"",submitterName:"",submitterEmail:"" }); }}
+              onClick={() => { setSuccess(false); setForm({ title:"",description:"",imageUrl:"",startDate:"",startTime:"18:00",endDate:"",location:"",locationAddress:"",categoryId:"",price:"",ticketUrl:"",submitterName: organizer?.name ?? "",submitterEmail:"" }); }}
               className="px-5 py-2.5 rounded-xl border border-border text-foreground font-semibold hover:bg-muted transition-colors"
             >
               Másik program
@@ -135,6 +139,7 @@ export default function SubmitPage() {
           <span className="text-xs font-bold text-primary uppercase tracking-widest">Program beküldése</span>
           <h1 className="text-3xl font-bold text-foreground mt-1 mb-2">Van saját programod?</h1>
           <p className="text-muted-foreground">Töltsd ki az alábbi formot és mi felülvizsgáljuk, majd közzétesszük az oldalon.</p>
+          {organizer && <div className="mt-4 rounded-xl border border-[#cce5a5] bg-[#eff8dc] px-4 py-3 text-sm text-[#31553a]"><strong>{organizer.name}</strong> profiljához küldöd be ezt a programot. Több eseményt is beküldhetsz egymás után.</div>}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">

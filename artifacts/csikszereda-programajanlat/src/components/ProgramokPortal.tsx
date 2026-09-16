@@ -34,8 +34,8 @@ export function ProgramokPortal() {
     <div className="programok-page">
       <header className="programok-nav">
         <Link href="/programok" className="programok-logo" aria-label="programok.ro főoldal"><span className="programok-logo-mark">p</span><span>programok<span>.ro</span></span></Link>
-        <nav className="programok-links" aria-label="Programok navigáció"><a href="#kiemelt">Kiemelt</a><a href="#programok">Programok</a><a href="#varosok">Városok</a><a href="#helyszinek">Helyszínek</a></nav>
-        <div className="programok-nav-tools"><button aria-label="Keresés"><Search size={18} /></button><Link href="/bekuldese" className="programok-submit">Esemény beküldése <ArrowUpRight size={15} /></Link></div>
+        <nav className="programok-links" aria-label="Programok navigáció"><a href="#kiemelt">Kiemelt</a><a href="#programok">Programok</a><a href="#varosok">Városok</a><a href="#helyszinek">Helyszínek</a><Link href="/szervezok">Szervezők</Link><Link href="/arak">Árak</Link></nav>
+        <div className="programok-nav-tools"><button aria-label="Keresés"><Search size={18} /></button><Link href="/szervezoi-felulet" className="programok-submit">Szervezői felület <ArrowUpRight size={15} /></Link></div>
       </header>
 
       <main>

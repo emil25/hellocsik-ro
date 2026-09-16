@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatShortDate } from "@/utils/date-format";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
 import { getVenueInfo } from "@/lib/venues";
+import { organizerForEvent } from "@/data/organizers";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { downloadCalendarFile, googleCalendarUrl } from "@/lib/calendar-links";
 
@@ -111,6 +112,7 @@ export default function EventDetail() {
 
   const source = getEventSource(event.newsLinks);
   const venue = getVenueInfo(event.location);
+  const organizer = organizerForEvent(event);
 
   return (
     <div>
@@ -291,6 +293,17 @@ export default function EventDetail() {
                   </div>
                 </div>
               </div>
+
+              {organizer && (
+                <Link href={`/szervezo/${organizer.slug}`} className="group flex items-center gap-3 bg-white rounded-2xl border border-stone-100 shadow-sm px-5 py-4 hover:border-primary/30 hover:shadow-md transition-all">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-black" style={{ background: organizer.accent }}>{organizer.initials}</div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Szervező</p>
+                    <p className="font-semibold text-sm text-stone-800 truncate group-hover:text-primary transition-colors">{organizer.name}</p>
+                  </div>
+                  <span className="text-stone-300 group-hover:text-primary transition-colors">→</span>
+                </Link>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={handleFacebookShare} className="col-span-2 py-3 px-3 rounded-xl bg-[#1877f2] text-white text-sm font-bold hover:bg-[#1669d5] transition-colors flex items-center justify-center gap-2">
