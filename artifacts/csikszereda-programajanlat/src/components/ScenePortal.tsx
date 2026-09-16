@@ -60,7 +60,7 @@ export function ScenePortal() {
             <div className="stage-poster" style={imageStyle(lead, 0)}><span className="stage-poster-label">KIEMELT PROGRAM</span><span className="stage-poster-date">{lead ? formatShortDate(lead.startDate) : "MA"}</span><div className="stage-poster-gradient" /><div className="stage-poster-caption"><b>{lead?.category?.name ?? "PROGRAM"}</b><h2>{lead?.title ?? (isLoading ? "Programok betöltése…" : "Nézd meg, mi történik ma.")}</h2><span><MapPin size={13} /> {lead?.location || "Székelyföld"}</span></div></div>
             <div className="stage-float-card stage-float-card-one" style={imageStyle(cards[0], 1)}><span>01</span><b>{cards[0] ? formatTime(cards[0].startDate) : "—"}</b></div>
             <div className="stage-float-card stage-float-card-two" style={imageStyle(cards[1], 2)}><span>02</span><b>{cards[1] ? formatShortDate(cards[1].startDate) : "—"}</b></div>
-            <div className="stage-sticker">NINCS<br />UNALOM <i>↗</i></div>
+            <div className="stage-sticker"><strong>16</strong><span>SZEPT.<br />2026</span></div>
           </div>
         </div>
         <div className="stage-scroll-hint"><span>GÖRGESS</span><i /></div>
