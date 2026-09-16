@@ -414,7 +414,7 @@ function WeeklyCalendar() {
         )}
 
         {/* Day events */}
-        <div className="bg-muted/40 rounded-2xl px-6 py-5 mb-6 min-h-[80px] flex items-center">
+        <div className={`bg-muted/40 rounded-2xl mb-6 min-h-[80px] ${filteredDayEvents.length > 0 ? "p-4 sm:p-5" : "px-6 py-5 flex items-center"}`}>
           {!selectedDayData || selectedDayData.events.length === 0 ? (
             <p className="text-muted-foreground text-sm w-full text-center">
               Ezen a napon nincs regisztrált esemény. Próbálj másik napot!
@@ -424,21 +424,28 @@ function WeeklyCalendar() {
               Nincs ilyen kategóriájú esemény ezen a napon.
             </p>
           ) : (
-            <div className="w-full space-y-2">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredDayEvents.map(ev => (
                 <Link key={ev.id} href={`/esemeny/${ev.id}`}>
-                  <div className="flex items-center gap-3 hover:bg-background/60 rounded-xl p-2 cursor-pointer transition-colors">
-                    <img src={ev.imageUrl} alt={ev.title} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-foreground line-clamp-1">{ev.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{formatTime(ev.startDate)} · {ev.location}</p>
+                  <article className="group h-full overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                    <div className="h-1" style={{ backgroundColor: ev.category?.color ?? "#166534" }} />
+                    <div className="relative aspect-[16/9] overflow-hidden bg-muted">
+                      <img src={ev.imageUrl} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                      {ev.category && (
+                        <span className="absolute left-3 bottom-3 text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-sm" style={{ backgroundColor: ev.category.color }}>
+                          {ev.category.name}
+                        </span>
+                      )}
                     </div>
-                    {ev.category && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0" style={{ backgroundColor: ev.category.color }}>
-                        {ev.category.name}
-                      </span>
-                    )}
-                  </div>
+                    <div className="p-4 flex flex-col min-h-[116px]">
+                      <p className="font-bold text-sm text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">{ev.title}</p>
+                      <div className="mt-auto pt-3 space-y-1 text-xs text-muted-foreground">
+                        <p className="flex items-center gap-1.5 font-semibold text-foreground"><Clock className="w-3.5 h-3.5 text-primary" />{formatTime(ev.startDate)}</p>
+                        <p className="flex items-center gap-1.5 truncate"><MapPin className="w-3.5 h-3.5 flex-shrink-0 text-primary" />{ev.location}</p>
+                      </div>
+                    </div>
+                  </article>
                 </Link>
               ))}
             </div>
