@@ -14,6 +14,7 @@ import SubmitPage from "@/pages/submit";
 import AdminPage from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 import { ProgramokPortal } from "@/components/ProgramokPortal";
+import { ScenePortal } from "@/components/ScenePortal";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,7 +30,7 @@ function Router() {
     <Switch>
       <Route path="/admin" component={AdminPage} />
       <Route path="/programok" component={ProgramokPortal} />
-      <Route path="/" component={ProgramokPortal} />
+      <Route path="/" component={ScenePortal} />
       <Route>
         <div className="flex flex-col min-h-screen">
           <Navbar />
