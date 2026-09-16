@@ -928,7 +928,9 @@ export default function AdminPage() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<Tab>("pending");
+  // Open the complete list after login so published events are immediately visible.
+  // Newly imported submissions still switch this back to the pending queue.
+  const [tab, setTab] = useState<Tab>("all");
   const [actionId, setActionId] = useState<number | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
   const [creating, setCreating] = useState(false);
