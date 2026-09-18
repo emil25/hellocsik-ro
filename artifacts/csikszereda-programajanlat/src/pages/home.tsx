@@ -341,6 +341,8 @@ function WeeklyCalendar() {
         ? selectedDayData.events.filter(ev => ev.categoryId === selectedCat)
         : selectedDayData.events)
     : [];
+  const visibleDayEvents = filteredDayEvents.slice(0, 4);
+  const hiddenDayEventCount = Math.max(0, filteredDayEvents.length - visibleDayEvents.length);
 
   // Week label
   const weekLabel = (() => {
@@ -352,24 +354,24 @@ function WeeklyCalendar() {
   })();
 
   return (
-    <section id="heti-naptar" className="py-16 bg-background">
+    <section id="heti-naptar" className="py-10 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap gap-4 items-start justify-between mb-8">
+        <div className="flex flex-wrap gap-3 items-center justify-between mb-5">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 mb-1">
+              <Calendar className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-bold text-primary uppercase tracking-widest">Heti naptár</span>
             </div>
-            <h2 className="text-3xl font-bold text-foreground mb-1">Mi lesz a héten?</h2>
-            <p className="text-muted-foreground text-sm">Válassz napot, és nézd meg az aznapi programokat.</p>
+            <h2 className="text-2xl font-bold text-foreground mb-0.5">Mi lesz a héten?</h2>
+            <p className="text-muted-foreground text-xs">Válassz napot, és nézd meg az aznapi programokat.</p>
           </div>
-          <div className="flex items-center gap-2 mt-2">
-            <button aria-label="Előző hét" onClick={() => changeWeek(-1)} disabled={weekOffset <= -52} className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40">
-              <ChevronLeft className="w-4 h-4" />
+          <div className="flex items-center gap-1">
+            <button aria-label="Előző hét" onClick={() => changeWeek(-1)} disabled={weekOffset <= -52} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40">
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-            <span className="text-sm text-muted-foreground font-medium px-2">{weekLabel}</span>
-            <button aria-label="Következő hét" onClick={() => changeWeek(1)} disabled={weekOffset >= 104} className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40">
-              <ChevronRight className="w-4 h-4" />
+            <span className="text-xs text-muted-foreground font-medium px-2">{weekLabel}</span>
+            <button aria-label="Következő hét" onClick={() => changeWeek(1)} disabled={weekOffset >= 104} className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40">
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -377,11 +379,11 @@ function WeeklyCalendar() {
         {isError && <p role="alert" className="text-destructive mb-4">A naptár nem tölthető be. Próbáld újra később.</p>}
         {/* Day selector */}
         {isLoading ? (
-          <div className="grid grid-cols-7 gap-2 mb-6">
+          <div className="grid grid-cols-7 gap-1.5 mb-4">
             {Array.from({length:7}).map((_,i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
           </div>
         ) : (
-          <div className="grid grid-cols-7 gap-2 mb-6">
+          <div className="grid grid-cols-7 gap-1.5 mb-4">
             {days.map(day => {
               const isToday = day.date === today;
               const isActive = day.date === activeDay;
@@ -391,7 +393,7 @@ function WeeklyCalendar() {
                   key={day.date}
                   onClick={() => setSelectedDay(day.date)}
                   whileTap={{ scale: 0.96 }}
-                  className={`flex flex-col items-center py-3.5 px-1 rounded-xl border transition-all text-center ${
+                  className={`flex flex-col items-center py-2.5 px-1 rounded-xl border transition-all text-center ${
                     isActive
                       ? "border-transparent text-white"
                       : "bg-card border-card-border text-foreground hover:border-primary/30"
@@ -401,9 +403,9 @@ function WeeklyCalendar() {
                   <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isActive ? "text-white/70" : "text-muted-foreground"}`}>
                     {day.dayName}
                   </span>
-                  <span className="text-xl font-bold leading-none">{dayNum}</span>
+                  <span className="text-lg font-bold leading-none">{dayNum}</span>
                   {day.events.length > 0 && (
-                    <span className={`mt-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-primary/10 text-primary"}`}>
+                    <span className={`mt-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-primary/10 text-primary"}`}>
                       {day.events.length}
                     </span>
                   )}
@@ -414,7 +416,7 @@ function WeeklyCalendar() {
         )}
 
         {/* Day events */}
-        <div className={`bg-muted/40 rounded-2xl mb-6 min-h-[80px] ${filteredDayEvents.length > 0 ? "p-4 sm:p-5" : "px-6 py-5 flex items-center"}`}>
+        <div className={`bg-muted/35 rounded-xl mb-4 min-h-[64px] ${filteredDayEvents.length > 0 ? "p-3" : "px-5 py-4 flex items-center"}`}>
           {!selectedDayData || selectedDayData.events.length === 0 ? (
             <p className="text-muted-foreground text-sm w-full text-center">
               Ezen a napon nincs regisztrált esemény. Próbálj másik napot!
@@ -424,31 +426,34 @@ function WeeklyCalendar() {
               Nincs ilyen kategóriájú esemény ezen a napon.
             </p>
           ) : (
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {filteredDayEvents.map(ev => (
+            <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {visibleDayEvents.map(ev => (
                 <Link key={ev.id} href={`/esemeny/${ev.id}`}>
-                  <article className="group h-full overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                  <article className="group h-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm hover:-translate-y-1 hover:border-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer">
                     <div className="h-1" style={{ backgroundColor: ev.category?.color ?? "#166534" }} />
-                    <div className="relative aspect-[16/9] overflow-hidden bg-muted">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                       <img src={ev.imageUrl} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                       {ev.category && (
-                        <span className="absolute left-3 bottom-3 text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-sm" style={{ backgroundColor: ev.category.color }}>
+                        <span className="absolute left-2 bottom-2 text-[9px] font-bold px-2 py-0.5 rounded-full text-white shadow-sm" style={{ backgroundColor: ev.category.color }}>
                           {ev.category.name}
                         </span>
                       )}
                     </div>
-                    <div className="p-4 flex flex-col min-h-[116px]">
-                      <p className="font-bold text-sm text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">{ev.title}</p>
-                      <div className="mt-auto pt-3 space-y-1 text-xs text-muted-foreground">
-                        <p className="flex items-center gap-1.5 font-semibold text-foreground"><Clock className="w-3.5 h-3.5 text-primary" />{formatTime(ev.startDate)}</p>
-                        <p className="flex items-center gap-1.5 truncate"><MapPin className="w-3.5 h-3.5 flex-shrink-0 text-primary" />{ev.location}</p>
+                    <div className="p-2.5 flex flex-col min-h-[82px]">
+                      <p className="font-bold text-xs text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">{ev.title}</p>
+                      <div className="mt-auto pt-2 space-y-0.5 text-[10px] text-muted-foreground">
+                        <p className="flex items-center gap-1 font-semibold text-foreground"><Clock className="w-3 h-3 text-primary" />{formatTime(ev.startDate)}</p>
+                        <p className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 flex-shrink-0 text-primary" />{ev.location}</p>
                       </div>
                     </div>
                   </article>
                 </Link>
               ))}
             </div>
+          )}
+          {hiddenDayEventCount > 0 && (
+            <p className="text-[11px] text-muted-foreground text-center mt-2">+ {hiddenDayEventCount} további program ezen a napon</p>
           )}
         </div>
 
