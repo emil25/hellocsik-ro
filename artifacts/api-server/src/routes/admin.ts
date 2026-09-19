@@ -56,6 +56,15 @@ function isFacebookGeneratedSummary(description: string) {
   return /(?:és\s+további\s+\d+\s+ember|and\s+\d+\s+others|\beveniment\s+în\b|\bevent\s+in\b)/i.test(description);
 }
 
+function firstExternalEventLink(description: string, sourceUrl: string) {
+  const sourceHost = (() => { try { return new URL(sourceUrl).hostname; } catch { return "facebook.com"; } })();
+  const urls = description.match(/https?:\/\/[^\s)\]}>]+/gi) ?? [];
+  return urls.map(value => value.replace(/[.,;:!?]+$/, "")).find(value => {
+    try { return new URL(value).hostname !== sourceHost && !/facebook\.com$/i.test(new URL(value).hostname); }
+    catch { return false; }
+  }) ?? "";
+}
+
 type StructuredEvent = {
   name?: string;
   description?: string;
@@ -63,6 +72,8 @@ type StructuredEvent = {
   startDate?: string;
   endDate?: string;
   location?: string;
+  address?: string;
+  organizerName?: string;
 };
 
 function readJsonLdEvent(html: string): StructuredEvent {
@@ -88,9 +99,18 @@ function readJsonLdEvent(html: string): StructuredEvent {
       if (!event || typeof event !== "object") continue;
       const item = event as Record<string, unknown>;
       const image = Array.isArray(item.image) ? item.image[0] : item.image;
-      const location = item.location && typeof item.location === "object"
-        ? (item.location as { name?: unknown }).name
-        : item.location;
+      const locationObject = item.location && typeof item.location === "object"
+        ? item.location as { name?: unknown; address?: unknown }
+        : null;
+      const location = locationObject?.name ?? item.location;
+      const address = locationObject?.address && typeof locationObject.address === "object"
+        ? (locationObject.address as { streetAddress?: unknown; addressLocality?: unknown }).streetAddress
+        : locationObject?.address;
+      const organizerValue = item.organizer;
+      const organizer = Array.isArray(organizerValue) ? organizerValue[0] : organizerValue;
+      const organizerName = organizer && typeof organizer === "object"
+        ? (organizer as { name?: unknown }).name
+        : organizer;
       return {
         name: typeof item.name === "string" ? decodeHtml(item.name).trim() : undefined,
         description: typeof item.description === "string" ? decodeHtml(item.description).trim() : undefined,
@@ -98,6 +118,8 @@ function readJsonLdEvent(html: string): StructuredEvent {
         startDate: typeof item.startDate === "string" ? item.startDate : undefined,
         endDate: typeof item.endDate === "string" ? item.endDate : undefined,
         location: typeof location === "string" ? decodeHtml(location).trim() : undefined,
+        address: typeof address === "string" ? decodeHtml(address).trim() : undefined,
+        organizerName: typeof organizerName === "string" ? decodeHtml(organizerName).trim() : undefined,
       };
     } catch {
       // Continue with OpenGraph/Facebook fields if JSON-LD is malformed.
@@ -209,6 +231,11 @@ router.post("/admin/events/preview-facebook", requireAdmin, async (req, res) => 
     const title = rawTitle || structuredEvent.name || firecrawlEvent?.title?.trim() || "";
     if (!title) { res.status(422).json({ error: "A Facebook-eseményből nem olvasható ki a cím." }); return; }
     const location = firecrawlEvent?.location?.trim() || structuredEvent.location || "";
+    const locationAddress = firecrawlEvent?.address?.trim() || structuredEvent.address || "";
+    const organizerName = firecrawlEvent?.organizerName?.trim() || structuredEvent.organizerName || "";
+    const ticketUrl = firecrawlEvent?.eventUrl?.trim() && !/facebook\.com/i.test(firecrawlEvent.eventUrl)
+      ? firecrawlEvent.eventUrl.trim()
+      : firstExternalEventLink(description, canonicalUrl);
     const startDate = firecrawlEvent?.startDate || structuredEvent.startDate;
     const endDate = firecrawlEvent?.endDate || structuredEvent.endDate;
     const missingFields = [
@@ -216,6 +243,7 @@ router.post("/admin/events/preview-facebook", requireAdmin, async (req, res) => 
       !startDate && "kezdési idő",
       !location && "helyszín",
       !imageUrl && "kép",
+      !organizerName && "szervező neve",
     ].filter((field): field is string => Boolean(field));
     res.json({
       title,
@@ -225,6 +253,9 @@ router.post("/admin/events/preview-facebook", requireAdmin, async (req, res) => 
       startDate,
       endDate,
       location,
+      locationAddress,
+      organizerName,
+      ticketUrl,
       descriptionNeedsManualEntry: !description,
       missingFields,
     });

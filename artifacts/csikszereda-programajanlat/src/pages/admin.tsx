@@ -239,7 +239,9 @@ function FacebookImport({ token, onApply }: { token: string; onApply: (data: Par
         ...(data.startDate ? { startDate: toDatetimeLocal(data.startDate) } : {}),
         ...(data.endDate ? { endDate: toDatetimeLocal(data.endDate) } : {}),
         ...(data.location?.trim() ? { location: data.location.trim() } : {}),
-        ticketUrl: "",
+        ...(data.locationAddress?.trim() ? { locationAddress: data.locationAddress.trim() } : {}),
+        ...(data.organizerName?.trim() ? { organizerName: data.organizerName.trim() } : {}),
+        ticketUrl: data.ticketUrl?.trim() ?? "",
         facebookUrl: data.sourceUrl ?? url,
         newsLinks: [{ title: "Facebook-esemény", url: data.sourceUrl ?? url }],
       };
@@ -250,7 +252,7 @@ function FacebookImport({ token, onApply }: { token: string; onApply: (data: Par
         setMessage(`A megtalált adatok bekerültek. Ezt még ellenőrizd vagy töltsd ki: ${missing.join(", ")}.`);
       } else {
         setMessageTone("success");
-        setMessage("A cím, leírás, kép, dátum és helyszín bekerült. Ellenőrizd az adatokat mentés előtt.");
+        setMessage("A cím, leírás, kép, dátum, helyszín és – ha elérhető – a szervező külön mezőbe került. Ellenőrizd mentés előtt.");
       }
     } catch { setMessageTone("error"); setMessage("Hálózati hiba az előnézet betöltésekor."); }
     finally { setLoading(false); }
@@ -258,7 +260,7 @@ function FacebookImport({ token, onApply }: { token: string; onApply: (data: Par
 
   return <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3">
     <label className="block text-xs font-bold text-blue-900 mb-1">Facebook-esemény gyors felvitele</label>
-    <p className="text-xs text-blue-800/80 mb-2">Illeszd be a publikus Facebook-esemény linkjét. A rendszer kiolvassa, amit a Facebook átad; a hiányzó adatokat külön jelzi, így csak azt kell pótolnod.</p>
+    <p className="text-xs text-blue-800/80 mb-2">Illeszd be a publikus Facebook-esemény linkjét. A rendszer a helyszínt, címet, szervezőt és a leírásban talált jegy/részletek linket külön mezőbe teszi, amit a Facebook tényleg átad.</p>
     <div className="flex gap-2"><input type="url" value={url} onChange={e => setUrl(e.target.value)} className={inputCls} placeholder="https://www.facebook.com/events/..." /><button type="button" onClick={preview} disabled={loading || !url.trim()} className="shrink-0 px-3 rounded-xl bg-primary text-white text-xs font-bold disabled:opacity-60">{loading ? "Betöltés..." : "Kitöltés"}</button></div>
     {message && <p className={`mt-2 text-xs ${messageTone === "success" ? "text-green-700" : messageTone === "warning" ? "text-amber-700" : "text-red-600"}`}>{message}</p>}
   </div>;

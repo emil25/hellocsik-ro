@@ -7,6 +7,7 @@ export type ExtractedEvent = {
   endDate: string | null;
   location: string;
   address: string | null;
+  organizerName: string | null;
   category: string | null;
   imageUrl: string | null;
   eventUrl: string | null;
@@ -59,6 +60,7 @@ const eventProperties = {
   endDate: { type: ["string", "null"], description: "Befejezés ISO 8601 formátumban, ha ismert" },
   location: { type: "string", description: "A helyszín neve" },
   address: { type: ["string", "null"], description: "A helyszín címe, ha ismert" },
+  organizerName: { type: ["string", "null"], description: "A rendezvény valódi szervezője, ne a helyszín neve; ha nincs megadva, null" },
   category: { type: ["string", "null"], description: "Az esemény kategóriája" },
   imageUrl: { type: ["string", "null"], description: "A borítókép teljes URL-je, ha van" },
   eventUrl: { type: ["string", "null"], description: "Az esemény saját részletoldalának URL-je" },
@@ -80,6 +82,7 @@ export async function extractEventListing(url: string): Promise<ExtractedEvent[]
     "Gyűjtsd ki az oldalon felsorolt valódi eseményeket.",
     "Csak jelenlegi vagy jövőbeli eseményt adj vissza, hírt és navigációs elemet ne.",
     "Őrizd meg a magyar szöveget; ha magyar és román változat is van, a magyart válaszd.",
+    "A szervező nevét külön organizerName mezőben add meg; a helyszínt ne másold át szervezőként.",
     "A dátum legyen teljes ISO 8601 érték Europe/Bucharest időzónával.",
     "Az eventUrl és imageUrl legyen teljes URL.",
   ].join(" ");
@@ -92,6 +95,7 @@ export async function extractFacebookEvent(url: string): Promise<Partial<Extract
   const prompt = [
     "Olvasd ki ennek a nyilvános Facebook-eseménynek az adatait.",
     "A valódi eseményleírást add vissza, ne a szervezők neveiből képzett Facebook-összefoglalót.",
+    "A szervezőt külön organizerName mezőben add meg, a helyszínt és a szervezőt ne keverd össze.",
     "Őrizd meg a magyar címet és leírást; csak akkor használj más nyelvet, ha magyar változat nincs.",
     "A dátum legyen teljes ISO 8601 érték Europe/Bucharest időzónával.",
   ].join(" ");

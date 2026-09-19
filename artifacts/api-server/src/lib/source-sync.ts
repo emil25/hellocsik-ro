@@ -104,6 +104,11 @@ function parseDescription(html: string) {
   return plainText(html.slice(start, end > start ? end : start + 12_000)).slice(0, 12_000);
 }
 
+function parseOrganizer(description: string) {
+  const match = description.match(/(?:^|\n)\s*(?:szervező(?:k)?|organizator(?:ul)?|organizatorii)\s*:\s*([^\n]+)/i);
+  return match?.[1]?.trim() || null;
+}
+
 function parseLocation(html: string, fallback: string) {
   const address = plainText(html.match(/<p class=["']text-gray-700 line-clamp-1["']>([\s\S]*?)<\/p>/i)?.[1] ?? "");
   const organizer = plainText(html.match(/class=["'][^"']*link-underline-animation[^"']*["'][^>]*>([\s\S]*?)<\/a>/i)?.[1] ?? "");
@@ -190,6 +195,10 @@ async function runFirecrawlSync(): Promise<SyncResult> {
       const sourceNames = categoryCandidates(event.category ?? "").map(normalize);
       const category = categories.find(item => sourceNames.includes(normalize(item.name))) ?? null;
       const imageUrl = absoluteUrl(event.imageUrl, source.url) ?? "/hellocsik-logo.png";
+      const newsLinks = [
+        JSON.stringify({ title: source.name, url: eventUrl }),
+        ...(event.organizerName?.trim() ? [JSON.stringify({ title: "Szervező", url: "", name: event.organizerName.trim() })] : []),
+      ];
       await db.insert(eventsTable).values({
         title: event.title.trim(),
         description: event.description?.trim() || "Részletek a forrásoldalon.",
@@ -204,7 +213,7 @@ async function runFirecrawlSync(): Promise<SyncResult> {
         ticketUrl: eventUrl,
         price: event.price?.trim() || null,
         tags: ["automatikus-import", "Firecrawl", source.name],
-        newsLinks: [JSON.stringify({ title: source.name, url: eventUrl })],
+        newsLinks,
         status: "published",
       });
       knownUrls.add(eventUrl);
@@ -288,9 +297,15 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
       const category = categories.find(item => sourceNames.includes(normalize(item.name))) ?? null;
       const ticketUrl = decodeHtml(html.match(/href=["']([^"']+)["'][^>]*>\s*Jegyek\s*<\/a>/i)?.[1] ?? "");
       const imageUrl = readMeta(html, "og:image") || "/hellocsik-logo.png";
+      const description = parseDescription(html);
+      const organizerName = parseOrganizer(description);
+      const newsLinks = [
+        JSON.stringify({ title: "Visit Harghita", url: sourceUrl }),
+        ...(organizerName ? [JSON.stringify({ title: "Szervező", url: "", name: organizerName })] : []),
+      ];
       await db.insert(eventsTable).values({
         title,
-        description: parseDescription(html),
+        description,
         imageUrl,
         startDate: dates.startDate,
         endDate: dates.endDate,
@@ -302,7 +317,7 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
         ticketUrl: ticketUrl ? new URL(ticketUrl, sourceUrl).toString() : sourceUrl,
         price: null,
         tags: ["automatikus-import", "Visit Harghita"],
-        newsLinks: [JSON.stringify({ title: "Visit Harghita", url: sourceUrl })],
+        newsLinks,
         status: "published",
       });
       knownUrls.add(sourceUrl);
