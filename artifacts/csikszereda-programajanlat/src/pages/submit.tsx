@@ -42,6 +42,7 @@ export default function SubmitPage() {
     categoryId: "",
     price: "",
     ticketUrl: "",
+    facebookUrl: "",
     promotionPlan: requestedPromotion,
     submitterName: organizer?.name ?? "",
     submitterEmail: "",
@@ -81,6 +82,7 @@ export default function SubmitPage() {
           categoryId: form.categoryId ? Number(form.categoryId) : undefined,
           price: form.price || undefined,
           ticketUrl: form.ticketUrl || undefined,
+          facebookUrl: form.facebookUrl || undefined,
           submitterName: form.submitterName || undefined,
           submitterEmail: form.submitterEmail || undefined,
           promotionPlan: form.promotionPlan,
@@ -121,7 +123,7 @@ export default function SubmitPage() {
               </button>
             </Link>
             <button
-              onClick={() => { setSuccess(false); setForm({ title:"",description:"",imageUrl:"",startDate:"",startTime:"18:00",endDate:"",location:"",locationAddress:"",categoryId:"",price:"",ticketUrl:"",promotionPlan: requestedPromotion,submitterName: organizer?.name ?? "",submitterEmail:"" }); }}
+              onClick={() => { setSuccess(false); setForm({ title:"",description:"",imageUrl:"",startDate:"",startTime:"18:00",endDate:"",location:"",locationAddress:"",categoryId:"",price:"",ticketUrl:"",facebookUrl:"",promotionPlan: requestedPromotion,submitterName: organizer?.name ?? "",submitterEmail:"" }); }}
               className="px-5 py-2.5 rounded-xl border border-border text-foreground font-semibold hover:bg-muted transition-colors"
             >
               Másik program
@@ -222,6 +224,10 @@ export default function SubmitPage() {
                 <input className={inputClass} placeholder="https://..." value={form.ticketUrl} onChange={e => set("ticketUrl", e.target.value)} />
               </Field>
             </div>
+
+            <Field label="Facebook-esemény link" icon={Link2} hint="Opcionális – külön marad a jegy / info linktől.">
+              <input className={inputClass} placeholder="https://facebook.com/events/..." value={form.facebookUrl} onChange={e => set("facebookUrl", e.target.value)} />
+            </Field>
           </div>
 
           {/* Contact */}

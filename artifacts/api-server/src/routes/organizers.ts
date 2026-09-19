@@ -44,6 +44,19 @@ function uniqueSlug(base: string, existing: string[]) {
   return `${clean}-${i}`;
 }
 
+function withFacebookLink(newsLinks: unknown, facebookUrl: string) {
+  const kept = Array.isArray(newsLinks) ? newsLinks.filter((raw) => {
+    if (typeof raw !== "string") return false;
+    try {
+      const parsed = JSON.parse(raw) as { title?: unknown; url?: unknown };
+      return !(/facebook/i.test(String(parsed.title ?? "")) || /facebook\.com/i.test(String(parsed.url ?? "")));
+    } catch {
+      return !/facebook\.com/i.test(raw);
+    }
+  }) : [];
+  return facebookUrl ? [...kept, JSON.stringify({ title: "Facebook-esemény", url: facebookUrl })] : kept;
+}
+
 router.post("/organizers/register", async (req, res) => {
   const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
   const email = normalizeEmail(req.body?.email);
@@ -97,8 +110,9 @@ router.post("/organizers/me/events", requireOrganizer, async (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: "Hiányzó vagy hibás eseményadatok.", details: parsed.error }); return; }
   const data = parsed.data;
   const requestedPlan = ["free", "featured", "homepage"].includes(req.body?.promotionPlan) ? req.body.promotionPlan : "free";
+  const facebookUrl = typeof req.body?.facebookUrl === "string" ? req.body.facebookUrl.trim() : "";
   try {
-    const [event] = await db.insert(eventsTable).values({ title: data.title, description: data.description, imageUrl: data.imageUrl, startDate: new Date(data.startDate), endDate: data.endDate ? new Date(data.endDate) : null, location: data.location, locationAddress: data.locationAddress ?? null, categoryId: data.categoryId ?? null, organizerId: res.locals.organizer.id, promotionPlan: requestedPlan, promotionStatus: requestedPlan === "free" ? "none" : "requested", featured: false, monthHighlight: false, ticketUrl: data.ticketUrl ?? null, price: data.price ?? null, tags: data.tags ?? [], status: "pending", submitterName: res.locals.organizer.name, submitterEmail: res.locals.organizer.email }).returning();
+    const [event] = await db.insert(eventsTable).values({ title: data.title, description: data.description, imageUrl: data.imageUrl, startDate: new Date(data.startDate), endDate: data.endDate ? new Date(data.endDate) : null, location: data.location, locationAddress: data.locationAddress ?? null, categoryId: data.categoryId ?? null, organizerId: res.locals.organizer.id, promotionPlan: requestedPlan, promotionStatus: requestedPlan === "free" ? "none" : "requested", featured: false, monthHighlight: false, ticketUrl: data.ticketUrl ?? null, price: data.price ?? null, tags: data.tags ?? [], newsLinks: withFacebookLink([], facebookUrl), status: "pending", submitterName: res.locals.organizer.name, submitterEmail: res.locals.organizer.email }).returning();
     res.status(201).json({ ok: true, id: event.id, status: event.status });
   } catch (error) {
     req.log.error({ error }, "Organizer event submission failed");
@@ -119,6 +133,10 @@ router.patch("/organizers/me/events/:id", requireOrganizer, async (req, res) => 
       const value = body[field].trim();
       if (["title", "description", "location"].includes(field) && !value) { res.status(400).json({ error: "A cím, leírás és helyszín nem lehet üres." }); return; }
       patch[field] = value || (field === "imageUrl" ? "/hellocsik-logo.png" : null);
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "facebookUrl")) {
+      const facebookUrl = typeof body.facebookUrl === "string" ? body.facebookUrl.trim() : "";
+      patch.newsLinks = withFacebookLink(existing[0].newsLinks, facebookUrl);
     }
     if (typeof body.startDate === "string") {
       const start = new Date(body.startDate);

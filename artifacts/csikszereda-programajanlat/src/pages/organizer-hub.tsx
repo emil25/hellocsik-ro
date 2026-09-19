@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import "@/components/organizer-portal.css";
 
 type Organizer = { id: number; slug: string; name: string; bio: string; city: string; website?: string | null };
-type OrganizerEvent = { id: number; title: string; description: string; startDate: string; endDate?: string | null; location: string; locationAddress?: string | null; status: string; imageUrl?: string; ticketUrl?: string | null; price?: string | null; categoryId?: number | null; promotionPlan?: string; promotionStatus?: string };
+type OrganizerEvent = { id: number; title: string; description: string; startDate: string; endDate?: string | null; location: string; locationAddress?: string | null; status: string; imageUrl?: string; ticketUrl?: string | null; price?: string | null; facebookUrl?: string | null; newsLinks?: string[]; categoryId?: number | null; promotionPlan?: string; promotionStatus?: string };
 
 const TOKEN_KEY = "organizer_token";
 
@@ -21,7 +21,7 @@ export default function OrganizerHubPage() {
   const [organizer, setOrganizer] = useState<Organizer | null>(null);
   const [events, setEvents] = useState<OrganizerEvent[]>([]);
   const [editingEvent, setEditingEvent] = useState<OrganizerEvent | null>(null);
-  const [editForm, setEditForm] = useState({ title: "", description: "", startDate: "", location: "", imageUrl: "", price: "", ticketUrl: "", promotionPlan: "free" });
+  const [editForm, setEditForm] = useState({ title: "", description: "", startDate: "", location: "", imageUrl: "", price: "", ticketUrl: "", facebookUrl: "", promotionPlan: "free" });
   const [savingEdit, setSavingEdit] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", city: "Csíkszereda", bio: "" });
   const [loading, setLoading] = useState(false);
@@ -80,7 +80,8 @@ export default function OrganizerHubPage() {
 
   function startEditing(event: OrganizerEvent) {
     setEditingEvent(event);
-    setEditForm({ title: event.title, description: event.description ?? "", startDate: event.startDate.slice(0, 16), location: event.location, imageUrl: event.imageUrl ?? "", price: event.price ?? "", ticketUrl: event.ticketUrl ?? "", promotionPlan: event.promotionPlan ?? "free" });
+    const facebookUrl = (event.newsLinks ?? []).map((raw) => { try { return JSON.parse(raw) as { title?: string; url?: string }; } catch { return null; } }).find((link) => link && /facebook/i.test(link.title ?? ""))?.url ?? "";
+    setEditForm({ title: event.title, description: event.description ?? "", startDate: event.startDate.slice(0, 16), location: event.location, imageUrl: event.imageUrl ?? "", price: event.price ?? "", ticketUrl: event.ticketUrl ?? "", facebookUrl, promotionPlan: event.promotionPlan ?? "free" });
     setError("");
   }
 
