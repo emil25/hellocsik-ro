@@ -328,6 +328,7 @@ router.post("/admin/events", requireAdmin, async (req, res) => {
       price: body.price?.trim() || null,
       ticketUrl: body.ticketUrl?.trim() || null,
       categoryId: body.categoryId ? Number(body.categoryId) : null,
+      organizerId: body.organizerId ? Number(body.organizerId) : null,
       status: "published",
       featured: body.featured === true,
       monthHighlight: body.monthHighlight === true,
@@ -366,6 +367,8 @@ router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
     if (body.endDate === null) patch.endDate = null;
     if (body.categoryId === null) patch.categoryId = null;
     else if (typeof body.categoryId === "number") patch.categoryId = body.categoryId;
+    if (body.organizerId === null) patch.organizerId = null;
+    else if (typeof body.organizerId === "number" && Number.isInteger(body.organizerId)) patch.organizerId = body.organizerId;
     if (Object.keys(patch).length === 0) { res.status(400).json({ error: "No valid fields" }); return; }
     patch.updatedAt = new Date();
 

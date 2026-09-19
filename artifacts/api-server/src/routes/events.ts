@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, eventsTable, categoriesTable } from "@workspace/db";
+import { db, eventsTable, categoriesTable, organizersTable } from "@workspace/db";
 import { eq, and, gte, lte, desc, asc, ne, or, isNull } from "drizzle-orm";
 import { requireAdmin } from "../lib/admin-auth";
 import {
@@ -18,7 +18,7 @@ function eventNotExpired(at = new Date()) {
   )!;
 }
 
-function formatEvent(event: any, category: any) {
+function formatEvent(event: any, category: any, organizer: any = null) {
   const { submitterName, submitterEmail, ...publicEvent } = event;
   return {
     ...publicEvent,
@@ -31,6 +31,14 @@ function formatEvent(event: any, category: any) {
     locationAddress: event.locationAddress ?? null,
     ticketUrl: event.ticketUrl ?? null,
     price: event.price ?? null,
+    organizer: organizer ? {
+      id: organizer.id,
+      slug: organizer.slug,
+      name: organizer.name,
+      city: organizer.city ?? "Székelyföld",
+      website: organizer.website ?? null,
+      logoUrl: organizer.logoUrl ?? null,
+    } : null,
   };
 }
 
@@ -39,9 +47,11 @@ async function getEventsWithCategories(conditions: any[] = [], orderBy?: any | a
     .select({
       event: eventsTable,
       category: categoriesTable,
+      organizer: organizersTable,
     })
     .from(eventsTable)
     .leftJoin(categoriesTable, eq(eventsTable.categoryId, categoriesTable.id))
+    .leftJoin(organizersTable, eq(eventsTable.organizerId, organizersTable.id))
     .$dynamic();
 
   if (conditions.length > 0) {
@@ -84,7 +94,7 @@ router.get("/events", async (req, res) => {
     const total = rows.length;
 
     res.json({
-      events: rows.map((r) => formatEvent(r.event, r.category)),
+      events: rows.map((r) => formatEvent(r.event, r.category, r.organizer)),
       total,
     });
   } catch (err) {
@@ -140,7 +150,7 @@ router.get("/events/featured", async (req, res) => {
       [eq(eventsTable.featured, true), eventNotExpired(now)],
       [desc(eventsTable.monthHighlight), asc(eventsTable.startDate)]
     );
-    res.json({ events: rows.map((r) => formatEvent(r.event, r.category)) });
+    res.json({ events: rows.map((r) => formatEvent(r.event, r.category, r.organizer)) });
   } catch (err) {
     req.log.error({ err }, "Failed to list featured events");
     res.status(500).json({ error: "Internal server error" });
@@ -182,7 +192,7 @@ router.get("/events/this-week", async (req, res) => {
       nextDay.setDate(day.getDate() + 1);
       const dayEvents = rows
         .filter((r) => r.event.startDate < nextDay && (r.event.endDate ?? r.event.startDate) >= day)
-        .map((r) => formatEvent(r.event, r.category));
+        .map((r) => formatEvent(r.event, r.category, r.organizer));
 
       days.push({
         date: dateStr,
@@ -209,7 +219,7 @@ router.get("/events/upcoming", async (req, res) => {
       asc(eventsTable.startDate),
       limit
     );
-    res.json({ events: rows.map((r) => formatEvent(r.event, r.category)) });
+    res.json({ events: rows.map((r) => formatEvent(r.event, r.category, r.organizer)) });
   } catch (err) {
     req.log.error({ err }, "Failed to list upcoming events");
     res.status(500).json({ error: "Internal server error" });
@@ -227,7 +237,7 @@ router.get("/events/month-highlight", async (req, res) => {
       res.status(404).json({ error: "No month highlight found" });
       return;
     }
-    res.json(formatEvent(rows[0].event, rows[0].category));
+    res.json(formatEvent(rows[0].event, rows[0].category, rows[0].organizer));
   } catch (err) {
     req.log.error({ err }, "Failed to get month highlight");
     res.status(500).json({ error: "Internal server error" });
@@ -339,7 +349,7 @@ router.get("/events/:id", async (req, res) => {
       res.status(404).json({ error: "Event not found" });
       return;
     }
-    res.json(formatEvent(rows[0].event, rows[0].category));
+    res.json(formatEvent(rows[0].event, rows[0].category, rows[0].organizer));
   } catch (err) {
     req.log.error({ err }, "Failed to get event");
     res.status(500).json({ error: "Internal server error" });
@@ -375,7 +385,7 @@ router.post("/events", requireAdmin, async (req, res) => {
       .returning();
 
     const rows = await getEventsWithCategories([eq(eventsTable.id, event.id)]);
-    res.status(201).json(formatEvent(rows[0].event, rows[0].category));
+    res.status(201).json(formatEvent(rows[0].event, rows[0].category, rows[0].organizer));
   } catch (err) {
     req.log.error({ err }, "Failed to create event");
     res.status(500).json({ error: "Internal server error" });

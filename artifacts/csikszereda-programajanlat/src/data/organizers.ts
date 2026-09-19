@@ -87,8 +87,10 @@ export function getOrganizer(slug: string | undefined) {
   return ORGANIZERS.find((organizer) => organizer.slug === slug);
 }
 
-export function organizerForEvent(event: { title?: string; location?: string }) {
-  const haystack = `${event.title ?? ""} ${event.location ?? ""}`.toLocaleLowerCase("hu-HU");
+export function organizerForEvent(event: { title?: string; location?: string; organizer?: { slug?: string } | null }) {
+  if (event.organizer?.slug) return getOrganizer(event.organizer.slug);
+  // A venue is not an organiser. Only infer from the title for legacy records;
+  // matching the location made events at Csíki Mozi appear to be organised by it.
+  const haystack = `${event.title ?? ""}`.toLocaleLowerCase("hu-HU");
   return ORGANIZERS.find((organizer) => organizer.matches.some((match) => haystack.includes(match))) ?? null;
 }
-

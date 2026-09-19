@@ -3,7 +3,8 @@ export type EventSource = { title: string; url?: string };
 export function getEventSource(newsLinks?: string[] | null): EventSource {
   for (const raw of newsLinks ?? []) {
     try {
-      const parsed = JSON.parse(raw) as { title?: unknown; url?: unknown };
+      const parsed = JSON.parse(raw) as { title?: unknown; url?: unknown; name?: unknown };
+      if (parsed.title === "Szervező" && typeof parsed.name === "string") continue;
       if (typeof parsed.title === "string" && parsed.title.trim()) {
         return {
           title: parsed.title.trim(),

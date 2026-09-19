@@ -2,17 +2,6 @@ import { useEffect } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
 import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2, Database, CalendarPlus, Download } from "lucide-react";
-
-function getEventLinkMeta(url: string, price?: string | null) {
-  if (url.includes("facebook.com") || url.includes("fb.com") || url.includes("fb.me")) {
-    return { label: "Facebook esemény", Icon: Link2, style: { background: "linear-gradient(135deg,#1877f2,#0e5ab8)" } as React.CSSProperties };
-  }
-  const isFree = !price || price.trim() === "" || price.toLowerCase().includes("ingyenes");
-  if (isFree) {
-    return { label: "Részletek", Icon: ExternalLink, style: { background: "linear-gradient(135deg,#64748b,#475569)" } as React.CSSProperties };
-  }
-  return { label: "Jegyvásárlás", Icon: Ticket, style: { background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black))" } as React.CSSProperties };
-}
 import { Link } from "wouter";
 import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +11,7 @@ import { getVenueInfo } from "@/lib/venues";
 import { organizerForEvent } from "@/data/organizers";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { downloadCalendarFile, googleCalendarUrl } from "@/lib/calendar-links";
+import { getEventLinks, getEventPriceLabel } from "@/lib/event-links";
 
 function EventCard({ event, index = 0 }: { event: any; index?: number }) {
   return (
@@ -113,6 +103,8 @@ export default function EventDetail() {
   const source = getEventSource(event.newsLinks);
   const venue = getVenueInfo(event.location);
   const organizer = organizerForEvent(event);
+  const externalLinks = getEventLinks(event);
+  const organizerName = organizer?.name ?? externalLinks.organizerName ?? (event as any).organizer?.name;
 
   return (
     <div>
@@ -246,7 +238,7 @@ export default function EventDetail() {
                 </div>
 
                 {/* Location row */}
-                <div className={`flex items-start gap-4 px-5 py-4 ${event.price ? "border-b border-stone-50" : ""}`}>
+                <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #dcfce7, #bbf7d0)" }}>
                     <MapPin className="w-4 h-4 text-emerald-600" />
                   </div>
@@ -262,14 +254,14 @@ export default function EventDetail() {
                 </div>
 
                 {/* Price row */}
-                {event.price && (
+                {getEventPriceLabel(event) !== "Ingyenes" && (
                   <div className="flex items-start gap-4 px-5 py-4">
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #fce7f3, #fbcfe8)" }}>
                       <Ticket className="w-4 h-4 text-pink-500" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Belépő</p>
-                      <p className="font-semibold text-sm text-stone-800">{event.price}</p>
+                      <p className="font-semibold text-sm text-stone-800">{getEventPriceLabel(event)}</p>
                     </div>
                   </div>
                 )}
@@ -294,15 +286,12 @@ export default function EventDetail() {
                 </div>
               </div>
 
-              {organizer && (
-                <Link href={`/szervezo/${organizer.slug}`} className="group flex items-center gap-3 bg-white rounded-2xl border border-stone-100 shadow-sm px-5 py-4 hover:border-primary/30 hover:shadow-md transition-all">
+              {organizerName && (
+                organizer ? <Link href={`/szervezo/${organizer.slug}`} className="group flex items-center gap-3 bg-white rounded-2xl border border-stone-100 shadow-sm px-5 py-4 hover:border-primary/30 hover:shadow-md transition-all">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-black" style={{ background: organizer.accent }}>{organizer.initials}</div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Szervező</p>
-                    <p className="font-semibold text-sm text-stone-800 truncate group-hover:text-primary transition-colors">{organizer.name}</p>
-                  </div>
+                  <div className="min-w-0 flex-1"><p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Szervező</p><p className="font-semibold text-sm text-stone-800 truncate group-hover:text-primary transition-colors">{organizer.name}</p></div>
                   <span className="text-stone-300 group-hover:text-primary transition-colors">→</span>
-                </Link>
+                </Link> : <div className="flex items-center gap-3 bg-white rounded-2xl border border-stone-100 shadow-sm px-5 py-4"><div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-black bg-primary">SZ</div><div className="min-w-0"><p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Szervező</p><p className="font-semibold text-sm text-stone-800 truncate">{organizerName}</p></div></div>
               )}
 
               <div className="grid grid-cols-2 gap-2">
@@ -317,17 +306,10 @@ export default function EventDetail() {
                 </button>
               </div>
 
-              {/* CTA buttons */}
-              {event.ticketUrl && (() => {
-                const { label, Icon, style } = getEventLinkMeta(event.ticketUrl!, event.price);
-                return (
-                  <a href={event.ticketUrl!} target="_blank" rel="noopener noreferrer" className="block">
-                    <button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2" style={style}>
-                      <Icon className="w-4 h-4" /> {label} <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-                    </button>
-                  </a>
-                );
-              })()}
+              {/* External links: keep tickets and Facebook separate. */}
+              {externalLinks.ticketUrl && <a href={externalLinks.ticketUrl} target="_blank" rel="noopener noreferrer" className="block"><button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2" style={{ background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black))" }}><Ticket className="w-4 h-4" /> {externalLinks.ticketTitle || "Jegyvásárlás"} <ExternalLink className="w-3.5 h-3.5 opacity-70" /></button></a>}
+              {externalLinks.facebookUrl && <a href={externalLinks.facebookUrl} target="_blank" rel="noopener noreferrer" className="block"><button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2" style={{ background: "linear-gradient(135deg,#1877f2,#0e5ab8)" }}><Link2 className="w-4 h-4" /> Facebook esemény <ExternalLink className="w-3.5 h-3.5 opacity-70" /></button></a>}
+              {externalLinks.otherLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block"><button className="w-full py-3 border border-stone-200 text-stone-700 font-semibold rounded-xl hover:bg-stone-50 transition-colors text-sm flex items-center justify-center gap-2"><ExternalLink className="w-4 h-4 text-primary" /> {link.title}</button></a>)}
 
               <Link href="/" className="block">
                 <button className="w-full py-3 border border-stone-200 text-stone-600 font-semibold rounded-xl hover:bg-stone-50 transition-colors text-sm">

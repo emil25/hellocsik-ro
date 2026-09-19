@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatTime, formatShortDate } from "@/utils/date-format";
 import { getVenueInfo, venueMapPosition } from "@/lib/venues";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
+import { getEventLinks, getEventPriceLabel } from "@/lib/event-links";
 import { REGION_COUNTIES, REGION_DESCRIPTION } from "@/lib/region";
 
 function useIsAdmin() {
@@ -226,25 +227,15 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
                 </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-xs font-semibold text-primary">
-                    {events[0].price ?? "Ingyenes"}
+                    {getEventPriceLabel(events[0])}
                   </span>
                   <div className="flex items-center gap-1.5">
-                    {events[0].ticketUrl && (() => {
-                      const url = events[0].ticketUrl!;
-                      const price = events[0].price;
-                      const isFb = url.includes("facebook.com") || url.includes("fb.com") || url.includes("fb.me");
-                      const isFree = !price || price.toLowerCase().includes("ingyenes");
-                      const label = isFb ? "Facebook" : isFree ? "Részletek" : "Jegy";
-                      const bg = isFb ? "#1877f2" : isFree ? "#64748b" : "hsl(35 92% 50%)";
-                      return (
-                        <a href={url} target="_blank" rel="noopener noreferrer">
-                          <button className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full text-white transition-colors"
-                            style={{ background: bg }}>
-                            {!isFb && !isFree && <Ticket className="w-2.5 h-2.5" />}
-                            {label}
-                          </button>
-                        </a>
-                      );
+                    {(() => {
+                      const links = getEventLinks(events[0]);
+                      return <>
+                        {links.facebookUrl && <a href={links.facebookUrl} target="_blank" rel="noopener noreferrer"><button className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full text-white transition-colors" style={{ background: "#1877f2" }}>Facebook</button></a>}
+                        {links.ticketUrl && <a href={links.ticketUrl} target="_blank" rel="noopener noreferrer"><button className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full text-white transition-colors" style={{ background: "hsl(35 92% 50%)" }}><Ticket className="w-2.5 h-2.5" /> Jegy</button></a>}
+                      </>;
                     })()}
                     <Link href={`/esemeny/${events[0].id}`}>
                       <button className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full text-white transition-colors"
@@ -660,10 +651,10 @@ function UpcomingEvents() {
                       <Pencil className="w-2.5 h-2.5" /> Szerkeszt
                     </a>
                   )}
-                  {event.price && event.price !== "Ingyenes" && (
+                  {getEventPriceLabel(event) !== "Ingyenes" && (
                     <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/95 rounded-lg px-2 py-1 shadow-sm">
                       <Ticket className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-[11px] font-semibold text-foreground">{event.price}</span>
+                      <span className="text-[11px] font-semibold text-foreground">{getEventPriceLabel(event)}</span>
                     </div>
                   )}
                 </div>
@@ -675,7 +666,7 @@ function UpcomingEvents() {
                   <h3 className="font-bold text-base text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors flex-1">{event.title}</h3>
                   <p className="text-[10px] text-muted-foreground/80 line-clamp-1 mb-2">Forrás: {getEventSource(event.newsLinks).title} · {formatRefreshDate(event.updatedAt ?? event.createdAt)}</p>
                   <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
-                    <span className="text-xs text-muted-foreground">{!event.price || event.price === "Ingyenes" ? "Ingyenes" : event.price}</span>
+                    <span className="text-xs text-muted-foreground">{getEventPriceLabel(event)}</span>
                     <span className="flex items-center gap-1 text-primary text-xs font-bold">Részletek <ArrowRight className="w-3 h-3" /></span>
                   </div>
                 </div>
@@ -702,10 +693,10 @@ function UpcomingEvents() {
                       <Pencil className="w-2.5 h-2.5" /> Szerkeszt
                     </a>
                   )}
-                  {event.price && event.price !== "Ingyenes" && (
+                  {getEventPriceLabel(event) !== "Ingyenes" && (
                     <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-white/95 rounded-full px-2.5 py-1 shadow">
                       <Ticket className="w-3 h-3 text-amber-600" />
-                      <span className="text-[11px] font-bold text-amber-700">{event.price}</span>
+                      <span className="text-[11px] font-bold text-amber-700">{getEventPriceLabel(event)}</span>
                     </div>
                   )}
                 </div>
@@ -717,7 +708,7 @@ function UpcomingEvents() {
                   <h3 className="font-bold text-base text-foreground leading-snug mb-2 line-clamp-2 group-hover:text-amber-700 transition-colors flex-1">{event.title}</h3>
                   <p className="text-[10px] text-muted-foreground/80 line-clamp-1 mb-2">Forrás: {getEventSource(event.newsLinks).title} · {formatRefreshDate(event.updatedAt ?? event.createdAt)}</p>
                   <div className="flex items-center justify-between mt-auto pt-2 border-t border-amber-200/60">
-                    <span className="text-xs text-muted-foreground">{!event.price || event.price === "Ingyenes" ? "Ingyenes" : event.price}</span>
+                    <span className="text-xs text-muted-foreground">{getEventPriceLabel(event)}</span>
                     <span className="flex items-center gap-1 text-amber-600 text-xs font-bold">Részletek <ArrowRight className="w-3 h-3" /></span>
                   </div>
                 </div>
@@ -883,24 +874,12 @@ function MonthHighlight() {
                   <ExternalLink className="w-4 h-4" />
                 </button>
               </Link>
-              {event.ticketUrl && (() => {
-                const url = event.ticketUrl!;
-                const isFb = url.includes("facebook.com") || url.includes("fb.com") || url.includes("fb.me");
-                const isFree = !event.price || event.price.toLowerCase().includes("ingyenes");
-                const label = isFb ? "Facebook esemény" : isFree ? "Részletek" : "Jegyvásárlás";
-                const style = isFb
-                  ? { background: "#1877f2", color: "white" }
-                  : isFree
-                  ? { border: "1px solid #e2e8f0", color: "#374151" }
-                  : { background: "hsl(35 92% 50%)", color: "white" };
-                return (
-                  <a href={url} target="_blank" rel="noopener noreferrer">
-                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors hover:opacity-90" style={style}>
-                      {!isFb && !isFree && <Ticket className="w-4 h-4" />}
-                      {label} <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-                    </button>
-                  </a>
-                );
+              {(() => {
+                const links = getEventLinks(event);
+                return <>
+                  {links.facebookUrl && <a href={links.facebookUrl} target="_blank" rel="noopener noreferrer"><button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors hover:opacity-90" style={{ background: "#1877f2", color: "white" }}>Facebook esemény <ExternalLink className="w-3.5 h-3.5 opacity-70" /></button></a>}
+                  {links.ticketUrl && <a href={links.ticketUrl} target="_blank" rel="noopener noreferrer"><button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors hover:opacity-90" style={{ background: "hsl(35 92% 50%)", color: "white" }}><Ticket className="w-4 h-4" /> Jegyvásárlás <ExternalLink className="w-3.5 h-3.5 opacity-70" /></button></a>}
+                </>;
               })()}
             </div>
           </div>

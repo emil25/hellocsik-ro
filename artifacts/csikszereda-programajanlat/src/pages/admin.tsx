@@ -198,18 +198,18 @@ function toDatetimeLocal(iso: string) {
   return new Date(iso).toLocaleString("sv-SE", { timeZone: "Europe/Bucharest" }).replace(" ", "T").slice(0, 16);
 }
 
-type NewsLink = { title: string; url: string };
+type NewsLink = { title: string; url: string; name?: string };
 
 type EventForm = {
   title: string; description: string; location: string; locationAddress: string;
-  startDate: string; endDate: string; price: string; ticketUrl: string;
+  startDate: string; endDate: string; price: string; ticketUrl: string; facebookUrl: string; organizerName: string;
   imageUrl: string; categoryId: string; featured: boolean; monthHighlight: boolean;
   newsLinks: NewsLink[];
 };
 
 const emptyForm = (): EventForm => ({
   title: "", description: "", location: "", locationAddress: "",
-  startDate: "", endDate: "", price: "", ticketUrl: "",
+  startDate: "", endDate: "", price: "", ticketUrl: "", facebookUrl: "", organizerName: "",
   imageUrl: "", categoryId: "", featured: false, monthHighlight: false,
   newsLinks: [],
 });
@@ -239,7 +239,8 @@ function FacebookImport({ token, onApply }: { token: string; onApply: (data: Par
         ...(data.startDate ? { startDate: toDatetimeLocal(data.startDate) } : {}),
         ...(data.endDate ? { endDate: toDatetimeLocal(data.endDate) } : {}),
         ...(data.location?.trim() ? { location: data.location.trim() } : {}),
-        ticketUrl: data.sourceUrl ?? url,
+        ticketUrl: "",
+        facebookUrl: data.sourceUrl ?? url,
         newsLinks: [{ title: "Facebook-esemény", url: data.sourceUrl ?? url }],
       };
       onApply(imported);
@@ -408,6 +409,15 @@ function NewsLinksEditor({ links, onChange }: { links: NewsLink[]; onChange: (li
   );
 }
 
+function serializedNewsLinks(form: EventForm) {
+  const links: NewsLink[] = form.newsLinks.filter(l => l.title.trim() && l.url.trim()).map(l => ({ title: l.title.trim(), url: l.url.trim() }));
+  if (form.facebookUrl.trim() && !links.some(link => link.url === form.facebookUrl.trim())) {
+    links.unshift({ title: "Facebook-esemény", url: form.facebookUrl.trim() });
+  }
+  if (form.organizerName.trim()) links.push({ title: "Szervező", url: "", name: form.organizerName.trim() });
+  return links.map(link => JSON.stringify(link));
+}
+
 // ─── CREATE MODAL ──────────────────────────────────────────────────────────────
 
 function CreateModal({
@@ -446,7 +456,7 @@ function CreateModal({
         categoryId: form.categoryId ? Number(form.categoryId) : null,
         featured: form.featured,
         monthHighlight: form.monthHighlight,
-        newsLinks: form.newsLinks.filter(l => l.title.trim() && l.url.trim()).map(l => JSON.stringify(l)),
+        newsLinks: serializedNewsLinks(form),
       };
       const res = await fetch(`${API}/admin/events`, {
         method: "POST",
@@ -522,11 +532,13 @@ function EditModal({
     endDate: ev.endDate ? toDatetimeLocal(ev.endDate) : "",
     price: ev.price ?? "",
     ticketUrl: ev.ticketUrl ?? "",
+    facebookUrl: (ev.newsLinks ?? []).map(s => { try { return JSON.parse(s) as NewsLink; } catch { return null; } }).find((l): l is NewsLink => !!l && /facebook/i.test(l.title))?.url ?? "",
+    organizerName: (ev.newsLinks ?? []).map(s => { try { return JSON.parse(s) as NewsLink; } catch { return null; } }).find((l): l is NewsLink => !!l && l.title === "Szervező")?.name ?? "",
     imageUrl: ev.imageUrl,
     categoryId: ev.categoryId ? String(ev.categoryId) : "",
     featured: ev.featured,
     monthHighlight: ev.monthHighlight,
-    newsLinks: (ev.newsLinks ?? []).map(s => { try { return JSON.parse(s) as NewsLink; } catch { return null; } }).filter(Boolean) as NewsLink[],
+    newsLinks: (ev.newsLinks ?? []).map(s => { try { return JSON.parse(s) as NewsLink; } catch { return null; } }).filter((link): link is NewsLink => !!link && !!link.url) ,
   });
   const [saving, setSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
@@ -555,7 +567,7 @@ function EditModal({
         categoryId: form.categoryId ? Number(form.categoryId) : null,
         featured: form.featured,
         monthHighlight: form.monthHighlight,
-        newsLinks: form.newsLinks.filter(l => l.title.trim() && l.url.trim()).map(l => JSON.stringify(l)),
+        newsLinks: serializedNewsLinks(form),
       };
       const res = await fetch(`${API}/admin/events/${ev.id}`, {
         method: "PATCH",
@@ -718,6 +730,18 @@ function CategorySelect({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
+          <label className={labelCls}>Szervező neve</label>
+          <input value={form.organizerName} onChange={e => set("organizerName", e.target.value)} className={inputCls} placeholder="pl. Csíki Játékszín" />
+          <p className="mt-1 text-[10px] text-muted-foreground">A helyszín ettől külön mező.</p>
+        </div>
+        <div>
+          <label className={labelCls}>Facebook-esemény URL</label>
+          <input type="url" value={form.facebookUrl} onChange={e => set("facebookUrl", e.target.value)} className={inputCls} placeholder="https://facebook.com/events/..." />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
           <label className={labelCls}>Ár</label>
           <input value={form.price} onChange={e => set("price", e.target.value)} className={inputCls} placeholder="pl. 500 RON / Ingyenes" />
         </div>
@@ -741,6 +765,7 @@ function CategorySelect({
       <div>
         <label className={labelCls}>Jegy / részletek URL</label>
         <input type="url" value={form.ticketUrl} onChange={e => set("ticketUrl", e.target.value)} className={inputCls} placeholder="https://..." />
+        <p className="mt-1 text-[10px] text-muted-foreground">A Facebook-link külön mezőben van, így a jegyvásárlás külön gombként jelenik meg.</p>
       </div>
 
       <NewsLinksEditor links={form.newsLinks} onChange={links => set("newsLinks", links as any)} />
