@@ -20,6 +20,10 @@ const CITY_FILTERS = [
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("hu").trim();
 
+const isPromoted = (event: any) => Boolean(
+  event.featured || (event.promotionStatus === "paid" && event.promotionPlan !== "free"),
+);
+
 export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<number | null>(null);
@@ -57,7 +61,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
         && (!query.trim() || normalize(`${event.title} ${event.location} ${event.description}`).includes(normalize(query)))
         && (!from || !until || (start < until && end >= from))
         && (!weekend || (start < monday && end >= saturday));
-    }).sort((a, b) => Number(b.featured) - Number(a.featured) || Date.parse(a.startDate) - Date.parse(b.startDate));
+    }).sort((a, b) => Number(isPromoted(b)) - Number(isPromoted(a)) || Date.parse(a.startDate) - Date.parse(b.startDate));
   }, [events, query, category, city, day, weekend]);
   const reset = () => { setQuery(""); setCategory(null); setCity(null); setDay(""); setWeekend(false); setVisible(12); };
 
@@ -98,7 +102,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
       {eventsQuery.isLoading ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Programok betöltése">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}</div>
         : eventsQuery.isError ? <div className="finder-empty" role="alert"><CalendarDays /><h3>A programokat most nem sikerült betölteni.</h3><p>Próbáld újra egy kicsit később.</p><Button onClick={() => eventsQuery.refetch()}>Újrapróbálom</Button></div>
         : <><p className="text-sm text-muted-foreground mb-5" role="status">{filtered.length} program{events?.length === 100 ? " a következő 100 esemény között" : ""}</p>
-          {filtered.length ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{filtered.slice(0, visible).map(event => <EventCard key={event.id} event={event} />)}</div>
+          {filtered.length ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{filtered.slice(0, visible).map((event, index) => <EventCard key={event.id} event={event} index={index} promoted={isPromoted(event)} />)}</div>
             : <div className="finder-empty"><SlidersHorizontal /><h3>{query || category || day || weekend ? "Erre most nincs találat." : "Hamarosan új programok érkeznek."}</h3><p>{query || category || day || weekend ? "Próbálj másik dátumot vagy tágabb keresést." : "Szervezel valamit? Küldd be a programodat!"}</p>{query || category || day || weekend ? <Button variant="outline" onClick={reset}>Szűrők törlése</Button> : <Link href="/bekuldese" className="discovery-primary">Program beküldése <ArrowRight size={16} /></Link>}</div>}
           {filtered.length > visible && <div className="text-center mt-8"><Button variant="outline" onClick={() => setVisible(visible + 12)}>További programok</Button></div>}
         </>}

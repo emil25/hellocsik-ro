@@ -20,25 +20,34 @@ interface EventCardProps {
     newsLinks?: string[];
     createdAt?: string;
     updatedAt?: string;
+    promotionStatus?: string | null;
+    promotionPlan?: string | null;
   };
   index?: number;
+  promoted?: boolean;
 }
 
-export function EventCard({ event, index = 0 }: EventCardProps) {
+export function EventCard({ event, index = 0, promoted = Boolean(event.featured) }: EventCardProps) {
   const [imageError, setImageError] = useState(false);
   const usesGenericImage = !event.imageUrl || event.imageUrl.includes("images.unsplash.com/photo-149268") || event.imageUrl.includes("hellocsik-logo");
   const showFallback = usesGenericImage || imageError;
   const fallbackColor = event.category?.color ?? "#24543b";
   const source = getEventSource(event.newsLinks);
+  const paidPromotion = event.promotionStatus === "paid" && event.promotionPlan !== "free";
+  const promotionLabel = paidPromotion
+    ? event.promotionPlan === "homepage" ? "Főoldal+ · hirdetés" : "Kiemelt · hirdetés"
+    : "✦ Kihagyhatatlan";
   return (
     <motion.div
+      className={promoted ? "lg:col-span-2" : undefined}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.07, ease: "easeOut" }}
     >
       <div className="relative h-full">
       <Link href={`/esemeny/${event.id}`}>
-        <div className={`group h-full cursor-pointer bg-card rounded-2xl overflow-hidden border hover:border-primary/30 hover:shadow-lg transition-all duration-300 ${event.featured ? "border-amber-400" : "border-card-border"}`}>
+        <div className={`group relative h-full cursor-pointer bg-card rounded-2xl overflow-hidden border hover:border-primary/30 hover:shadow-lg transition-all duration-300 ${paidPromotion ? "border-violet-300/90 shadow-violet-100/50" : promoted ? "border-amber-400 shadow-amber-100/50" : "border-card-border"}`}>
+          <span className={`event-half-frame ${paidPromotion ? "event-half-frame-paid" : ""}`} style={{ borderColor: event.category?.color ?? (paidPromotion ? "#7c3aed" : "#f59e0b") }} aria-hidden="true" />
           <div className="relative overflow-hidden aspect-[4/3] bg-muted">
             {showFallback ? <div className="h-full flex flex-col justify-center items-center gap-3 text-white p-5" style={{ background: `linear-gradient(135deg, ${fallbackColor}, #172d25)` }}><CalendarDays size={45} strokeWidth={1.5} /><span className="text-[10px] uppercase tracking-[.18em] font-bold opacity-75">{event.category?.name ?? "HelloCsík"}</span><span className="font-bold text-lg text-center leading-tight line-clamp-2">{event.title}</span></div> :
             <img
@@ -56,7 +65,7 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
                 {event.category.name}
               </span>
             )}
-            {event.featured && <span className="absolute left-3 top-3 rounded-full bg-amber-400 text-amber-950 px-2.5 py-1 text-xs font-bold">✦ Kihagyhatatlan</span>}
+            {promoted && <span className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold shadow ${paidPromotion ? "bg-gradient-to-r from-violet-600 to-blue-600 text-white" : "bg-amber-400 text-amber-950"}`}>{promotionLabel}</span>}
             {event.price && (
               <span className="absolute bottom-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-background/90 text-foreground shadow flex items-center gap-1">
                 <Ticket className="w-3 h-3" />
