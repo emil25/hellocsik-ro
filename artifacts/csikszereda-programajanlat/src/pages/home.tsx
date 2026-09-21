@@ -526,7 +526,7 @@ function UpcomingEvents() {
             </div>
             <h2 className="text-3xl font-bold text-foreground">Hamarosan Csíkszeredában</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {sorted.length} program · {featuredCount > 0 && <span className="font-medium text-amber-600">{featuredCount} kihagyhatatlan</span>}
+              {sorted.length} program · {featuredCount > 0 && <span className="font-medium text-amber-600">{featuredCount} kiemelt</span>}
             </p>
           </div>
           <Link href="/naptar" className="hidden md:flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
