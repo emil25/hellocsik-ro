@@ -120,6 +120,44 @@ html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
 .finder-empty { border: 1px dashed #d0ddd4; padding: 3rem 1.5rem; border-radius: 1rem; display: flex; flex-direction: column; gap: 1rem; align-items: center; text-align: center; }
 .finder-empty h3 { font-size: 1.25rem; font-weight: 700; }
 .finder-empty p { color: #56615b; }
+
+/* A small editorial accent appears on the right edge of every event card on
+   hover/focus. Paid placements keep a quieter version visible so the larger
+   promoted layout is recognisable without hiding the event information. */
+.event-half-frame {
+  position: absolute;
+  z-index: 4;
+  top: 10px;
+  right: 10px;
+  bottom: 10px;
+  width: 42%;
+  border: 2px solid;
+  border-left: 0;
+  border-radius: 0 16px 16px 0;
+  opacity: 0;
+  transform: translateX(14px);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+.group:hover > .event-half-frame,
+.group:focus-visible > .event-half-frame,
+.group:focus-within > .event-half-frame {
+  opacity: .95;
+  transform: translateX(0);
+}
+.event-half-frame-paid {
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  border-width: 3px;
+  opacity: .22;
+  transform: translateX(0);
+}
+.group:hover > .event-half-frame-paid,
+.group:focus-visible > .event-half-frame-paid,
+.group:focus-within > .event-half-frame-paid {
+  opacity: 1;
+}
 .active-szekely-section { padding: 5rem 0; overflow: hidden; background: linear-gradient(135deg, #e8f0ee 0%, #f8e8e4 52%, #dbe8e5 100%); color: #351423; }
 .active-szekely-eyebrow { display: flex; align-items: center; gap: .65rem; margin-bottom: 1rem; color: #81354c; font-size: .7rem; font-weight: 900; letter-spacing: .16em; }
 .active-szekely-eyebrow span { color: #b85869; }

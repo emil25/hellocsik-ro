@@ -493,15 +493,22 @@ function UpcomingEvents() {
   const categories = catData?.categories ?? [];
   const activeBanners: Banner[] = (bannerData?.banners ?? []).slice().sort((a, b) => a.position - b.position);
 
-  // Featured events first, then the rest by date
+  const promotionInfo = (event: any) => {
+    const paid = event.promotionStatus === "paid" && event.promotionPlan !== "free";
+    const promoted = Boolean(event.featured || paid);
+    const plan = event.promotionPlan === "homepage" ? "homepage" : "featured";
+    return { paid, promoted, plan };
+  };
+
+  // Featured and paid promotion events first, then the rest by date.
   const sorted = [
-    ...rawEvents.filter(e => e.featured),
-    ...rawEvents.filter(e => !e.featured),
+    ...rawEvents.filter(e => promotionInfo(e).promoted),
+    ...rawEvents.filter(e => !promotionInfo(e).promoted),
   ];
   const events = selectedCategoryId
     ? sorted.filter(e => e.categoryId === selectedCategoryId)
     : sorted;
-  const featuredCount = sorted.filter(e => e.featured).length;
+  const featuredCount = sorted.filter(e => promotionInfo(e).promoted).length;
 
   // Count per category
   const catCounts: Record<number, number> = {};
@@ -590,7 +597,7 @@ function UpcomingEvents() {
           let featRowIdx = 0;
           while (si < slots.length) {
             const slot = slots[si];
-            if (slot.kind === 'event' && slot.ev.featured) {
+            if (slot.kind === 'event' && promotionInfo(slot.ev).promoted) {
               si++;
               const companions: Slot[] = [];
               while (companions.length < 2 && si < slots.length) companions.push(slots[si++]);
@@ -600,7 +607,7 @@ function UpcomingEvents() {
               const batch: Slot[] = [];
               while (si < slots.length && batch.length < 3) {
                 const s = slots[si];
-                if (s.kind === 'event' && s.ev.featured) break;
+                if (s.kind === 'event' && promotionInfo(s.ev).promoted) break;
                 batch.push(slots[si++]);
               }
               if (batch.length > 0) rows.push({ kind: 'regular', items: batch });
@@ -637,7 +644,8 @@ function UpcomingEvents() {
 
           const EventCard = ({ ev: event, aspectRatio = '16/9' }: { ev: Ev; aspectRatio?: string }) => (
             <Link href={`/esemeny/${event.id}`}>
-              <div className="group cursor-pointer bg-card rounded-2xl overflow-hidden border border-card-border hover:border-primary/20 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
+              <div className="group relative cursor-pointer bg-card rounded-2xl overflow-hidden border border-card-border hover:border-primary/20 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
+                <span className="event-half-frame" style={{ borderColor: event.category?.color ?? "#24543b" }} aria-hidden="true" />
                 <div className="relative overflow-hidden" style={{ aspectRatio }}>
                   <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
@@ -676,13 +684,14 @@ function UpcomingEvents() {
 
           const FeaturedCard = ({ ev: event, featLeft }: { ev: Ev; featLeft: boolean }) => (
             <Link href={`/esemeny/${event.id}`}>
-              <div className="group cursor-pointer rounded-2xl overflow-hidden border-2 border-amber-300/70 shadow-lg shadow-amber-100/50 ring-1 ring-amber-200/40 bg-gradient-to-br from-amber-50/60 to-card transition-all duration-300 hover:shadow-xl hover:border-amber-400/80 h-full flex flex-col">
+              <div className={`group relative cursor-pointer rounded-2xl overflow-hidden border-2 shadow-lg ring-1 bg-gradient-to-br from-amber-50/60 to-card transition-all duration-300 hover:shadow-xl h-full flex flex-col ${promotionInfo(event).paid ? "border-violet-300/80 shadow-violet-100/50 ring-violet-200/50" : "border-amber-300/70 shadow-amber-100/50 ring-amber-200/40 hover:border-amber-400/80"}`}>
+                <span className={`event-half-frame ${promotionInfo(event).paid ? "event-half-frame-paid" : ""}`} style={{ borderColor: event.category?.color ?? (promotionInfo(event).paid ? "#7c3aed" : "#f59e0b") }} aria-hidden="true" />
                 <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
                   <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                   <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                    <span className="flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full text-white shadow" style={{ background: "linear-gradient(135deg, #f59e0b, #f97316)" }}>
-                      <Sparkles className="w-2.5 h-2.5" /> Kihagyhatatlan
+                    <span className="flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full text-white shadow" style={{ background: promotionInfo(event).paid ? "linear-gradient(135deg, #7c3aed, #2563eb)" : "linear-gradient(135deg, #f59e0b, #f97316)" }}>
+                      <Sparkles className="w-2.5 h-2.5" /> {promotionInfo(event).paid ? (promotionInfo(event).plan === "homepage" ? "Főoldal+ · hirdetés" : "Kiemelt · hirdetés") : "Kihagyhatatlan"}
                     </span>
                     {event.category && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: event.category.color }}>{event.category.name}</span>
@@ -765,21 +774,20 @@ function UpcomingEvents() {
                 // Featured row
                 const featIdx = globalIdx++;
                 globalIdx += row.companions.length;
-                const featCell = <FeaturedCard ev={row.feat} featLeft={row.featLeft} />;
-                const companionCells = row.companions.map((slot, ci) => (
-                  <div key={slot.kind === 'card-banner' ? `cb-${slot.banner.id}` : slot.ev.id}>
-                    <SlotCell slot={slot} idx={featIdx + 1 + ci} />
-                  </div>
-                ));
-                const cells = row.featLeft
-                  ? [<div key="feat">{featCell}</div>, ...companionCells]
-                  : [...companionCells, <div key="feat">{featCell}</div>];
-
                 return (
                   <motion.div key={itemIdx} className="grid grid-cols-1 md:grid-cols-3 gap-5"
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: featIdx * 0.04, duration: 0.38 }}>
-                    {cells}
+                    <div className="md:col-span-2 min-h-[360px]">
+                      <FeaturedCard ev={row.feat} featLeft={row.featLeft} />
+                    </div>
+                    <div className="md:col-span-1 grid grid-rows-2 gap-5">
+                      {row.companions.map((slot, ci) => (
+                        <div key={slot.kind === 'card-banner' ? `cb-${slot.banner.id}` : slot.ev.id} className="min-h-0">
+                          <SlotCell slot={slot} idx={featIdx + 1 + ci} />
+                        </div>
+                      ))}
+                    </div>
                   </motion.div>
                 );
               })}
