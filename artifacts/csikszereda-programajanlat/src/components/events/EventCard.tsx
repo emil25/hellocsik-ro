@@ -39,7 +39,6 @@ export function EventCard({ event, index = 0, promoted = Boolean(event.featured)
     : "✦ Kihagyhatatlan";
   return (
     <motion.div
-      className={promoted ? "lg:col-span-2" : undefined}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.07, ease: "easeOut" }}
