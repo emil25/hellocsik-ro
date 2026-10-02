@@ -1,10 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { ProgramFinder } from "@/components/events/ProgramFinder";
-import { OrbitHero } from "@/components/OrbitHero";
 import { CityGuideHero } from "@/components/CityGuideHero";
-import { SparkHero } from "@/components/SparkHero";
-import { StudioHero } from "@/components/StudioHero";
-import { RegionAtlasHero } from "@/components/RegionAtlasHero";
 import { ActiveSzekelyfold, CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
@@ -28,7 +24,8 @@ import { formatDate, formatTime, formatShortDate } from "@/utils/date-format";
 import { getVenueInfo, venueMapPosition } from "@/lib/venues";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
 import { getEventLinks, getEventPriceLabel } from "@/lib/event-links";
-import { REGION_COUNTIES, REGION_DESCRIPTION } from "@/lib/region";
+import { isCsikEvent } from "@/lib/csik-events";
+import "@/components/home-view-switch.css";
 
 function useIsAdmin() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -52,7 +49,7 @@ const STARS = Array.from({ length: 55 }, (_, i) => ({
 
 function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
   const { data, isLoading } = useListFeaturedEvents();
-  const events = data?.events ?? [];
+  const events = (data?.events ?? []).filter(isCsikEvent);
 
   return (
     <section
@@ -103,7 +100,7 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
             style={{ backdropFilter: "blur(8px)" }}
           >
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-sm shadow-green-400/50" />
-            <span className="text-xs font-semibold text-white/75 uppercase tracking-wider">Élő · Székelyföld eseményei</span>
+            <span className="text-xs font-semibold text-white/75 uppercase tracking-wider">Csíkszereda és Csík környékének programjai</span>
           </motion.div>
 
           <motion.h1
@@ -123,7 +120,7 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
                 backgroundClip: "text",
               }}
             >
-              Székelyföldön?
+              Csíkszeredában?
             </span>
           </motion.h1>
 
@@ -133,7 +130,7 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
             transition={{ duration: 0.5, delay: 0.36 }}
             className="text-white/60 text-base leading-relaxed mb-9 max-w-md"
           >
-            {REGION_DESCRIPTION} Koncertek, fesztiválok, színház, kiállítások és közösségi programok –
+            Koncertek, fesztiválok, színház, kiállítások és közösségi programok Csíkszeredában és környékén –
             minden, amit érdemes megnézni, egy helyen, friss információkkal.
           </motion.p>
 
@@ -164,9 +161,6 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
               </button>
             </a>
           </motion.div>
-          <div className="flex flex-wrap gap-2 mt-6" aria-label="A portál lefedett megyéi">
-            {REGION_COUNTIES.map(county => <span key={county} className="px-3 py-1 rounded-full border border-white/20 bg-white/10 text-white/80 text-xs font-semibold">{county} megye</span>)}
-          </div>
           <div className="classic-view-row">
             <span>Főoldal nézete</span>
             {viewSwitch}
@@ -308,7 +302,7 @@ function WeeklyCalendar() {
   const { data: catData } = useListCategories();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedCat, setSelectedCat] = useState<number | null>(null);
-  const days = data?.days ?? [];
+  const days = (data?.days ?? []).map(day => ({ ...day, events: day.events.filter(isCsikEvent) }));
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Bucharest" });
   const activeDay = selectedDay ?? (weekOffset === 0 ? today : days[0]?.date);
   const changeWeek = (direction: number) => { setWeekOffset(value => value + direction); setSelectedDay(null); };
@@ -1354,7 +1348,7 @@ function VenuesSection() {
   const { data } = useListUpcomingEvents({ limit: 100 });
 
   const venues = useMemo(() => {
-    const evs = data?.events ?? [];
+    const evs = (data?.events ?? []).filter(isCsikEvent);
     const map = new Map<string, { info: ReturnType<typeof getVenueInfo>; titles: string[]; categories: Set<string> }>();
     for (const ev of evs) {
       if (!ev.location) continue;
@@ -1386,8 +1380,8 @@ function VenuesSection() {
           {/* Map – full width */}
           <div className="relative rounded-2xl overflow-hidden border border-card-border shadow-sm bg-emerald-50" style={{ height: "320px" }}>
             <iframe
-              title="Székelyföld térkép"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=24.8000%2C45.6000%2C26.5000%2C46.9000&layer=mapnik"
+              title="Csíkszereda programhelyszínei"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=25.7800%2C46.3500%2C25.8300%2C46.3900&layer=mapnik"
               className="w-full h-full opacity-80"
               style={{ border: 0, pointerEvents: "none" }}
               loading="lazy"
@@ -1474,37 +1468,33 @@ function ActiveBanners() {
   </section>;
 }
 
-type HomeDesign = "atlas" | "classic" | "city" | "orbit" | "spark" | "studio";
+type HomeDesign = "classic" | "city";
 
 export default function Home({ initialDesign }: { initialDesign?: HomeDesign } = {}) {
+  useEffect(() => { document.title = "HelloCsík – Csíkszereda és környékének programjai"; }, []);
   const [design, setDesign] = useState<HomeDesign>(() => {
     if (initialDesign) return initialDesign;
     try {
-      const saved = localStorage.getItem("hellocsik-home-design-szekelyfold");
-      return saved === "atlas" || saved === "classic" || saved === "city" || saved === "orbit" || saved === "spark" || saved === "studio" ? saved : "atlas";
+      const saved = localStorage.getItem("hellocsik-home-design");
+      return saved === "classic" || saved === "city" ? saved : "classic";
     }
-    catch { return "atlas"; }
+    catch { return "classic"; }
   });
   const changeDesign = (value: HomeDesign) => {
     setDesign(value);
-    try { localStorage.setItem("hellocsik-home-design-szekelyfold", value); } catch { /* The switch also works without browser storage. */ }
+    try { localStorage.setItem("hellocsik-home-design", value); } catch { /* The switch also works without browser storage. */ }
   };
   const viewSwitch = (
     <div className={`home-view-toggle ${design === "classic" ? "home-view-toggle-classic" : ""}`} role="group" aria-label="Főoldal dizájnja">
-      <button aria-pressed={design === "atlas"} onClick={() => changeDesign("atlas")}>Városok</button>
       <button aria-pressed={design === "classic"} onClick={() => changeDesign("classic")}>Klasszikus</button>
       <button aria-pressed={design === "city"} onClick={() => changeDesign("city")}>Városi</button>
-      <button aria-pressed={design === "orbit"} onClick={() => changeDesign("orbit")}>Friss</button>
-      <button aria-pressed={design === "spark"} onClick={() => changeDesign("spark")}>Szikra</button>
-      <button aria-pressed={design === "studio"} onClick={() => changeDesign("studio")}>Studio</button>
     </div>
   );
   return (
-    <div className={design === "atlas" ? "region-atlas-home" : design === "orbit" ? "orbit-home" : design === "city" ? "city-home" : design === "spark" ? "spark-home" : design === "studio" ? "studio-home" : "classic-home"}>
-      {design === "atlas" ? <RegionAtlasHero viewSwitch={viewSwitch} /> : design === "orbit" ? <OrbitHero viewSwitch={viewSwitch} /> : design === "city" ? <CityGuideHero viewSwitch={viewSwitch} /> : design === "spark" ? <SparkHero viewSwitch={viewSwitch} /> : design === "studio" ? <StudioHero viewSwitch={viewSwitch} /> : <Hero viewSwitch={viewSwitch} />}
+    <div className={design === "city" ? "city-home" : "classic-home"}>
+      {design === "city" ? <CityGuideHero viewSwitch={viewSwitch} /> : <Hero viewSwitch={viewSwitch} />}
       {design === "classic" && <WeeklyCalendar />}
       <ProgramFinder showHero={false} />
-      {design === "orbit" && <WeeklyCalendar />}
       <ActiveBanners />
       <ActiveSzekelyfold />
       <CloudFestival />

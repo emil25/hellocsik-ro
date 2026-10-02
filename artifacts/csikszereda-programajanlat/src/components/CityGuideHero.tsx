@@ -5,6 +5,7 @@ import { formatShortDate, formatTime } from "@/utils/date-format";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import type { ReactNode } from "react";
 import "./city-guide-home.css";
+import { isCsikEvent } from "@/lib/csik-events";
 
 function issueLabel() {
   return new Intl.DateTimeFormat("hu-HU", { year: "numeric", month: "long", day: "numeric", weekday: "long" }).format(new Date());
@@ -12,18 +13,18 @@ function issueLabel() {
 
 export function CityGuideHero({ viewSwitch }: { viewSwitch: ReactNode }) {
   const { data, isLoading, isError, refetch } = useListUpcomingEvents({ limit: 100 });
-  const events = data?.events ?? [];
+  const events = (data?.events ?? []).filter(isCsikEvent);
   const lead = events.find((event) => event.featured && event.imageUrl) ?? events.find((event) => event.imageUrl) ?? events[0];
   const next = events.filter((event) => event.id !== lead?.id).slice(0, 3);
   const categories = Array.from(new Set(events.map((event) => event.category?.name).filter(Boolean))).slice(0, 4);
 
   return (
-    <section className="city-guide" aria-label="HelloCsík székelyföldi programkalauz">
+    <section className="city-guide" aria-label="HelloCsík csíki programkalauz">
       <div className="city-guide-shell">
         <header className="city-guide-mast">
-          <span className="city-guide-mark"><Compass size={17} /> HELLOCSÍK · SZÉKELYFÖLD FELFEDEZŐ</span>
+          <span className="city-guide-mark"><Compass size={17} /> HELLOCSÍK · VÁROSI PROGRAMKALAUZ</span>
           <div className="city-guide-mast-right">
-            <span className="city-guide-today">{issueLabel()} · Székelyföld</span>
+            <span className="city-guide-today">{issueLabel()} · Csíkszereda</span>
             <div className="city-guide-view-row"><span>Főoldal nézete</span>{viewSwitch}</div>
           </div>
         </header>
@@ -31,8 +32,8 @@ export function CityGuideHero({ viewSwitch }: { viewSwitch: ReactNode }) {
         <div className="city-guide-layout">
           <div className="city-guide-intro">
             <span className="city-guide-kicker"><i /> MA IS TÖRTÉNIK VALAMI</span>
-            <h1>Kapcsolódj ki.<br /><em>Itt, Székelyföldön.</em></h1>
-            <p>Székelyföld városainak programjai egy friss, gyorsan átlátható listában.</p>
+            <h1>Kapcsolódj ki.<br /><em>Itt, Csíkszeredában.</em></h1>
+            <p>Csíkszereda és Csík környékének koncertjei, előadásai és közösségi programjai.</p>
             <div className="city-guide-actions">
               <a href="#kozelgo" className="city-guide-primary">Mutasd a programokat <ArrowRight size={18} /></a>
               <Link href="/naptar" className="city-guide-calendar"><CalendarDays size={18} /> Naptár</Link>
@@ -71,7 +72,7 @@ export function CityGuideHero({ viewSwitch }: { viewSwitch: ReactNode }) {
               <img src={`${import.meta.env.BASE_URL}reference/city-center.jpg`} alt="Csíkszereda belvárosa" />
               <div className="city-guide-feature-shade" />
               <div className="city-guide-feature-copy">
-                <span>HELLO, SZÉKELYFÖLD!</span>
+                <span>HELLO, CSÍKSZEREDA!</span>
                 <h2>{isLoading ? "Keressük a következő programot…" : "Hamarosan új programok érkeznek."}</h2>
                 {isError && <button className="city-guide-primary" onClick={() => refetch()}>Újrapróbálom</button>}
               </div>

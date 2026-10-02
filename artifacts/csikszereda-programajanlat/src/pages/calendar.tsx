@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 import { useListUpcomingEvents, type Event as ApiEvent } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatTime } from "@/utils/date-format";
+import { isCsikEvent } from "@/lib/csik-events";
 
 export default function CalendarPage() {
+  const regional = new URLSearchParams(useSearch()).get("scope") === "szekelyfold";
   const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -17,19 +19,19 @@ export default function CalendarPage() {
   const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
   const eventsByDate = useMemo(() => {
     const result: Record<string, ApiEvent[]> = {};
-    (data?.events ?? []).forEach(event => {
+    (data?.events ?? []).filter(event => regional || isCsikEvent(event)).forEach(event => {
       const key = new Date(event.startDate).toLocaleDateString("sv-SE", { timeZone: "Europe/Bucharest" });
       (result[key] ??= []).push(event);
     });
     return result;
-  }, [data]);
+  }, [data, regional]);
   const selectedEvents = selectedDate ? eventsByDate[selectedDate] ?? [] : [];
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Bucharest" });
 
   return <section className="min-h-[calc(100vh-4rem)] py-12 sm:py-16 bg-[#eff2e8]">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex flex-wrap justify-between gap-4 items-end mb-7">
-        <div><div className="flex gap-2 items-center text-primary mb-2"><Calendar className="w-4 h-4" /><span className="text-xs font-bold tracking-widest uppercase">Havi naptár</span></div><h1 className="text-3xl sm:text-4xl font-bold">Programok egy pillantásra</h1><p className="text-sm text-muted-foreground mt-2">Kattints egy napra az ottani eseményekért.</p></div>
+        <div><div className="flex gap-2 items-center text-primary mb-2"><Calendar className="w-4 h-4" /><span className="text-xs font-bold tracking-widest uppercase">Havi naptár</span></div><h1 className="text-3xl sm:text-4xl font-bold">{regional ? "Székelyföldi programnaptár" : "Csíki programnaptár"}</h1><p className="text-sm text-muted-foreground mt-2">Kattints egy napra az ottani eseményekért.</p>{regional && <Link href="/szekelyfold" className="inline-block text-sm font-semibold text-primary mt-3">← Székelyföld összes programja</Link>}</div>
         <div className="flex items-center gap-3"><button aria-label="Előző hónap" onClick={() => { setMonthOffset(v => v - 1); setSelectedDate(null); }} className="w-10 h-10 rounded-full border border-border bg-card flex items-center justify-center hover:border-primary"><ChevronLeft className="w-4 h-4" /></button><span className="capitalize min-w-36 text-center font-semibold">{monthName}</span><button aria-label="Következő hónap" onClick={() => { setMonthOffset(v => v + 1); setSelectedDate(null); }} className="w-10 h-10 rounded-full border border-border bg-card flex items-center justify-center hover:border-primary"><ChevronRight className="w-4 h-4" /></button></div>
       </div>
       <div className="grid grid-cols-7 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-2">{["H", "K", "Sze", "Cs", "P", "Szo", "V"].map(day => <span key={day}>{day}</span>)}</div>

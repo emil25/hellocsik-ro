@@ -65,7 +65,8 @@ function Router() {
       <Route path="/arak" component={PricingRoute} />
       <Route path="/klasszikus" component={ClassicHomeRoute} />
       <Route path="/varos/:slug" component={CityEventsRoute} />
-      <Route path="/" component={RegionHomeRoute} />
+      <Route path="/szekelyfold" component={RegionHomeRoute} />
+      <Route path="/" component={ClassicHomeRoute} />
       <Route>
         <div className="flex flex-col min-h-screen">
           <Navbar />

@@ -4,6 +4,25 @@ export type LegacyEvent = {
 
 export const LEGACY_EVENTS: LegacyEvent[] = [
   {
+    title: "Mogács Dániel önálló estje Csíkszeredán! Mv. Feiszt Viktor",
+    description: "Mogács Dániel „Ego” című önálló stand-up estje. Műsorvezető: Feiszt Viktor.\n\nIdőpont: 2026. november 8., vasárnap, 18:00.\nHelyszín: Szakszervezetek Művelődési Háza, Csíkszereda.\nSzervezők: Dumaszínház (Csíkszereda) és Szakszervezetek Művelődési Háza.\n\nJegyvásárlás az Eventimen; a jegylink és az eredeti Facebook-esemény külön elérhető ezen az oldalon.",
+    imageUrl: "/events/mogacs-daniel-csikszereda-2026.jpg",
+    startDate: "2026-11-08T18:00:00+02:00",
+    endDate: null,
+    location: "Szakszervezetek Művelődési Háza",
+    locationAddress: "Szabadság tér 16., Csíkszereda",
+    category: "Színház",
+    ticketUrl: "https://www.eventim.ro/event/mogacs-daniel-onallo-estje-csikszereda-casa-de-cultura-a-sindicatelor-miercurea-ciuc-22180363/",
+    price: null,
+    tags: ["stand-up"],
+    newsLinks: [
+      JSON.stringify({ title: "Facebook-esemény", url: "https://www.facebook.com/events/2045655302743252/" }),
+      JSON.stringify({ title: "Szervező", url: "", name: "Dumaszínház (Csíkszereda) és Szakszervezetek Művelődési Háza" }),
+    ],
+    featured: false,
+    monthHighlight: false,
+  },
+  {
     "title": "A halottember",
     "description": "A történet egy édesanyáról szól, aki gyermekét egyedül neveli, mert férje a fronton harcol már hosszú ideje. Majd jön két levél. Az egyikben maga az édesapa ír családjának, míg a másik a halálhírét hozza.\nTemetés, gyász és özvegyi élet vár főszereplőnkre, aki nem akar mást, csak helytállni.\nSZEREPOSZTÁS\nNő: Dálnoky Csilla\nRendező : Kányádi Szilárd\nJegyek válthatók a Művészetek Házának jegypénztárában hétfőn , szerdán és pénteken 10.00 és 14.00 óra között, valamint kedden és csütörtökön 14.00 és 18.00 óra között, illetve az előadások előtt egy órával.\nElőadásainkkal, rendezvényeinkkel kapcsolatos friss hírekért kövesse színházunk Facebook- vagy Instagram-oldalát, illetve a Csíki Játékszín honlapját.",
     "imageUrl": "https://visitharghita.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBL2ZuQ2c9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--7e080b153bf9bfa39592997a36853759771f6619/A%20halottember_cover.jpg?locale=hu",

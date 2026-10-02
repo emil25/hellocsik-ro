@@ -39,7 +39,7 @@ export function Navbar() {
             </Link>
 
             {/* Nav pills */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden xl:flex items-center gap-1">
               {navLinks.map((link, i) => (
                 <a
                   key={link.href}
@@ -57,7 +57,7 @@ export function Navbar() {
             </nav>
 
             {/* Right actions */}
-            <div className="hidden lg:flex items-center gap-1.5">
+            <div className="hidden xl:flex items-center gap-1.5">
               <button
                 onClick={() => setSearchOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
@@ -71,7 +71,7 @@ export function Navbar() {
             </div>
 
             {/* Mobile: search + burger */}
-            <div className="lg:hidden flex items-center gap-1">
+            <div className="xl:hidden flex items-center gap-1">
               <button
                 onClick={() => setSearchOpen(true)}
                 aria-label="Programok keresése"
@@ -97,7 +97,7 @@ export function Navbar() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-gray-100 bg-white overflow-hidden"
+              className="xl:hidden border-t border-gray-100 bg-white overflow-hidden"
             >
               <div className="px-4 py-3 space-y-1">
                 {navLinks.map((link) => (

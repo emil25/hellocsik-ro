@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Clock, MapPin, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { useListEvents } from "@workspace/api-client-react";
+import { isCsikEvent } from "@/lib/csik-events";
 
 interface SearchModalProps {
   open: boolean;
@@ -18,7 +19,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data } = useListEvents({ limit: 100 });
-  const allEvents = data?.events ?? [];
+  const allEvents = (data?.events ?? []).filter(isCsikEvent);
 
   const results = query.trim().length < 2 ? [] : allEvents.filter(ev =>
     ev.title.toLowerCase().includes(query.toLowerCase()) ||

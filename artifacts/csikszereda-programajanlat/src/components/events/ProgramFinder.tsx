@@ -6,16 +6,11 @@ import { EventCard } from "./EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { REGION_DESCRIPTION } from "@/lib/region";
+import { getCsikArea, isCsikEvent } from "@/lib/csik-events";
 
-const CITY_FILTERS = [
-  { name: "Csíkszereda", keys: ["csíkszereda", "miercurea ciuc"] },
-  { name: "Székelyudvarhely", keys: ["székelyudvarhely", "odorheiu secuiesc"] },
-  { name: "Gyergyószentmiklós", keys: ["gyergyószentmiklós", "gheorgheni"] },
-  { name: "Sepsiszentgyörgy", keys: ["sepsiszentgyörgy", "sfântu gheorghe", "sfantu gheorghe"] },
-  { name: "Kézdivásárhely", keys: ["kézdivásárhely", "târgu secuiesc", "targu secuiesc"] },
-  { name: "Marosvásárhely", keys: ["marosvásárhely", "târgu mureș", "targu mures"] },
-  { name: "Szováta", keys: ["szováta", "sovata"] },
+const AREA_FILTERS = [
+  { name: "Csíkszereda", area: "city" },
+  { name: "Csík környéke", area: "surroundings" },
 ] as const;
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("hu").trim();
@@ -40,7 +35,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
   }, []);
   const eventsQuery = useListUpcomingEvents({ limit: 100 });
   const categoriesQuery = useListCategories();
-  const events = eventsQuery.data?.events;
+  const events = useMemo(() => eventsQuery.data?.events.filter(isCsikEvent), [eventsQuery.data]);
   const filtered = useMemo(() => {
     const today = new Date();
     const saturday = new Date(today);
@@ -55,9 +50,8 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
     return (events ?? []).filter(event => {
       const start = new Date(event.startDate);
       const end = new Date(event.endDate ?? event.startDate);
-      const regionText = `${event.title} ${event.location} ${event.locationAddress ?? ""} ${event.description}`;
       return (!category || event.categoryId === category)
-        && (!city || CITY_FILTERS.find(item => item.name === city)?.keys.some(key => normalize(regionText).includes(normalize(key))))
+        && (!city || getCsikArea(event) === city)
         && (!query.trim() || normalize(`${event.title} ${event.location} ${event.description}`).includes(normalize(query)))
         && (!from || !until || (start < until && end >= from))
         && (!weekend || (start < monday && end >= saturday));
@@ -68,25 +62,25 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
   return <>
     {showHero && <section className="discovery-hero">
       <div className="discovery-copy">
-        <p className="discovery-eyebrow"><MapPin size={16} /> SZÉKELYFÖLDI PROGRAMOK</p>
+        <p className="discovery-eyebrow"><MapPin size={16} /> CSÍKSZEREDA ÉS KÖRNYÉKE</p>
         <h1>Jó helyen vagy.<br /><span>Jó program vár.</span></h1>
-        <p className="discovery-intro">{REGION_DESCRIPTION} Koncertek, fesztiválok, színház és közösségi élmények a közeledben.</p>
+        <p className="discovery-intro">Koncertek, fesztiválok, színház és közösségi programok Csíkszeredában és Csík környékén.</p>
         <div className="flex flex-wrap gap-3 mt-8">
           <a className="discovery-primary" href="#kozelgo">Találj programot <ArrowRight size={18} /></a>
           <a className="discovery-secondary" href="#kozelgo" onClick={() => { reset(); setWeekend(true); }}>Ezen a hétvégén <CalendarDays size={18} /></a>
         </div>
-        <p className="discovery-note">Programok városok szerint.</p>
+        <p className="discovery-note">Csíki programok egy helyen.</p>
       </div>
       <div className="discovery-photo">
-        <img src={`${import.meta.env.BASE_URL}reference/city-center.jpg`} alt="Székelyföldi városkép" fetchPriority="high" />
-        <div className="discovery-photo-caption"><span>SZÉKELYFÖLDI PROGRAMOK</span><strong>Programok a városokból.</strong><p>Időpont · helyszín · részletek</p><a className="block text-xs mt-3 text-white/80 underline" href="https://commons.wikimedia.org/wiki/File:RO_HR_Miercurea_Ciuc_center_1.jpg" target="_blank" rel="noreferrer">Fotó: Andrei Stroe · CC BY-SA 3.0 · Vágott kép</a></div>
+        <img src={`${import.meta.env.BASE_URL}reference/city-center.jpg`} alt="Csíkszereda belvárosa" fetchPriority="high" />
+        <div className="discovery-photo-caption"><span>CSÍKI PROGRAMOK</span><strong>Csíkszereda és környéke.</strong><p>Időpont · helyszín · részletek</p><a className="block text-xs mt-3 text-white/80 underline" href="https://commons.wikimedia.org/wiki/File:RO_HR_Miercurea_Ciuc_center_1.jpg" target="_blank" rel="noreferrer">Fotó: Andrei Stroe · CC BY-SA 3.0 · Vágott kép</a></div>
       </div>
     </section>}
     <div id="hetvege" />
     <div id="picks" />
     <section id="kozelgo" className="program-finder">
       <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
-        <div><p className="discovery-eyebrow">KÖZELGŐ PROGRAMOK</p><h2>Hamarosan Székelyföldön</h2></div>
+        <div><p className="discovery-eyebrow">KÖZELGŐ PROGRAMOK</p><h2>Hamarosan Csíkszeredában és környékén</h2></div>
         <div className="flex gap-4"><button className="flex items-center gap-2 text-sm text-primary" aria-expanded={showFilters} onClick={() => setShowFilters(!showFilters)}><Search size={16} /> Keresés és szűrés</button><Link href="/naptar" className="flex items-center gap-2 text-sm font-semibold text-primary">Naptár nézet <ArrowRight size={16} /></Link></div>
       </div>
       {showFilters && <div className="finder-controls">
@@ -96,14 +90,14 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
       </div>}
         <div className="flex flex-wrap gap-2 my-5" aria-label="Programkategóriák">
         <Button size="sm" variant={category === null ? "default" : "outline"} aria-pressed={category === null} onClick={() => { setCategory(null); setVisible(12); }}>Minden program</Button>
-        {CITY_FILTERS.map(item => <Button key={item.name} size="sm" variant={city === item.name ? "default" : "outline"} aria-pressed={city === item.name} onClick={() => { setCity(city === item.name ? null : item.name); setVisible(12); }}>{item.name}<span className="opacity-60">{events?.filter(event => item.keys.some(key => normalize(`${event.title} ${event.location} ${event.locationAddress ?? ""} ${event.description}`).includes(normalize(key)))).length}</span></Button>)}
+        {AREA_FILTERS.map(item => <Button key={item.area} size="sm" variant={city === item.area ? "default" : "outline"} aria-pressed={city === item.area} onClick={() => { setCity(city === item.area ? null : item.area); setVisible(12); }}>{item.name}<span className="opacity-60">{events?.filter(event => getCsikArea(event) === item.area).length}</span></Button>)}
         {categoriesQuery.data?.categories.filter(item => events?.some(event => event.categoryId === item.id)).map(item => <Button key={item.id} size="sm" variant={category === item.id ? "default" : "outline"} aria-pressed={category === item.id} onClick={() => { setCategory(item.id); setVisible(12); }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />{item.name}<span className="opacity-60">{events?.filter(event => event.categoryId === item.id).length}</span></Button>)}
       </div>
       {eventsQuery.isLoading ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Programok betöltése">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}</div>
         : eventsQuery.isError ? <div className="finder-empty" role="alert"><CalendarDays /><h3>A programokat most nem sikerült betölteni.</h3><p>Próbáld újra egy kicsit később.</p><Button onClick={() => eventsQuery.refetch()}>Újrapróbálom</Button></div>
         : <><p className="text-sm text-muted-foreground mb-5" role="status">{filtered.length} program{events?.length === 100 ? " a következő 100 esemény között" : ""}</p>
           {filtered.length ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{filtered.slice(0, visible).map((event, index) => <EventCard key={event.id} event={event} index={index} promoted={isPromoted(event)} />)}</div>
-            : <div className="finder-empty"><SlidersHorizontal /><h3>{query || category || day || weekend ? "Erre most nincs találat." : "Hamarosan új programok érkeznek."}</h3><p>{query || category || day || weekend ? "Próbálj másik dátumot vagy tágabb keresést." : "Szervezel valamit? Küldd be a programodat!"}</p>{query || category || day || weekend ? <Button variant="outline" onClick={reset}>Szűrők törlése</Button> : <Link href="/bekuldese" className="discovery-primary">Program beküldése <ArrowRight size={16} /></Link>}</div>}
+            : <div className="finder-empty"><SlidersHorizontal /><h3>{query || category || city || day || weekend ? "Erre most nincs találat." : "Hamarosan új programok érkeznek."}</h3><p>{query || category || city || day || weekend ? "Próbálj másik dátumot vagy tágabb keresést." : "Szervezel valamit? Küldd be a programodat!"}</p>{query || category || city || day || weekend ? <Button variant="outline" onClick={reset}>Szűrők törlése</Button> : <Link href="/bekuldese" className="discovery-primary">Program beküldése <ArrowRight size={16} /></Link>}</div>}
           {filtered.length > visible && <div className="text-center mt-8"><Button variant="outline" onClick={() => setVisible(visible + 12)}>További programok</Button></div>}
         </>}
     </section>

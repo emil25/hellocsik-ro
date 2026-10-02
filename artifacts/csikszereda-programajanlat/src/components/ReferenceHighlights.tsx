@@ -2,6 +2,7 @@ import { ArrowRight, CalendarDays, ExternalLink, Ticket } from "lucide-react";
 import { Link } from "wouter";
 import { useListUpcomingEvents } from "@workspace/api-client-react";
 import { useEffect, useState } from "react";
+import { isCsikEvent } from "@/lib/csik-events";
 
 const asset = (file: string) => `${import.meta.env.BASE_URL}reference/${file}`;
 const artists = [
@@ -13,7 +14,7 @@ const artists = [
 
 export function CloudFestival() {
   const { data } = useListUpcomingEvents({ limit: 100 });
-  const event = data?.events.find(item => item.title === "Cloud Youth Festival 2026");
+  const event = data?.events.filter(isCsikEvent).find(item => item.title === "Cloud Youth Festival 2026");
   if (!event) return null;
   return <section id="cloud-festival" className="cloud-section">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -39,7 +40,7 @@ export function CloudFestival() {
 
 export function ActiveSzekelyfold() {
   const { data } = useListUpcomingEvents({ limit: 100 });
-  const event = data?.events.find(item => item.title.toLocaleLowerCase("hu-HU").includes("aktív székelyföld"));
+  const event = data?.events.filter(isCsikEvent).find(item => item.title.toLocaleLowerCase("hu-HU").includes("aktív székelyföld"));
   if (!event) return null;
 
   return <section id="aktiv-szekelyfold" className="active-szekely-section">
@@ -70,14 +71,8 @@ export function ActiveSzekelyfold() {
 
 type CinemaMovie = { title: string; date: string; imageUrl: string; url: string; status: string };
 
-const fallbackFilms: CinemaMovie[] = [
-  { title: "Spider Man: Brand New Day", imageUrl: asset("cinema-spider-man.webp"), date: "szept. 13. és szept. 15.", status: "MŰSORON", url: "https://cinemacsikimozi.ro/hu/film/spider-man-brand-new-day" },
-  { title: "The Odyssey", imageUrl: "https://api.cinemacsikimozi.ro/api/image/format?image=uploads%2Fmovies%2F3f97f680-2edb-4837-bc67-ba5b11ed2dd7%2Fimages%2Fodusszeia_11cfd682-1a00-4088-abb7-4f70939e8eb1.jpg&width=375&height=562&format=webp", date: "szept. 13. és szept. 16.", status: "MŰSORON", url: "https://cinemacsikimozi.ro/hu/film/the-odyssey" },
-  { title: "Fall 2: Deadpoint", imageUrl: "https://api.cinemacsikimozi.ro/api/image/format?image=uploads%2Fmovies%2Fc78dd653-d133-4fea-b524-1e9faec29a77%2Fimages%2FFall2_b2f25711-2ac5-459c-a030-0aca0998110e.jpg&width=375&height=562&format=webp", date: "szept. 17.", status: "KÖVETKEZIK", url: "https://cinemacsikimozi.ro/hu/film/fall-2-deadpoint" },
-  { title: "Cars", imageUrl: "https://api.cinemacsikimozi.ro/api/image/format?image=uploads%2Fmovies%2F2af1df8b-6c32-4dbd-b93f-3e5738bb4322%2Fimages%2Fcars_f76a13cb-7c8a-4620-a679-7bc1ebdec984.jpg&width=375&height=562&format=webp", date: "szept. 18.", status: "KÖVETKEZIK", url: "https://cinemacsikimozi.ro/hu/film/cars" },
-];
 export function CinemaPicks() {
-  const [films, setFilms] = useState<CinemaMovie[]>(fallbackFilms);
+  const [films, setFilms] = useState<CinemaMovie[]>([]);
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/cinema", { signal: controller.signal })

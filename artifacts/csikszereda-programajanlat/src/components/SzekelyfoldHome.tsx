@@ -62,7 +62,7 @@ function categoryLook(name?: string) {
   return { color: "#675b91", background: "#edeaf4", Icon: CalendarDays };
 }
 function Brand() {
-  return <Link href="/" className="sf-brand" aria-label="Program.ro – Székelyföld főoldal">
+  return <Link href="/szekelyfold" className="sf-brand" aria-label="Program.ro – Székelyföld főoldal">
     <span className="sf-brand-symbol" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M20 3C11 3 5 10 5 18c0 10 15 19 15 19s15-9 15-19C35 10 29 3 20 3Z" fill="currentColor" /><path d="m17 12 10 6-10 6V12Z" fill="white" /></svg></span>
     <span>program<span className="sf-brand-dot">.ro</span><small>Székelyföld</small></span>
   </Link>;
@@ -73,10 +73,10 @@ function RegionHeader() {
   return <header className="sf-header"><div className="sf-header-inner">
     <Brand />
     <nav className={"sf-nav" + (open ? " sf-nav-open" : "")} aria-label="Főmenü">
-      <a href="/#kozelgo" aria-current="page" onClick={() => setOpen(false)}>Programok</a>
-      <a href="/#hetvege" onClick={() => setOpen(false)}>Hétvége</a>
-      <a href="/#varosok" onClick={() => setOpen(false)}>Városok</a>
-      <Link href="/naptar">Naptár</Link>
+      <a href="/szekelyfold#kozelgo" aria-current="page" onClick={() => setOpen(false)}>Programok</a>
+      <a href="/szekelyfold#hetvege" onClick={() => setOpen(false)}>Hétvége</a>
+      <a href="/szekelyfold#varosok" onClick={() => setOpen(false)}>Városok</a>
+      <Link href="/naptar?scope=szekelyfold">Naptár</Link>
       <Link href="/szervezok">Szervezőknek</Link>
     </nav>
     <div className="sf-header-actions">
@@ -190,7 +190,7 @@ function RegionPortal({ citySlug }: { citySlug?: string }) {
   const currentCity = REGION_CITIES.find(item => item.slug === city);
   return <div className={"sf-portal" + (selectedCity ? " sf-city-portal" : "")}><RegionHeader /><main>
     <section className="sf-opening"><div className="sf-shell">
-      {selectedCity && <Link className="sf-back" href="/"><ArrowLeft size={15} />Székelyföld összes programja</Link>}
+      {selectedCity && <Link className="sf-back" href="/szekelyfold"><ArrowLeft size={15} />Székelyföld összes programja</Link>}
       <div className="sf-opening-heading"><div><span className="sf-eyebrow"><span />ESEMÉNYAJÁNLÓ</span><h1>{selectedCity ? selectedCity.name : "Székelyföld"}<span> programjai<span className="sf-title-period">.</span></span></h1></div><a className="sf-weekend-link" href="#hetvege"><CalendarDays size={19} /><span>Ezen a hétvégén</span><ArrowUpRight size={19} /></a></div>
       {eventsQuery.isLoading ? <div className="sf-stage sf-stage-loading" aria-label="Ajánló betöltése">{Array.from({ length: 3 }, (_, index) => <div className="sf-skeleton" key={index} />)}</div> : <Spotlight events={scopedEvents} />}
       <form className="sf-searchbar" onSubmit={search}>
@@ -201,7 +201,7 @@ function RegionPortal({ citySlug }: { citySlug?: string }) {
       </form>
     </div></section>
     <section className="sf-programs sf-shell" id="kozelgo" aria-labelledby="sf-programs-title">
-      <div className="sf-section-heading"><div><span className="sf-eyebrow">PROGRAMOK</span><h2 id="sf-programs-title">{currentCity ? currentCity.name : dateFilter === "weekend" ? "Ezen a hétvégén" : dateFilter === "today" ? "Mai programok" : "Mi érdekel?"}<span>{filtered.length}</span></h2></div><Link href="/naptar" className="sf-calendar-link"><CalendarDays size={18} />Naptár nézet<ArrowUpRight size={17} /></Link></div>
+      <div className="sf-section-heading"><div><span className="sf-eyebrow">PROGRAMOK</span><h2 id="sf-programs-title">{currentCity ? currentCity.name : dateFilter === "weekend" ? "Ezen a hétvégén" : dateFilter === "today" ? "Mai programok" : "Mi érdekel?"}<span>{filtered.length}</span></h2></div><Link href="/naptar?scope=szekelyfold" className="sf-calendar-link"><CalendarDays size={18} />Naptár nézet<ArrowUpRight size={17} /></Link></div>
       <div className="sf-category-row" aria-label="Programtípus szűrése">
         <button aria-pressed={category === null} onClick={() => setCategory(null)}><Sparkles size={17} />Minden program</button>
         {categories.map(item => { const look = categoryLook(item.name); return <button key={item.id} aria-pressed={category === item.id} onClick={() => setCategory(item.id)} style={{ "--category-color": look.color, "--category-bg": look.background } as CSSProperties}><look.Icon size={17} />{item.name}<span>{scopedEvents.filter(event => event.categoryId === item.id).length}</span></button>; })}
@@ -219,6 +219,6 @@ function RegionPortal({ citySlug }: { citySlug?: string }) {
 }
 export function SzekelyfoldHome() { return <RegionPortal />; }
 export function CityEventsPage({ slug }: { slug?: string }) {
-  if (!REGION_CITIES.some(city => city.slug === slug)) return <div className="sf-portal"><RegionHeader /><div className="sf-empty"><h1>Ez a városoldal nem található.</h1><Link href="/">Összes város<ArrowRight size={17} /></Link></div></div>;
+  if (!REGION_CITIES.some(city => city.slug === slug)) return <div className="sf-portal"><RegionHeader /><div className="sf-empty"><h1>Ez a városoldal nem található.</h1><Link href="/szekelyfold">Összes város<ArrowRight size={17} /></Link></div></div>;
   return <RegionPortal citySlug={slug} />;
 }

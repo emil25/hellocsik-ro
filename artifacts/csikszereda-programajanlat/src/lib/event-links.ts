@@ -47,7 +47,7 @@ export function getEventPriceLabel(event: EventWithLinks & { price?: string | nu
   const price = event.price?.trim();
   if (price) return price;
   const links = getEventLinks(event);
-  return links.ticketUrl || links.facebookUrl ? "Jegy / belépő" : "Ingyenes";
+  return links.ticketUrl ? "Jegy / belépő" : "Belépés: részletekben";
 }
 
 export function isFacebookEventUrl(url?: string | null) {

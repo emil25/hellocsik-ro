@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { formatDate, formatTime } from "@/utils/date-format";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
+import { getEventPriceLabel } from "@/lib/event-links";
 
 interface EventCardProps {
   event: {
@@ -14,6 +15,7 @@ interface EventCardProps {
     startDate: string;
     location: string;
     price?: string | null;
+    ticketUrl?: string | null;
     featured?: boolean;
     category?: { name: string; color: string } | null;
     tags: string[];
@@ -89,7 +91,7 @@ export function EventCard({ event, index = 0, promoted = Boolean(event.featured)
                 Forrás: {source.title} · Frissítve: {formatRefreshDate(event.updatedAt ?? event.createdAt)}
               </p>
             </div>
-            <div className="flex items-center justify-between gap-2 pt-5 mt-4 border-t border-border text-sm"><span className="text-primary">{event.price || "Ingyenes"}</span><span className="inline-flex items-center gap-1 font-semibold text-primary">Részletek <ArrowRight size={14} /></span></div>
+            <div className="flex items-center justify-between gap-2 pt-5 mt-4 border-t border-border text-sm"><span className="text-primary">{getEventPriceLabel(event)}</span><span className="inline-flex items-center gap-1 font-semibold text-primary">Részletek <ArrowRight size={14} /></span></div>
           </div>
         </div>
       </Link>
