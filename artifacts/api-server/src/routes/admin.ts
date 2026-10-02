@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { db, eventsTable, categoriesTable } from "@workspace/db";
+import { normalizeEventDates } from "../lib/event-dates";
+import { assertEventRange } from "../../../../shared/event-time.mjs";
 import { eq, desc } from "drizzle-orm";
 import { ADMIN_PASSWORD, requireAdmin } from "../lib/admin-auth";
 import { getLastSourceSync, syncEventSources } from "../lib/source-sync";
@@ -313,7 +315,7 @@ router.get("/admin/events", requireAdmin, async (req, res) => {
   }
 });
 
-router.post("/admin/events", requireAdmin, async (req, res) => {
+router.post("/admin/events", requireAdmin, normalizeEventDates, async (req, res) => {
   try {
     const body = req.body ?? {};
     if (!body.title?.trim()) { res.status(400).json({ error: "A cím kötelező" }); return; }
@@ -373,7 +375,7 @@ router.post("/admin/events", requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
+router.patch("/admin/events/:id", requireAdmin, normalizeEventDates, async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
@@ -396,6 +398,15 @@ router.patch("/admin/events/:id", requireAdmin, async (req, res) => {
     if (body.startDate) { const d = new Date(body.startDate); if (!isNaN(d.getTime())) patch.startDate = d; }
     if (body.endDate) { const d = new Date(body.endDate); if (!isNaN(d.getTime())) patch.endDate = d; }
     if (body.endDate === null) patch.endDate = null;
+    if ("startDate" in body || "endDate" in body) {
+      const [existing] = await db.select().from(eventsTable).where(eq(eventsTable.id, id)).limit(1);
+      if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+      try {
+        assertEventRange(body.startDate ?? existing.startDate, "endDate" in body ? body.endDate : existing.endDate);
+      } catch (error) {
+        res.status(400).json({ error: (error as Error).message }); return;
+      }
+    }
     if (body.categoryId === null) patch.categoryId = null;
     else if (typeof body.categoryId === "number") patch.categoryId = body.categoryId;
     if (body.organizerId === null) patch.organizerId = null;

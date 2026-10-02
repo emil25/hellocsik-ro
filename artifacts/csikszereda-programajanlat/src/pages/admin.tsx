@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useUpload } from "@workspace/object-storage-web";
+import { eventInputToISO, toEventInput } from "../../../../shared/event-time.mjs";
 
 const API = "/api";
 
@@ -193,10 +194,7 @@ type Section = "events" | "banners";
 
 // ─── SHARED FORM FIELDS ───────────────────────────────────────────────────────
 
-function toDatetimeLocal(iso: string) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleString("sv-SE", { timeZone: "Europe/Bucharest" }).replace(" ", "T").slice(0, 16);
-}
+const toDatetimeLocal = toEventInput;
 
 type NewsLink = { title: string; url: string; name?: string };
 
@@ -453,8 +451,8 @@ function CreateModal({
         imageUrl: form.imageUrl || null,
         price: form.price || null,
         ticketUrl: form.ticketUrl || null,
-        startDate: form.startDate,
-        endDate: form.endDate || null,
+        startDate: eventInputToISO(form.startDate),
+        endDate: form.endDate ? eventInputToISO(form.endDate) : null,
         categoryId: form.categoryId ? Number(form.categoryId) : null,
         featured: form.featured,
         monthHighlight: form.monthHighlight,
@@ -471,8 +469,8 @@ function CreateModal({
         return;
       }
       onSaved();
-    } catch {
-      setError("Hálózati hiba. Kérjük próbáld újra.");
+    } catch (error) {
+      setError(error instanceof RangeError ? error.message : "Hálózati hiba. Kérjük próbáld újra.");
     } finally {
       setSaving(false);
     }
@@ -564,8 +562,8 @@ function EditModal({
         imageUrl: form.imageUrl,
         price: form.price || null,
         ticketUrl: form.ticketUrl || null,
-        startDate: form.startDate,
-        endDate: form.endDate || null,
+        startDate: eventInputToISO(form.startDate, ev.startDate),
+        endDate: form.endDate ? eventInputToISO(form.endDate, ev.endDate) : null,
         categoryId: form.categoryId ? Number(form.categoryId) : null,
         featured: form.featured,
         monthHighlight: form.monthHighlight,
@@ -582,8 +580,8 @@ function EditModal({
         return;
       }
       onSaved();
-    } catch {
-      setError("Hálózati hiba. Kérjük próbáld újra.");
+    } catch (error) {
+      setError(error instanceof RangeError ? error.message : "Hálózati hiba. Kérjük próbáld újra.");
     } finally {
       setSaving(false);
     }

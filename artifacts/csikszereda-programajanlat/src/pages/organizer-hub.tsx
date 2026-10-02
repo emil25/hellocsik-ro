@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, CalendarDays, CheckCircle2, FilePlus2, Image, LayoutDashboard, LogIn, LogOut, MapPin, Pencil, Plus, Save, UserRound, X } from "lucide-react";
 import { Link } from "wouter";
+import { eventInputToISO, toEventInput, EVENT_TIME_ZONE } from "../../../../shared/event-time.mjs";
 import "@/components/organizer-portal.css";
 
 type Organizer = { id: number; slug: string; name: string; bio: string; city: string; website?: string | null };
@@ -9,7 +10,7 @@ type OrganizerEvent = { id: number; title: string; description: string; startDat
 const TOKEN_KEY = "organizer_token";
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("hu-HU", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+  return new Intl.DateTimeFormat("hu-HU", { timeZone: EVENT_TIME_ZONE, month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
 export default function OrganizerHubPage() {
@@ -81,7 +82,7 @@ export default function OrganizerHubPage() {
   function startEditing(event: OrganizerEvent) {
     setEditingEvent(event);
     const facebookUrl = (event.newsLinks ?? []).map((raw) => { try { return JSON.parse(raw) as { title?: string; url?: string }; } catch { return null; } }).find((link) => link && /facebook/i.test(link.title ?? ""))?.url ?? "";
-    setEditForm({ title: event.title, description: event.description ?? "", startDate: event.startDate.slice(0, 16), location: event.location, imageUrl: event.imageUrl ?? "", price: event.price ?? "", ticketUrl: event.ticketUrl ?? "", facebookUrl, promotionPlan: event.promotionPlan ?? "free" });
+    setEditForm({ title: event.title, description: event.description ?? "", startDate: toEventInput(event.startDate), location: event.location, imageUrl: event.imageUrl ?? "", price: event.price ?? "", ticketUrl: event.ticketUrl ?? "", facebookUrl, promotionPlan: event.promotionPlan ?? "free" });
     setError("");
   }
 
@@ -91,7 +92,7 @@ export default function OrganizerHubPage() {
     setSavingEdit(true);
     setError("");
     try {
-      const response = await fetch(`/api/organizers/me/events/${editingEvent.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...editForm, startDate: new Date(editForm.startDate).toISOString() }) });
+      const response = await fetch(`/api/organizers/me/events/${editingEvent.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...editForm, startDate: eventInputToISO(editForm.startDate, editingEvent.startDate) }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "A módosítás nem sikerült.");
       const refreshed = await fetch("/api/organizers/me/events", { headers: { Authorization: `Bearer ${token}` } });

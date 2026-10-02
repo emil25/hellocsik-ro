@@ -4,6 +4,7 @@ import { ArrowLeft, Send, CheckCircle2, MapPin, Calendar, Tag, Link2, User, Mail
 import { Link } from "wouter";
 import { useListCategories } from "@workspace/api-client-react";
 import { getOrganizer } from "@/data/organizers";
+import { eventInputToISO } from "../../../../shared/event-time.mjs";
 
 function Field({ label, icon: Icon, children, hint }: { label: string; icon?: any; children: React.ReactNode; hint?: string }) {
   return (
@@ -64,7 +65,7 @@ export default function SubmitPage() {
     }
     setLoading(true);
     try {
-      const startDateTime = form.startDate + "T" + form.startTime + ":00";
+      const startDateTime = eventInputToISO(form.startDate + "T" + form.startTime + ":00");
       const endpoint = organizerToken ? "/api/organizers/me/events" : "/api/events/submit";
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (organizerToken) headers.Authorization = `Bearer ${organizerToken}`;
@@ -76,7 +77,7 @@ export default function SubmitPage() {
           description: form.description,
           imageUrl: form.imageUrl || undefined,
           startDate: startDateTime,
-          endDate: form.endDate ? form.endDate + "T23:59:00" : undefined,
+          endDate: form.endDate ? eventInputToISO(form.endDate + "T23:59:59") : undefined,
           location: form.location,
           locationAddress: form.locationAddress || undefined,
           categoryId: form.categoryId ? Number(form.categoryId) : undefined,
@@ -94,8 +95,8 @@ export default function SubmitPage() {
       } else {
         setSuccess(true);
       }
-    } catch {
-      setError("Hálózati hiba. Kérjük próbáld újra.");
+    } catch (error) {
+      setError(error instanceof RangeError ? error.message : "Hálózati hiba. Kérjük próbáld újra.");
     } finally {
       setLoading(false);
     }

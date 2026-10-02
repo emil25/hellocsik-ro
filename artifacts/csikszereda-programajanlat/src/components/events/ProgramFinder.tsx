@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCsikArea, isCsikEvent } from "@/lib/csik-events";
+import { normalizeSearchText as normalize } from "@/lib/search";
 
 const AREA_FILTERS = [
   { name: "Csíkszereda", area: "city" },
   { name: "Csík környéke", area: "surroundings" },
 ] as const;
-
-const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("hu").trim();
 
 const isPromoted = (event: any) => Boolean(
   event.featured || (event.promotionStatus === "paid" && event.promotionPlan !== "free"),

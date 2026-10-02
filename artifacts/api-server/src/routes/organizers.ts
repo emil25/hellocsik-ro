@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { and, asc, eq, gte, or, isNull } from "drizzle-orm";
 import { db, eventsTable, categoriesTable, organizersTable } from "@workspace/db";
+import { normalizeEventDates } from "../lib/event-dates";
+import { assertEventRange } from "../../../../shared/event-time.mjs";
 import { CreateEventBody } from "@workspace/api-zod";
 import { createOrganizerToken, hashPassword, normalizeEmail, requireOrganizer, slugify, verifyPassword } from "../lib/organizer-auth";
 
@@ -103,7 +105,7 @@ router.get("/organizers/me/events", requireOrganizer, async (req, res) => {
   res.json({ events: rows.map((row) => publicEvent(row.event, row.category)) });
 });
 
-router.post("/organizers/me/events", requireOrganizer, async (req, res) => {
+router.post("/organizers/me/events", requireOrganizer, normalizeEventDates, async (req, res) => {
   // Organizer forms may leave the poster empty; use the same neutral fallback
   // as the public submission route so the event can still be reviewed.
   const parsed = CreateEventBody.safeParse({ ...req.body, imageUrl: req.body?.imageUrl || "/hellocsik-logo.png" });
@@ -120,13 +122,18 @@ router.post("/organizers/me/events", requireOrganizer, async (req, res) => {
   }
 });
 
-router.patch("/organizers/me/events/:id", requireOrganizer, async (req, res) => {
+router.patch("/organizers/me/events/:id", requireOrganizer, normalizeEventDates, async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) { res.status(400).json({ error: "Érvénytelen eseményazonosító." }); return; }
   try {
     const existing = await db.select().from(eventsTable).where(and(eq(eventsTable.id, id), eq(eventsTable.organizerId, res.locals.organizer.id))).limit(1);
     if (!existing[0]) { res.status(404).json({ error: "Az esemény nem található a fiókodban." }); return; }
     const body = req.body ?? {};
+    try {
+      assertEventRange(body.startDate ?? existing[0].startDate, "endDate" in body ? body.endDate : existing[0].endDate);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message }); return;
+    }
     const patch: Record<string, unknown> = {};
     for (const field of ["title", "description", "location", "locationAddress", "imageUrl", "ticketUrl", "price"] as const) {
       if (typeof body[field] !== "string") continue;

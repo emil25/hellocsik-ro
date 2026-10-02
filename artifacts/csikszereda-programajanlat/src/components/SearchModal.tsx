@@ -4,6 +4,7 @@ import { Search, X, Clock, MapPin, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { useListEvents } from "@workspace/api-client-react";
 import { isCsikEvent } from "@/lib/csik-events";
+import { normalizeSearchText } from "@/lib/search";
 
 interface SearchModalProps {
   open: boolean;
@@ -22,9 +23,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
   const allEvents = (data?.events ?? []).filter(isCsikEvent);
 
   const results = query.trim().length < 2 ? [] : allEvents.filter(ev =>
-    ev.title.toLowerCase().includes(query.toLowerCase()) ||
-    ev.description?.toLowerCase().includes(query.toLowerCase()) ||
-    ev.location?.toLowerCase().includes(query.toLowerCase())
+    normalizeSearchText(`${ev.title} ${ev.description ?? ""} ${ev.location ?? ""}`).includes(normalizeSearchText(query))
   ).slice(0, 8);
 
   useEffect(() => {
@@ -69,9 +68,10 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Program neve, helyszín, leírás..."
-                className="flex-1 text-sm bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
+                aria-label="Programok keresése"
+                className="min-w-0 flex-1 text-sm bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
               />
-              <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition-colors">
+              <button onClick={onClose} aria-label="Kereső bezárása" className="p-1 rounded-lg hover:bg-muted transition-colors">
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>

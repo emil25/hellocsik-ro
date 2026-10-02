@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, eventsTable, categoriesTable, organizersTable } from "@workspace/db";
 import { eq, and, gte, lte, desc, asc, ne, or, isNull } from "drizzle-orm";
 import { requireAdmin } from "../lib/admin-auth";
+import { normalizeEventDates } from "../lib/event-dates";
 import {
   ListEventsQueryParams,
   CreateEventBody,
@@ -103,7 +104,7 @@ router.get("/events", async (req, res) => {
   }
 });
 
-router.post("/events/submit", async (req, res) => {
+router.post("/events/submit", normalizeEventDates, async (req, res) => {
   try {
     const body = req.body ?? {};
     const required = ["title", "description", "startDate", "location"];
@@ -356,7 +357,7 @@ router.get("/events/:id", async (req, res) => {
   }
 });
 
-router.post("/events", requireAdmin, async (req, res) => {
+router.post("/events", requireAdmin, normalizeEventDates, async (req, res) => {
   try {
     const parsed = CreateEventBody.safeParse(req.body);
     if (!parsed.success) {

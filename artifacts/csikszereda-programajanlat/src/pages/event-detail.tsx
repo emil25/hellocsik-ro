@@ -105,123 +105,7 @@ export default function EventDetail() {
   const organizer = organizerForEvent(event);
   const externalLinks = getEventLinks(event);
   const organizerName = organizer?.name ?? externalLinks.organizerName ?? (event as any).organizer?.name;
-
-  return (
-    <div>
-      {/* ── Cinematic hero ──────────────────────────────────────── */}
-      <div className="relative w-full overflow-hidden" style={{ height: "clamp(320px, 55vh, 560px)" }}>
-        {/* Background image */}
-        <motion.img
-          src={event.imageUrl}
-          alt={event.title}
-          initial={{ scale: 1.06, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-
-        {/* Gradient overlays */}
-        <div className="absolute inset-0" style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.75) 100%)"
-        }} />
-
-        {/* Top nav buttons */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 sm:px-8 pt-5">
-          <Link href="/">
-            <button className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/20 px-3 py-2 rounded-xl">
-              <ArrowLeft className="w-4 h-4" /> Vissza
-            </button>
-          </Link>
-          <div className="flex items-center gap-2">
-            <FavoriteButton eventId={event.id} className="w-10 h-10" />
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/30 px-3 py-2 rounded-xl"
-            >
-              <Share2 className="w-4 h-4" /> <span className="hidden sm:inline">Megosztás</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom: category + title */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-8 pb-7">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              {event.category && (
-                <span className="text-xs font-bold px-3 py-1.5 rounded-full text-white shadow-sm" style={{ backgroundColor: event.category.color }}>
-                  {event.category.name}
-                </span>
-              )}
-              {event.featured && (
-                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400 text-amber-900 shadow-sm">
-                  ★ Kiemelt
-                </span>
-              )}
-            </div>
-            <motion.h1
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight drop-shadow-md"
-              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
-            >
-              {event.title}
-            </motion.h1>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Body ────────────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
-      >
-        <div className="grid md:grid-cols-5 gap-8 lg:gap-12">
-          {/* Left: description + tags */}
-          <div className="md:col-span-3">
-            <div className="space-y-3 mb-6">
-              {(event.description ?? "").split(/\n\n+/).map((para, i) => (
-                <p key={i} className="text-[15px] leading-relaxed text-stone-600">
-                  {para.split(/\n/).map((line, j, arr) => (
-                    <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
-                  ))}
-                </p>
-              ))}
-            </div>
-
-            {event.tags && event.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {event.tags.map(tag => (
-                  <span key={tag} className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 transition-colors">
-                    <Tag className="w-3 h-3" />{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {event.imageUrl && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.35 }}
-                className="mt-8"
-              >
-                <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3">Plakát</p>
-                <img
-                  src={event.imageUrl}
-                  alt={`${event.title} – plakát`}
-                  className="w-full rounded-2xl border border-stone-100 shadow-md object-cover"
-                  style={{ maxHeight: "520px", objectPosition: "top" }}
-                />
-              </motion.div>
-            )}
-          </div>
-
-          {/* Right: info card */}
-          <div className="md:col-span-2">
-            <div className="sticky top-6 space-y-3">
+  const overview = <>
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
                 {/* Date row */}
                 <div className="flex items-start gap-4 px-5 py-4 border-b border-stone-50">
@@ -267,6 +151,128 @@ export default function EventDetail() {
                 )}
               </div>
 
+              {externalLinks.ticketUrl && <a href={externalLinks.ticketUrl} target="_blank" rel="noopener noreferrer" className="w-full py-3.5 px-4 font-bold text-sm rounded-xl text-white bg-primary hover:bg-primary/90 shadow-sm flex items-center justify-center gap-2"><Ticket className="w-4 h-4 shrink-0" /> {externalLinks.ticketTitle || "Jegyvásárlás"} <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-70" /></a>}
+  </>;
+
+  return (
+    <div>
+      {/* ── Cinematic hero ──────────────────────────────────────── */}
+      <div className="relative w-full overflow-hidden h-[340px] sm:h-[clamp(360px,55vh,560px)]">
+        {/* Background image */}
+        <motion.img
+          src={event.imageUrl}
+          alt={event.title}
+          initial={{ scale: 1.06, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+
+        {/* Gradient overlays */}
+        <div className="absolute inset-0" style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.75) 100%)"
+        }} />
+
+        {/* Top nav buttons */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 sm:px-8 pt-5">
+          <Link href="/">
+            <button className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/20 px-3 py-2 rounded-xl">
+              <ArrowLeft className="w-4 h-4" /> Vissza
+            </button>
+          </Link>
+          <div className="flex items-center gap-2">
+            <FavoriteButton eventId={event.id} className="w-10 h-10" />
+            <button
+              onClick={handleShare}
+              aria-label="Esemény megosztása"
+              className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/30 px-3 py-2 rounded-xl"
+            >
+              <Share2 className="w-4 h-4" /> <span className="hidden sm:inline">Megosztás</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom: category + title */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-8 pb-7">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              {event.category && (
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full text-white shadow-sm" style={{ backgroundColor: event.category.color }}>
+                  {event.category.name}
+                </span>
+              )}
+              {event.featured && (
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400 text-amber-900 shadow-sm">
+                  ★ Kiemelt
+                </span>
+              )}
+            </div>
+            <motion.h1
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight drop-shadow-md"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+            >
+              {event.title}
+            </motion.h1>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Body ────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+      >
+        <div className="mb-7 md:hidden space-y-3 min-w-0">{overview}</div>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 lg:gap-12">
+          {/* Left: description + tags */}
+          <div className="min-w-0 md:col-span-3 break-words">
+            <div className="space-y-3 mb-6">
+              {(event.description ?? "").split(/\n\n+/).map((para, i) => (
+                <p key={i} className="text-[15px] leading-relaxed text-stone-600">
+                  {para.split(/\n/).map((line, j, arr) => (
+                    <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
+                  ))}
+                </p>
+              ))}
+            </div>
+
+            {event.tags && event.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {event.tags.map(tag => (
+                  <span key={tag} className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 transition-colors">
+                    <Tag className="w-3 h-3" />{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {event.imageUrl && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.35 }}
+                className="mt-8"
+              >
+                <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3">Plakát</p>
+                <img
+                  src={event.imageUrl}
+                  alt={`${event.title} – plakát`}
+                  className="w-full rounded-2xl border border-stone-100 shadow-md object-contain bg-white"
+                  style={{ maxHeight: "520px", objectPosition: "top" }}
+                />
+              </motion.div>
+            )}
+          </div>
+
+          {/* Right: info card */}
+          <div className="min-w-0 md:col-span-2 break-words">
+            <div className="md:sticky md:top-24 space-y-3">
+              <div className="hidden md:block space-y-3">{overview}</div>
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-5 py-4">
                 <div className="flex items-start gap-4">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-sky-50">
@@ -307,7 +313,6 @@ export default function EventDetail() {
               </div>
 
               {/* External links: keep tickets and Facebook separate. */}
-              {externalLinks.ticketUrl && <a href={externalLinks.ticketUrl} target="_blank" rel="noopener noreferrer" className="block"><button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2" style={{ background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black))" }}><Ticket className="w-4 h-4" /> {externalLinks.ticketTitle || "Jegyvásárlás"} <ExternalLink className="w-3.5 h-3.5 opacity-70" /></button></a>}
               {externalLinks.facebookUrl && <a href={externalLinks.facebookUrl} target="_blank" rel="noopener noreferrer" className="block"><button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2" style={{ background: "linear-gradient(135deg,#1877f2,#0e5ab8)" }}><Link2 className="w-4 h-4" /> Facebook esemény <ExternalLink className="w-3.5 h-3.5 opacity-70" /></button></a>}
               {externalLinks.otherLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block"><button className="w-full py-3 border border-stone-200 text-stone-700 font-semibold rounded-xl hover:bg-stone-50 transition-colors text-sm flex items-center justify-center gap-2"><ExternalLink className="w-4 h-4 text-primary" /> {link.title}</button></a>)}
 
