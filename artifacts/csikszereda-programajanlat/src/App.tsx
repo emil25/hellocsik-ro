@@ -20,9 +20,18 @@ import OrganizersPage from "@/pages/organizers";
 import OrganizerProfilePage from "@/pages/organizer-profile";
 import OrganizerHubPage from "@/pages/organizer-hub";
 import PricingPage from "@/pages/pricing";
+import { CityEventsPage, SzekelyfoldHome } from "@/components/SzekelyfoldHome";
 
 function ClassicHomeRoute() {
   return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16"><Home initialDesign="classic" /></main><Footer /></div>;
+}
+
+function RegionHomeRoute() {
+  return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16"><SzekelyfoldHome /></main><Footer /></div>;
+}
+
+function CityEventsRoute({ params }: { params: { slug?: string } }) {
+  return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16"><CityEventsPage slug={params.slug} /></main><Footer /></div>;
 }
 
 function SitePage({ children }: { children: ReactNode }) {
@@ -54,7 +63,9 @@ function Router() {
       <Route path="/szervezo/:slug" component={OrganizerProfileRoute} />
       <Route path="/szervezoi-felulet" component={OrganizerHubRoute} />
       <Route path="/arak" component={PricingRoute} />
-      <Route path="/" component={ClassicHomeRoute} />
+      <Route path="/klasszikus" component={ClassicHomeRoute} />
+      <Route path="/varos/:slug" component={CityEventsRoute} />
+      <Route path="/" component={RegionHomeRoute} />
       <Route>
         <div className="flex flex-col min-h-screen">
           <Navbar />
