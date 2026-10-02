@@ -27,11 +27,11 @@ function ClassicHomeRoute() {
 }
 
 function RegionHomeRoute() {
-  return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16"><SzekelyfoldHome /></main><Footer /></div>;
+  return <SzekelyfoldHome />;
 }
 
 function CityEventsRoute({ params }: { params: { slug?: string } }) {
-  return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16"><CityEventsPage slug={params.slug} /></main><Footer /></div>;
+  return <CityEventsPage slug={params.slug} />;
 }
 
 function SitePage({ children }: { children: ReactNode }) {
