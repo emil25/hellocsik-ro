@@ -43,10 +43,10 @@ export function EventCard({ event, index = 0, promoted = Boolean(event.featured)
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.07, ease: "easeOut" }}
     >
-      <div className="relative h-full">
+      <div className="event-card-interactive relative h-full">
       <Link href={`/esemeny/${event.id}`}>
         <div className={`group relative h-full cursor-pointer bg-card rounded-2xl overflow-hidden border hover:border-primary/30 hover:shadow-lg transition-all duration-300 ${paidPromotion ? "border-violet-300/90 shadow-violet-100/50" : promoted ? "border-amber-400 shadow-amber-100/50" : "border-card-border"}`}>
-          <span className={`event-half-frame ${paidPromotion ? "event-half-frame-paid" : ""}`} style={{ borderColor: event.category?.color ?? (paidPromotion ? "#7c3aed" : "#f59e0b") }} aria-hidden="true" />
+          <span className="event-half-frame" style={{ borderColor: event.category?.color ?? "#16816c" }} aria-hidden="true" />
           <div className="relative overflow-hidden aspect-[4/3] bg-muted">
             {showFallback ? <div className="h-full flex flex-col justify-center items-center gap-3 text-white p-5" style={{ background: `linear-gradient(135deg, ${fallbackColor}, #172d25)` }}><CalendarDays size={45} strokeWidth={1.5} /><span className="text-[10px] uppercase tracking-[.18em] font-bold opacity-75">{event.category?.name ?? "HelloCsík"}</span><span className="font-bold text-lg text-center leading-tight line-clamp-2">{event.title}</span></div> :
             <img

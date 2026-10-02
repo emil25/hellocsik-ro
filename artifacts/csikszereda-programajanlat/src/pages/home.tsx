@@ -420,7 +420,8 @@ function WeeklyCalendar() {
             <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3">
               {visibleDayEvents.map(ev => (
                 <Link key={ev.id} href={`/esemeny/${ev.id}`}>
-                  <article className="group h-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm hover:-translate-y-1 hover:border-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer">
+                  <article className="group relative h-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm hover:-translate-y-1 hover:border-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer">
+                    <span className="event-half-frame" style={{ borderColor: ev.category?.color ?? "#16816c" }} aria-hidden="true" />
                     <div className="h-1" style={{ backgroundColor: ev.category?.color ?? "#166534" }} />
                     <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                       <img src={ev.imageUrl} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
