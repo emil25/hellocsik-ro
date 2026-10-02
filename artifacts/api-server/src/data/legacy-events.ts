@@ -4,6 +4,25 @@ export type LegacyEvent = {
 
 export const LEGACY_EVENTS: LegacyEvent[] = [
   {
+    title: "A Székely himnusz története",
+    description: "Tablókiállítás a Mikó-vár udvarán a Székely himnusz keletkezéséről, történelmi hátteréről és közösségi jelentőségéről. A tárlat Csanády György szövegíró és Mihalik Kálmán zeneszerző életét is bemutatja, és végigköveti a dal útját az 1921-es születésétől a betiltás évein át a közösségi jelképpé válásig.\n\nA Magyar Nemzeti Múzeum és az Országos Széchényi Könyvtár közös kiállításának utazó tablóváltozata érkezik Csíkszeredába.\n\nKezdés: 2026. október 6., 18:00.\nA kiállítás 2026. december 31-ig látogatható.\nHelyszín: a Csíki Székely Múzeum, Mikó-vár udvara.\n\nSzervezők: Csíki Székely Múzeum és Székelyföld Napok.",
+    imageUrl: "/events/szekely-himnusz-tortenete-2026.jpg",
+    startDate: "2026-10-06T18:00:00+03:00",
+    endDate: "2026-12-31T23:59:59+02:00",
+    location: "Csíki Székely Múzeum – Mikó-vár udvara",
+    locationAddress: "Vár tér 2., Csíkszereda",
+    category: "Kiállítás",
+    ticketUrl: null,
+    price: null,
+    tags: ["tablókiállítás", "Székelyföld Napok"],
+    newsLinks: [
+      JSON.stringify({ title: "Facebook-esemény", url: "https://www.facebook.com/events/2083507328948198/" }),
+      JSON.stringify({ title: "Szervező", url: "", name: "Csíki Székely Múzeum és Székelyföld Napok" }),
+    ],
+    featured: false,
+    monthHighlight: false,
+  },
+  {
     title: "Mogács Dániel önálló estje Csíkszeredán! Mv. Feiszt Viktor",
     description: "Mogács Dániel „Ego” című önálló stand-up estje. Műsorvezető: Feiszt Viktor.\n\nIdőpont: 2026. november 8., vasárnap, 18:00.\nHelyszín: Szakszervezetek Művelődési Háza, Csíkszereda.\nSzervezők: Dumaszínház (Csíkszereda) és Szakszervezetek Művelődési Háza.\n\nJegyvásárlás az Eventimen; a jegylink és az eredeti Facebook-esemény külön elérhető ezen az oldalon.",
     imageUrl: "/events/mogacs-daniel-csikszereda-2026.jpg",
