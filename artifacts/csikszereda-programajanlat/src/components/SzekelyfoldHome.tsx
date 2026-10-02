@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Heart, MapPin, Menu, Plus, Search, SlidersHorizontal, Ticket, X } from "lucide-react";
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock3, Heart, MapPin, Menu, Music2, Plus, Search, Sparkles, Theater, Ticket, Users, X, Activity } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { Event as ApiEvent } from "@workspace/api-client-react";
@@ -26,74 +26,119 @@ const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u0
 const regionDay = (date: string | Date) => new Date(date).toLocaleDateString("sv-SE", { timeZone: "Europe/Bucharest" });
 function cityForEvent(event: RegionEvent) {
   const match = (value: string) => REGION_CITIES.find(city => city.keys.some(key => normalize(value).includes(key)));
-  return match(`${event.location} ${event.locationAddress ?? ""}`) ?? match(event.title) ?? match(getVenueInfo(event.location).address ?? "");
+  return match(event.location + " " + (event.locationAddress ?? "")) ?? match(event.title) ?? match(getVenueInfo(event.location).address ?? "");
 }
-
 function useRegionEvents() {
   return useQuery({
     queryKey: ["region-all-upcoming"],
     queryFn: async ({ signal }) => {
       const events: RegionEvent[] = [];
       for (let offset = 0; ; offset += 100) {
-        const response = await fetch(`/api/events?limit=100&offset=${offset}`, { signal });
+        const response = await fetch("/api/events?limit=100&offset=" + offset, { signal });
         if (!response.ok) throw new Error("A programok nem tölthetők be.");
         const page = await response.json() as { events: RegionEvent[] };
         events.push(...page.events);
         if (page.events.length < 100) break;
       }
-      return Array.from(new Map(events.map(event => [event.id, event])).values()).sort((a, b) => Date.parse(a.startDate) - Date.parse(b.startDate));
+      return Array.from(new Map(events.map(event => [event.id, event])).values())
+        .sort((a, b) => Date.parse(a.startDate) - Date.parse(b.startDate));
     },
   });
 }
-
 function priceLabel(event: RegionEvent) {
-  return event.price?.trim() || (getEventLinks(event).ticketUrl ? "Jegyvásárlás" : "Belépés: részletekben");
+  return event.price?.trim() || (getEventLinks(event).ticketUrl ? "Jegyvásárlás" : "Belépő: részletekben");
 }
-
 const eventPlace = (event: RegionEvent) => cityForEvent(event)?.name ?? event.location;
 const dateParts = (event: RegionEvent) => ({
   day: new Date(event.startDate).toLocaleDateString("hu-HU", { day: "numeric", timeZone: "Europe/Bucharest" }),
   month: new Date(event.startDate).toLocaleDateString("hu-HU", { month: "short", timeZone: "Europe/Bucharest" }),
 });
-
-function Brand() {
-  return <Link href="/" className="pr-brand" aria-label="Program.ro – Székelyföld főoldal"><span className="pr-brand-mark"><Ticket size={27} strokeWidth={2.3} /></span><span>program<span className="pr-brand-dot">.ro</span><small>Székelyföld programjai</small></span></Link>;
+function categoryLook(name?: string) {
+  const normalized = normalize(name ?? "");
+  if (/koncert|zene|fesztival/.test(normalized)) return { color: "#7455d9", background: "#eee7ff", Icon: Music2 };
+  if (/szinhaz|tanc/.test(normalized)) return { color: "#cc5846", background: "#ffebe4", Icon: Theater };
+  if (/sport/.test(normalized)) return { color: "#218776", background: "#dcf4ed", Icon: Activity };
+  if (/kozosseg/.test(normalized)) return { color: "#94721c", background: "#fff3d0", Icon: Users };
+  return { color: "#675b91", background: "#edeaf4", Icon: CalendarDays };
 }
-
-function RegionHeader({ cityName }: { cityName?: string }) {
+function Brand() {
+  return <Link href="/" className="sf-brand" aria-label="Program.ro – Székelyföld főoldal">
+    <span className="sf-brand-symbol" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M20 3C11 3 5 10 5 18c0 10 15 19 15 19s15-9 15-19C35 10 29 3 20 3Z" fill="currentColor" /><path d="m17 12 10 6-10 6V12Z" fill="white" /></svg></span>
+    <span>program<span className="sf-brand-dot">.ro</span><small>Székelyföld</small></span>
+  </Link>;
+}
+function RegionHeader() {
   const [open, setOpen] = useState(false);
   const { favoriteIds } = useFavorites();
-  return <header className="pr-header"><div className="pr-header-inner"><Brand /><nav aria-label="Főmenü" className={open ? "pr-nav pr-nav-open" : "pr-nav"}>
-    <a href="/#kozelgo" aria-current="page" onClick={() => setOpen(false)}>Programok</a><a href="/#varosok" onClick={() => setOpen(false)}>Városok</a><Link href="/naptar">Naptár</Link><Link href="/szervezok">Szervezőknek</Link>
-  </nav><div className="pr-header-actions"><Link href="/erdekel" className="pr-saved" aria-label={favoriteIds.length ? "Mentett programok (" + favoriteIds.length + ")" : "Mentett programok"}><Heart size={21} />{favoriteIds.length > 0 && <b>{favoriteIds.length}</b>}</Link><Link href="/bekuldese" className="pr-submit" aria-label="Esemény beküldése"><Plus size={18} /><span>Esemény beküldése</span></Link><button className="pr-menu" aria-label={open ? "Menü bezárása" : "Menü megnyitása"} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button></div></div>{cityName && <div className="pr-breadcrumb pr-shell"><Link href="/"><ArrowLeft size={14} /> Összes város</Link><ChevronRight size={14} />{cityName}</div>}</header>;
+  return <header className="sf-header"><div className="sf-header-inner">
+    <Brand />
+    <nav className={"sf-nav" + (open ? " sf-nav-open" : "")} aria-label="Főmenü">
+      <a href="/#kozelgo" aria-current="page" onClick={() => setOpen(false)}>Programok</a>
+      <a href="/#hetvege" onClick={() => setOpen(false)}>Hétvége</a>
+      <a href="/#varosok" onClick={() => setOpen(false)}>Városok</a>
+      <Link href="/naptar">Naptár</Link>
+      <Link href="/szervezok">Szervezőknek</Link>
+    </nav>
+    <div className="sf-header-actions">
+      <Link href="/erdekel" className="sf-saved" aria-label={"Mentett programok" + (favoriteIds.length ? " (" + favoriteIds.length + ")" : "")}><Heart size={20} />{favoriteIds.length > 0 && <b>{favoriteIds.length}</b>}</Link>
+      <Link href="/bekuldese" className="sf-submit"><Plus size={17} /><span>Esemény beküldése</span></Link>
+      <button className="sf-menu" aria-expanded={open} aria-label={open ? "Menü bezárása" : "Menü megnyitása"} onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
+    </div>
+  </div></header>;
 }
-
 function PosterImage({ event, priority = false }: { event: RegionEvent; priority?: boolean }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [event.imageUrl]);
-  if (!event.imageUrl || failed || /hellocsik-logo|photo-149268/.test(event.imageUrl)) return <div className="pr-image-fallback" style={{ backgroundColor: event.category?.color ?? "#267365" }}><CalendarDays size={42} strokeWidth={1.4} /><strong>{event.title}</strong></div>;
+  if (!event.imageUrl || failed || /hellocsik-logo|photo-149268/.test(event.imageUrl)) {
+    return <div className="sf-image-fallback" style={{ background: categoryLook(event.category?.name).color }}><CalendarDays size={42} /><strong>{event.title}</strong></div>;
+  }
   return <img src={event.imageUrl} alt={event.title} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} onError={() => setFailed(true)} />;
 }
-
 function Spotlight({ events }: { events: RegionEvent[] }) {
   const [offset, setOffset] = useState(0);
-  const pool = useMemo(() => [...events.filter(event => event.featured || event.promotionStatus === "paid"), ...events.filter(event => !event.featured && event.promotionStatus !== "paid")], [events]);
+  const pool = useMemo(() => {
+    const promoted = events.filter(event => event.featured || event.promotionStatus === "paid");
+    const other = events.filter(event => !event.featured && event.promotionStatus !== "paid");
+    // Give the opening a mix of programme types, then retain every event in the carousel.
+    const first = promoted[0] ?? other[0];
+    const second = other.find(event => event.id !== first?.id && event.category?.slug === "sport");
+    const third = other.find(event => event.id !== first?.id && event.id !== second?.id && event.category?.slug === "kozosseg");
+    const opening = [first, second, third].filter((event): event is RegionEvent => Boolean(event));
+    return [...opening, ...[...promoted, ...other].filter(event => !opening.some(item => item.id === event.id))];
+  }, [events]);
+  useEffect(() => setOffset(0), [events]);
+  if (!pool.length) return null;
   const displayed = Array.from({ length: Math.min(3, pool.length) }, (_, index) => pool[(offset + index) % pool.length]);
-  if (!displayed.length) return null;
-  const lead = displayed[0], date = dateParts(lead);
-  return <section className="pr-showcase" aria-label="Kiemelt programajánló"><div className="pr-showcase-grid" data-count={displayed.length}>
-    <article className="pr-feature" key={lead.id}><Link href={"/esemeny/" + lead.id} className="pr-feature-image"><PosterImage event={lead} priority /><span className="pr-feature-badge">{lead.promotionStatus === "paid" ? "Hirdetés" : "Ajánljuk"}</span><span className="pr-image-open"><ArrowUpRight size={24} /></span></Link><div className="pr-feature-copy"><div className="pr-feature-meta"><span className="pr-live-dot" />{eventPlace(lead)}<span>{lead.category?.name ?? "Program"}</span></div><div className="pr-feature-title"><div className="pr-feature-date"><strong>{date.day}</strong><span>{date.month}</span></div><h2><Link href={"/esemeny/" + lead.id}>{lead.title}</Link></h2></div><p className="pr-feature-place"><MapPin size={17} /><span>{lead.location}</span></p><p className="pr-feature-time"><CalendarDays size={17} />{formatTime(lead.startDate)}<span>·</span>{priceLabel(lead)}</p><Link href={"/esemeny/" + lead.id} className="pr-feature-button">Megnézem a programot <ArrowRight size={19} /></Link><div className="pr-carousel-controls"><span>{(offset % pool.length) + 1}<small> / {pool.length}</small></span><div><button aria-label="Előző ajánlott program" onClick={() => setOffset(value => (value - 1 + pool.length) % pool.length)}><ChevronLeft size={18} /></button><button aria-label="Következő ajánlott program" onClick={() => setOffset(value => (value + 1) % pool.length)}><ChevronRight size={18} /></button></div></div></div></article>
-    {displayed.length > 1 && <div className="pr-feature-side"><span className="pr-side-heading">További ajánlók <span aria-hidden="true">↙</span></span>{displayed.slice(1).map(event => <article className="pr-side-card" key={event.id}><Link href={"/esemeny/" + event.id}><div className="pr-side-image"><PosterImage event={event} /></div><div className="pr-side-copy"><span>{formatShortDate(event.startDate)} <i /> {eventPlace(event)}</span><h3>{event.title}</h3><p>{event.category?.name ?? "Program"}<ArrowUpRight size={20} /></p></div></Link></article>)}</div>}
-  </div></section>;
+  return <div className="sf-spotlight">
+    <div className="sf-stage" data-count={displayed.length}>
+      {displayed.map((event, index) => {
+        const date = dateParts(event);
+        return <article className={"sf-story sf-story-" + index} key={event.id}>
+          <Link href={"/esemeny/" + event.id} className="sf-story-link">
+            <PosterImage event={event} priority={index === 0} />
+            <span className="sf-story-shade" />
+            <div className="sf-story-top"><span className="sf-story-label">{event.promotionStatus === "paid" ? "Hirdetés" : event.featured ? "Kiemelt program" : event.category?.name ?? "Ajánló"}</span><span className="sf-story-date"><strong>{date.day}</strong><span>{date.month}</span></span></div>
+            <div className="sf-story-copy"><span className="sf-story-city"><MapPin size={14} />{eventPlace(event)}</span><h2>{event.title}</h2><div className="sf-story-bottom"><span><Clock3 size={14} />{formatTime(event.startDate)}</span><span className="sf-story-arrow"><ArrowUpRight size={21} /></span></div></div>
+          </Link>
+          <FavoriteButton eventId={event.id} className="sf-story-favorite" />
+        </article>;
+      })}
+    </div>
+    <div className="sf-stage-controls"><span><i />Aktuális ajánlók</span>{pool.length > 3 && <div><span>{offset + 1}<small> / {pool.length}</small></span><button aria-label="Előző ajánlott programok" onClick={() => setOffset(value => (value - 1 + pool.length) % pool.length)}><ChevronLeft size={19} /></button><button aria-label="Következő ajánlott programok" onClick={() => setOffset(value => (value + 1) % pool.length)}><ChevronRight size={19} /></button></div>}</div>
+  </div>;
 }
-
 function ProgramCard({ event, index }: { event: RegionEvent; index: number }) {
-  const date = dateParts(event), paid = event.promotionStatus === "paid" && event.promotionPlan !== "free";
-  return <article className={"pr-event" + (paid ? " pr-event-promoted" : "")} style={{ "--event-accent": event.category?.color ?? "#16816c", animationDelay: Math.min(index, 6) * 40 + "ms" } as CSSProperties}>
-    <Link href={"/esemeny/" + event.id} className="pr-event-link"><div className="pr-event-image"><PosterImage event={event} /><div className="pr-event-date"><strong>{date.day}</strong><span>{date.month}</span></div>{paid && <span className="pr-event-ad">Hirdetés</span>}</div><div className="pr-event-copy"><div className="pr-event-category"><i />{event.category?.name ?? "Program"}<span>{formatTime(event.startDate)}</span></div><h3>{event.title}</h3><p><MapPin size={15} /><span>{eventPlace(event)}</span></p><div className="pr-event-bottom"><span>{priceLabel(event)}</span><ArrowUpRight size={19} /></div></div></Link><FavoriteButton eventId={event.id} className="pr-favorite" />
+  const date = dateParts(event), look = categoryLook(event.category?.name);
+  const paid = event.promotionStatus === "paid" && event.promotionPlan !== "free";
+  return <article className="sf-event" style={{ "--event-accent": look.color, "--event-tint": look.background, animationDelay: Math.min(index, 8) * 35 + "ms" } as CSSProperties}>
+    <Link href={"/esemeny/" + event.id} className="sf-event-link">
+      <div className="sf-event-poster"><PosterImage event={event} /><span className="sf-event-category"><look.Icon size={12} />{event.category?.name ?? "Program"}</span>{paid && <span className="sf-event-ad">Hirdetés</span>}</div>
+      <div className="sf-event-info"><div className="sf-event-date"><strong>{date.day}</strong><span>{date.month}</span></div><div className="sf-event-text"><p>{eventPlace(event)}</p><h3>{event.title}</h3><span><Clock3 size={12} />{formatTime(event.startDate)}</span></div></div>
+      <div className="sf-event-bottom"><span>{priceLabel(event)}</span><ArrowUpRight size={18} /></div>
+    </Link>
+    <FavoriteButton eventId={event.id} className="sf-event-favorite" />
   </article>;
 }
-
 function RegionPortal({ citySlug }: { citySlug?: string }) {
   const selectedCity = REGION_CITIES.find(city => city.slug === citySlug);
   const eventsQuery = useRegionEvents(), events = eventsQuery.data ?? [];
@@ -101,15 +146,14 @@ function RegionPortal({ citySlug }: { citySlug?: string }) {
   const [city, setCity] = useState(citySlug ?? "");
   const [category, setCategory] = useState<number | null>(null);
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
-  const [visible, setVisible] = useState(15);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [visible, setVisible] = useState(16);
   useEffect(() => {
     const previousTitle = document.title;
     document.title = selectedCity ? selectedCity.name + " programjai – program.ro" : "program.ro – Székelyföld programjai";
     return () => { document.title = previousTitle; };
   }, [selectedCity]);
   useEffect(() => { setCity(citySlug ?? ""); setQuery(""); setCategory(null); setDateFilter("all"); }, [citySlug]);
-  useEffect(() => { setVisible(15); }, [city, query, category, dateFilter]);
+  useEffect(() => { setVisible(16); }, [city, query, category, dateFilter]);
   useEffect(() => {
     const applyHash = () => { if (window.location.hash === "#hetvege") setDateFilter("weekend"); };
     applyHash(); window.addEventListener("hashchange", applyHash);
@@ -134,28 +178,47 @@ function RegionPortal({ citySlug }: { citySlug?: string }) {
     const sunday = new Date(friday); sunday.setDate(friday.getDate() + 2);
     return scopedEvents.filter(event => {
       const start = regionDay(event.startDate), end = regionDay(event.endDate ?? event.startDate);
-      return (!query.trim() || normalize(event.title + " " + event.location + " " + event.description).includes(normalize(query.trim())))
+      return (!query.trim() || normalize(event.title + " " + event.location + " " + (event.description ?? "")).includes(normalize(query.trim())))
         && (category === null || event.categoryId === category)
         && (dateFilter === "all" || (dateFilter === "today" ? start <= today && end >= today : start <= regionDay(sunday) && end >= regionDay(friday)));
     });
   }, [scopedEvents, query, category, dateFilter]);
   const reset = () => { setQuery(""); setCategory(null); setCity(citySlug ?? ""); setDateFilter("all"); };
   const selectCity = (slug: string) => { setCity(slug); setCategory(null); };
-  const filterCount = Number(Boolean(query.trim())) + Number(Boolean(city)) + Number(category !== null);
-  return <div className={"pr-portal" + (selectedCity ? " pr-city-portal" : "")}><RegionHeader cityName={selectedCity?.name} /><main>
-    <section className="pr-opening"><div className="pr-shell"><div className="pr-opening-title"><div><span className="pr-eyebrow">{selectedCity ? "VÁROSI ESEMÉNYAJÁNLÓ" : "SZÉKELYFÖLD ESEMÉNYEI"}</span><h1>{selectedCity?.name ?? "Programajánló"}<span className="pr-title-dot" /></h1></div><a href="#kozelgo">{eventsQuery.isLoading ? "Betöltés…" : scopedEvents.length + " közelgő program"}<ArrowRight size={19} /></a></div>
-    {eventsQuery.isLoading ? <div className="pr-showcase-skeleton" aria-label="Ajánló betöltése"><div className="pr-skeleton" /><div className="pr-skeleton" /></div> : <Spotlight events={scopedEvents} />}
+  const search = (event: FormEvent) => { event.preventDefault(); document.getElementById("kozelgo")?.scrollIntoView({ block: "start", behavior: "smooth" }); };
+  const activeFilters = Boolean(query.trim() || city || category !== null || dateFilter !== "all");
+  const currentCity = REGION_CITIES.find(item => item.slug === city);
+  return <div className={"sf-portal" + (selectedCity ? " sf-city-portal" : "")}><RegionHeader /><main>
+    <section className="sf-opening"><div className="sf-shell">
+      {selectedCity && <Link className="sf-back" href="/"><ArrowLeft size={15} />Székelyföld összes programja</Link>}
+      <div className="sf-opening-heading"><div><span className="sf-eyebrow"><span />ESEMÉNYAJÁNLÓ</span><h1>{selectedCity ? selectedCity.name : "Székelyföld"}<span> programjai<span className="sf-title-period">.</span></span></h1></div><a className="sf-weekend-link" href="#hetvege"><CalendarDays size={19} /><span>Ezen a hétvégén</span><ArrowUpRight size={19} /></a></div>
+      {eventsQuery.isLoading ? <div className="sf-stage sf-stage-loading" aria-label="Ajánló betöltése">{Array.from({ length: 3 }, (_, index) => <div className="sf-skeleton" key={index} />)}</div> : <Spotlight events={scopedEvents} />}
+      <form className="sf-searchbar" onSubmit={search}>
+        <label className="sf-search-field"><Search size={22} /><span><span>Mit keresel?</span><input type="search" aria-label="Programok keresése" placeholder="Esemény, előadó, helyszín…" value={query} onChange={event => setQuery(event.target.value)} /></span></label>
+        <label className="sf-search-choice"><MapPin size={21} /><span><span>Hol?</span><select aria-label="Város szűrése" value={city} onChange={event => selectCity(event.target.value)}><option value="">Egész Székelyföld</option>{REGION_CITIES.map(item => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></span><ChevronDown size={15} /></label>
+        <label className="sf-search-choice sf-search-when"><CalendarDays size={21} /><span><span>Mikor?</span><select aria-label="Időpont szűrése" value={dateFilter} onChange={event => setDateFilter(event.target.value as DateFilter)}><option value="all">Bármikor</option><option value="today">Ma</option><option value="weekend">Ezen a hétvégén</option></select></span><ChevronDown size={15} /></label>
+        <button type="submit">Keresés<ArrowRight size={19} /></button>
+      </form>
     </div></section>
-    <section className="pr-citybar pr-shell" id="varosok" aria-label="Városok"><div className="pr-citybar-label"><MapPin size={21} /><span>Hol keresel<br /><strong>programot?</strong></span></div><div className="pr-citybar-scroll"><button aria-pressed={!city} onClick={() => selectCity("")}>Minden város<span>{events.length}</span></button>{REGION_CITIES.map(item => <button key={item.slug} aria-pressed={city === item.slug} onClick={() => selectCity(item.slug)}>{item.name}<span>{cityCounts.get(item.slug)}</span></button>)}</div></section>
-    <section className="pr-listing pr-shell" id="kozelgo"><span id="hetvege" /><div className="pr-listing-heading"><div><span className="pr-eyebrow">ESEMÉNYNAPTÁR</span><h2>{city ? REGION_CITIES.find(item => item.slug === city)?.name + " programjai" : "Közelgő programok"}<span>{filtered.length}</span></h2></div><div className="pr-dates" aria-label="Időpont szűrése">{([{ id: "all", label: "Összes" }, { id: "today", label: "Ma" }, { id: "weekend", label: "Hétvégén" }] as const).map(tab => <button key={tab.id} aria-pressed={dateFilter === tab.id} onClick={() => setDateFilter(tab.id)}>{tab.label}</button>)}<Link href="/naptar" aria-label="Havi naptár megnyitása"><CalendarDays size={20} /></Link></div></div>
-    <div className="pr-listing-layout"><aside className={"pr-filters" + (filtersOpen ? " pr-filters-open" : "")} aria-label="Programok szűrése"><button className="pr-filter-toggle" aria-expanded={filtersOpen} aria-controls="program-filter-fields" onClick={() => setFiltersOpen(!filtersOpen)}><SlidersHorizontal size={18} /> Szűrés és keresés{filterCount > 0 && <span>{filterCount}</span>}<ChevronDown size={17} /></button><div className="pr-filter-fields" id="program-filter-fields"><div className="pr-filter-heading"><SlidersHorizontal size={18} /><h3>Keresés és szűrés</h3></div><label className="pr-filter-label" htmlFor="program-search">Keresés</label><div className="pr-search"><Search size={17} /><input id="program-search" type="search" placeholder="Cím, előadó, helyszín…" aria-label="Programok keresése" value={query} onChange={event => setQuery(event.target.value)} /></div><label className="pr-filter-label" htmlFor="program-city">Város</label><div className="pr-select"><select id="program-city" aria-label="Város szűrése" value={city} onChange={event => selectCity(event.target.value)}><option value="">Egész Székelyföld</option>{REGION_CITIES.map(item => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select><ChevronDown size={15} /></div><h4 className="pr-filter-label">Programtípus</h4><div className="pr-categories"><button aria-pressed={category === null} onClick={() => setCategory(null)}><span className="pr-filter-check">{category === null && <Check size={12} />}</span> Minden program <small>{scopedEvents.length}</small></button>{categories.map(item => <button key={item.id} aria-pressed={category === item.id} onClick={() => setCategory(item.id)}><span className="pr-filter-check">{category === item.id && <Check size={12} />}</span><i style={{ background: item.color }} />{item.name}<small>{scopedEvents.filter(event => event.categoryId === item.id).length}</small></button>)}</div>{filterCount > 0 && <button className="pr-filter-reset" onClick={reset}><X size={14} /> Szűrők törlése</button>}{city && city !== citySlug && <Link className="pr-city-link" href={"/varos/" + city}>Városoldal megnyitása<ArrowUpRight size={16} /></Link>}<div className="pr-filter-organizer"><Ticket size={22} /><p>Saját eseményt szervezel?</p><Link href="/bekuldese">Küldd be ingyen <ArrowRight size={15} /></Link></div></div></aside>
-    <div className="pr-listing-results">{query.trim() && <p className="pr-query-result">Találatok erre: <strong>„{query.trim()}”</strong></p>}{eventsQuery.isLoading ? <div className="pr-event-grid" aria-label="Programok betöltése">{Array.from({ length: 6 }, (_, index) => <div className="pr-skeleton" key={index} />)}</div> : eventsQuery.isError ? <div className="pr-empty" role="alert"><CalendarDays /><h3>A programok nem töltődtek be.</h3><button onClick={() => eventsQuery.refetch()}>Újrapróbálom</button></div> : filtered.length ? <div className="pr-event-grid">{filtered.slice(0, visible).map((event, index) => <ProgramCard event={event} index={index} key={event.id} />)}</div> : <div className="pr-empty"><Search /><h3>Nincs találat ezekkel a szűrőkkel.</h3><p>Válassz másik napot, várost vagy kategóriát.</p><button onClick={reset}>Összes program</button></div>}{filtered.length > visible && <div className="pr-more"><button onClick={() => setVisible(value => value + 15)}>További {Math.min(15, filtered.length - visible)} program <Plus size={18} /></button><span>{Math.min(visible, filtered.length)} / {filtered.length} program</span></div>}</div></div></section>
-    <section className="pr-organizer pr-shell"><div className="pr-organizer-art" aria-hidden="true"><Ticket /><span>+</span></div><div><span className="pr-eyebrow">SZERVEZŐKNEK</span><h2>Szervezői profil és eseménybeküldés</h2><p>Ingyenes beküldés, szervezői bemutatkozás és kiemelési lehetőségek.</p></div><Link href="/szervezok">Szervezői felület <ArrowUpRight size={20} /></Link></section>
-    </main><footer className="pr-footer pr-shell"><Brand /><nav aria-label="Lábléc"><Link href="/szervezok">Szervezőknek</Link><Link href="/arak">Kiemelések és árak</Link><Link href="/klasszikus">HelloCsík – klasszikus</Link><Link href="/admin">Admin</Link></nav><span>© {new Date().getFullYear()} · Székelyföld programjai</span></footer></div>;
+    <section className="sf-programs sf-shell" id="kozelgo" aria-labelledby="sf-programs-title">
+      <div className="sf-section-heading"><div><span className="sf-eyebrow">PROGRAMOK</span><h2 id="sf-programs-title">{currentCity ? currentCity.name : dateFilter === "weekend" ? "Ezen a hétvégén" : dateFilter === "today" ? "Mai programok" : "Mi érdekel?"}<span>{filtered.length}</span></h2></div><Link href="/naptar" className="sf-calendar-link"><CalendarDays size={18} />Naptár nézet<ArrowUpRight size={17} /></Link></div>
+      <div className="sf-category-row" aria-label="Programtípus szűrése">
+        <button aria-pressed={category === null} onClick={() => setCategory(null)}><Sparkles size={17} />Minden program</button>
+        {categories.map(item => { const look = categoryLook(item.name); return <button key={item.id} aria-pressed={category === item.id} onClick={() => setCategory(item.id)} style={{ "--category-color": look.color, "--category-bg": look.background } as CSSProperties}><look.Icon size={17} />{item.name}<span>{scopedEvents.filter(event => event.categoryId === item.id).length}</span></button>; })}
+      </div>
+      <div className="sf-result-line" aria-live="polite"><p>{eventsQuery.isLoading ? "Programok betöltése…" : filtered.length + " közelgő esemény"}{query.trim() && <> · <strong>„{query.trim()}”</strong></>}</p>{activeFilters && <button onClick={reset}><X size={14} />Szűrők törlése</button>}</div>
+      {eventsQuery.isLoading ? <div className="sf-event-grid">{Array.from({ length: 8 }, (_, index) => <div className="sf-skeleton" key={index} />)}</div>
+        : eventsQuery.isError ? <div className="sf-empty" role="alert"><CalendarDays /><h3>A programok nem töltődtek be.</h3><button onClick={() => eventsQuery.refetch()}>Újrapróbálom</button></div>
+        : filtered.length ? <div className="sf-event-grid">{filtered.slice(0, visible).map((event, index) => <ProgramCard key={event.id} event={event} index={index} />)}</div>
+        : <div className="sf-empty"><Search /><h3>Nincs találat ezekkel a szűrőkkel.</h3><p>Válassz másik várost, időpontot vagy programtípust.</p><button onClick={reset}>Összes program</button></div>}
+      {filtered.length > visible && <div className="sf-more"><button onClick={() => setVisible(value => value + 16)}>További programok<Plus size={19} /></button><span>{visible} / {filtered.length} esemény</span></div>}
+    </section>
+    <section className="sf-city-section" id="varosok"><div className="sf-shell"><div className="sf-section-heading"><div><span className="sf-eyebrow">VÁROSOK</span><h2>Programok a közeledben<span className="sf-city-dot" /></h2></div><p>Válassz várost, és nézd meg a helyi eseményeket.</p></div><div className="sf-city-grid">{REGION_CITIES.map((item, index) => <Link href={"/varos/" + item.slug} key={item.slug} className={"sf-city sf-city-tone-" + index % 4}><span className="sf-city-icon"><MapPin size={24} /></span><span><strong>{item.name}</strong><small>{cityCounts.get(item.slug) ?? 0} közelgő program</small></span><ArrowUpRight size={22} /></Link>)}</div></div></section>
+    <section className="sf-organizer sf-shell"><span className="sf-organizer-icon"><Ticket size={32} /></span><div><h2>Szervezői profil és eseménybeküldés</h2><p>Ingyenes eseménybeküldés és saját szervezői profil.</p></div><Link href="/szervezok">Szervezőknek<ArrowUpRight size={20} /></Link></section>
+  </main><footer className="sf-footer sf-shell"><Brand /><nav aria-label="Lábléc"><Link href="/szervezok">Szervezőknek</Link><Link href="/arak">Kiemelések és árak</Link><Link href="/klasszikus">HelloCsík – klasszikus</Link><Link href="/admin">Admin</Link></nav><span>© {new Date().getFullYear()} · Székelyföld programjai</span></footer></div>;
 }
-
 export function SzekelyfoldHome() { return <RegionPortal />; }
 export function CityEventsPage({ slug }: { slug?: string }) {
-  if (!REGION_CITIES.some(city => city.slug === slug)) return <div className="pr-portal"><RegionHeader /><div className="pr-empty"><h1>Ez a városoldal nem található.</h1><Link href="/">Összes város <ArrowRight size={17} /></Link></div></div>;
+  if (!REGION_CITIES.some(city => city.slug === slug)) return <div className="sf-portal"><RegionHeader /><div className="sf-empty"><h1>Ez a városoldal nem található.</h1><Link href="/">Összes város<ArrowRight size={17} /></Link></div></div>;
   return <RegionPortal citySlug={slug} />;
 }
