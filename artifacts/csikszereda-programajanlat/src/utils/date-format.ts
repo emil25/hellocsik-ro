@@ -21,6 +21,19 @@ export function formatDate(dateString: string) {
   }
 }
 
+export function formatEndDate(dateString: string) {
+  try {
+    const date = asUTC(dateString);
+    // A date-only closing day is stored at the day's final second for expiry.
+    if (date.getHours() === 23 && date.getMinutes() === 59 && date.getSeconds() === 59) {
+      return `${format(date, "yyyy. MMMM d.", { locale: hu })}-ig`;
+    }
+    return formatDate(dateString);
+  } catch {
+    return dateString;
+  }
+}
+
 export function formatShortDate(dateString: string) {
   try {
     return format(asUTC(dateString), "MMM d.", { locale: hu });

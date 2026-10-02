@@ -5,7 +5,7 @@ import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, 
 import { Link } from "wouter";
 import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDate, formatShortDate } from "@/utils/date-format";
+import { formatDate, formatEndDate, formatShortDate } from "@/utils/date-format";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
 import { getVenueInfo } from "@/lib/venues";
 import { organizerForEvent } from "@/data/organizers";
@@ -232,7 +232,7 @@ export default function EventDetail() {
                     <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Időpont</p>
                     <p className="font-semibold text-sm text-stone-800">{formatDate(event.startDate)}</p>
                     {event.endDate && (
-                      <p className="text-xs text-stone-400 mt-0.5">– {formatDate(event.endDate)}</p>
+                      <p className="text-xs text-stone-400 mt-0.5">– {formatEndDate(event.endDate)}</p>
                     )}
                   </div>
                 </div>
