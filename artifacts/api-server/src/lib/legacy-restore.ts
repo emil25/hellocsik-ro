@@ -25,7 +25,7 @@ function readSourceUrls(values: string[]) {
   return values.flatMap((value) => {
     try {
       const parsed = JSON.parse(value) as { url?: unknown };
-      return typeof parsed.url === "string" ? [sourceUrl(parsed.url)] : [];
+      return typeof parsed.url === "string" && parsed.url.trim() ? [sourceUrl(parsed.url)] : [];
     } catch {
       return /^https?:\/\//i.test(value) ? [sourceUrl(value)] : [];
     }
