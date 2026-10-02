@@ -58,8 +58,8 @@ function RegionHeader({ cityName }: { cityName?: string }) {
   const [open, setOpen] = useState(false);
   const { favoriteIds } = useFavorites();
   return <header className="pg-header"><div className="pg-header-inner"><Brand /><nav aria-label="Főmenü" className={open ? "pg-nav pg-nav-open" : "pg-nav"}>
-    <Link href="/#kozelgo" className="pg-nav-active" onClick={() => setOpen(false)}>Programok</Link>
-    <Link href="/#varosok" onClick={() => setOpen(false)}>Városok</Link><Link href="/naptar">Naptár</Link><Link href="/szervezok">Szervezőknek</Link>
+    <a href="/#kozelgo" className="pg-nav-active" onClick={() => setOpen(false)}>Programok</a>
+    <a href="/#varosok" onClick={() => setOpen(false)}>Városok</a><Link href="/naptar">Naptár</Link><Link href="/szervezok">Szervezőknek</Link>
     <Link href="/erdekel" className="pg-nav-saved"><Heart size={17} /> Mentett{favoriteIds.length > 0 && <b>{favoriteIds.length}</b>}</Link>
   </nav><Link href="/bekuldese" className="pg-submit" aria-label="Eseményt küldök"><Plus size={17} /><span>Eseményt küldök</span></Link><button className="pg-menu" aria-label={open ? "Menü bezárása" : "Menü megnyitása"} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button></div>{cityName && <div className="pg-city-breadcrumb"><Link href="/"><ArrowLeft size={14} /> Összes város</Link><ChevronRight size={13} /><span>{cityName}</span></div>}</header>;
 }
@@ -109,6 +109,17 @@ function RegionPortal({ citySlug }: { citySlug?: string }) {
     applyHash(); window.addEventListener("hashchange", applyHash);
     return () => window.removeEventListener("hashchange", applyHash);
   }, []);
+  useEffect(() => {
+    if (eventsQuery.isLoading) return;
+    const scrollToSection = () => {
+      const id = window.location.hash.slice(1);
+      if (id) document.getElementById(id === "hetvege" ? "kozelgo" : id)?.scrollIntoView({ block: "start" });
+      else window.scrollTo(0, 0);
+    };
+    scrollToSection();
+    window.addEventListener("hashchange", scrollToSection);
+    return () => window.removeEventListener("hashchange", scrollToSection);
+  }, [citySlug, eventsQuery.isLoading]);
   const scopedEvents = useMemo(() => events.filter(event => !city || cityForEvent(event)?.slug === city), [events, city]);
   const categories = useMemo(() => Array.from(new Map(scopedEvents.flatMap(event => event.category ? [[event.category.id, event.category] as const] : [])).values()), [scopedEvents]);
   const filtered = useMemo(() => {
@@ -125,8 +136,8 @@ function RegionPortal({ citySlug }: { citySlug?: string }) {
     });
   }, [scopedEvents, query, category, dateFilter]);
   const reset = () => { setQuery(""); setCategory(null); setCity(citySlug ?? ""); setDateFilter("all"); };
-  return <div className="pg-portal"><RegionHeader cityName={selectedCity?.name} /><main>
-    <div className="pg-discover"><div className="pg-shell"><div className="pg-page-heading"><div><p>{selectedCity ? "VÁROSI PROGRAMOK" : "SZÉKELYFÖLD • ESEMÉNYAJÁNLÓ"}</p><h1>{selectedCity?.name ?? "Hova menjünk?"}<span className="pg-title-spark" aria-hidden="true">✳</span></h1></div><a href="#kozelgo" className="pg-all-link">{eventsQuery.isLoading ? "Programok betöltése" : `${scopedEvents.length} közelgő program`}<ArrowRight size={17} /></a></div>
+  return <div className={`pg-portal${selectedCity ? " pg-portal-city" : ""}`}><RegionHeader cityName={selectedCity?.name} /><main>
+    <div className="pg-discover"><div className="pg-shell"><div className="pg-page-heading"><div><p>{selectedCity ? "VÁROSI PROGRAMOK" : "SZÉKELYFÖLD • ESEMÉNYAJÁNLÓ"}</p><h1><span>{selectedCity?.name ?? "Hova menjünk?"}</span><span className="pg-title-spark" aria-hidden="true">✳</span></h1></div><a href="#kozelgo" className="pg-all-link">{eventsQuery.isLoading ? "Programok betöltése" : `${scopedEvents.length} közelgő program`}<ArrowRight size={17} /></a></div>
     {eventsQuery.isLoading ? <div className="pg-spotlight-grid pg-spotlight-loading" aria-label="Ajánló betöltése">{[0, 1, 2].map(index => <div key={index} className="pg-skeleton" />)}</div> : <Spotlight events={scopedEvents} />}
     <div className="pg-finder" id="varosok"><label className="pg-search"><Search size={21} /><input type="search" placeholder="Koncert, előadás, kedvenc helyszín…" aria-label="Programok keresése" value={query} onChange={event => setQuery(event.target.value)} /></label><label className="pg-city-select"><MapPin size={20} /><select aria-label="Város szűrése" value={city} onChange={event => { setCity(event.target.value); setCategory(null); }}><option value="">Egész Székelyföld</option>{REGION_CITIES.map(item => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select><ChevronDown size={15} /></label><a href="#kozelgo" className="pg-find-button">Mutasd a programokat <ArrowRight size={17} /></a></div></div></div>
     <section className="pg-programs pg-shell" id="kozelgo"><span id="hetvege" /><div className="pg-results-top"><h2>{city ? `${REGION_CITIES.find(item => item.slug === city)?.name} programjai` : "Az összes program"}<span>{filtered.length}</span></h2><div className="pg-date-tabs" aria-label="Időpont szűrése">{([{ id: "all", label: "Bármikor" }, { id: "today", label: "Ma" }, { id: "weekend", label: "Hétvégén" }] as const).map(tab => <button key={tab.id} aria-pressed={dateFilter === tab.id} onClick={() => setDateFilter(tab.id)}>{dateFilter === tab.id && <Check size={13} />}{tab.label}</button>)}<Link href="/naptar"><CalendarDays size={14} /> Naptár</Link></div></div>
