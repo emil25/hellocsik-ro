@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { ProgramFinder } from "@/components/events/ProgramFinder";
 import { CityGuideHero } from "@/components/CityGuideHero";
 import { ActiveSzekelyfold, CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
+import { SzekelyfoldDays } from "@/components/SzekelyfoldDays";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
 import { motion } from "framer-motion";
@@ -1498,6 +1499,7 @@ export default function Home({ initialDesign }: { initialDesign?: HomeDesign } =
       <ActiveBanners />
       <ActiveSzekelyfold />
       <CloudFestival />
+      <SzekelyfoldDays />
       <CinemaPicks />
       <VenuesSection />
       <AddEventSection />

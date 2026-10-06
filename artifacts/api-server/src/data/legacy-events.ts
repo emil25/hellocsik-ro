@@ -4,6 +4,25 @@ export type LegacyEvent = {
 
 export const LEGACY_EVENTS: LegacyEvent[] = [
   {
+    title: "XIV. Csíkszéki Mézfesztivál és hagyományos termékek vására",
+    description: "Mézfesztivállal egybekötött őszi vásár Csíkszereda főterén. Helyi termelők és kézművesek portékái, mézek, finomságok és a mézlovagok látványos felvonulása várja a látogatókat.\n\nIdőpont: 2026. október 9–10., pénteken és szombaton egyaránt 8:00–18:00.\nHelyszín: Szabadság tér és Promenád, Csíkszereda.\n\nSzervezők: Csíkszéki Mézlovagrend és a Romániai Méhész Egyesület Hargita Megyei Kirendeltsége.\n\nA részletes tájékoztatás és az eredeti plakát a Székelytermék – Produs Secuiesc Facebook-bejegyzésében található.",
+    imageUrl: "/events/csikszeki-mezfesztival-2026.jpg",
+    startDate: "2026-10-09T08:00:00+03:00",
+    endDate: "2026-10-10T18:00:00+03:00",
+    location: "Szabadság tér és Promenád, Csíkszereda",
+    locationAddress: "Szabadság tér, Csíkszereda",
+    category: "Fesztivál",
+    ticketUrl: null,
+    price: null,
+    tags: ["mézfesztivál", "őszi vásár", "helyi termelők", "naponta 8–18"],
+    newsLinks: [
+      JSON.stringify({ title: "Facebook-bejegyzés", url: "https://www.facebook.com/photo/?fbid=1519944713463519&set=a.460206639437337" }),
+      JSON.stringify({ title: "Szervező", url: "", name: "Csíkszéki Mézlovagrend és a Romániai Méhész Egyesület Hargita Megyei Kirendeltsége" }),
+    ],
+    featured: false,
+    monthHighlight: false,
+  },
+  {
     title: "A Székely himnusz története",
     description: "Tablókiállítás a Mikó-vár udvarán a Székely himnusz keletkezéséről, történelmi hátteréről és közösségi jelentőségéről. A tárlat Csanády György szövegíró és Mihalik Kálmán zeneszerző életét is bemutatja, és végigköveti a dal útját az 1921-es születésétől a betiltás évein át a közösségi jelképpé válásig.\n\nA Magyar Nemzeti Múzeum és az Országos Széchényi Könyvtár közös kiállításának utazó tablóváltozata érkezik Csíkszeredába.\n\nKezdés: 2026. október 6., 18:00.\nA kiállítás 2026. december 31-ig látogatható.\nHelyszín: a Csíki Székely Múzeum, Mikó-vár udvara.\n\nSzervezők: Csíki Székely Múzeum és Székelyföld Napok.",
     imageUrl: "/events/szekely-himnusz-tortenete-2026.jpg",

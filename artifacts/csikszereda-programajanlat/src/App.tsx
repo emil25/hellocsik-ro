@@ -20,6 +20,7 @@ import OrganizersPage from "@/pages/organizers";
 import OrganizerProfilePage from "@/pages/organizer-profile";
 import OrganizerHubPage from "@/pages/organizer-hub";
 import PricingPage from "@/pages/pricing";
+import SzekelyfoldDaysPage from "@/pages/szekelyfold-napok";
 import { CityEventsPage, SzekelyfoldHome } from "@/components/SzekelyfoldHome";
 
 function ClassicHomeRoute() {
@@ -42,6 +43,7 @@ function OrganizersRoute() { return <SitePage><OrganizersPage /></SitePage>; }
 function OrganizerProfileRoute() { return <SitePage><OrganizerProfilePage /></SitePage>; }
 function OrganizerHubRoute() { return <SitePage><OrganizerHubPage /></SitePage>; }
 function PricingRoute() { return <SitePage><PricingPage /></SitePage>; }
+function SzekelyfoldDaysRoute() { return <SitePage><SzekelyfoldDaysPage /></SitePage>; }
 function DefaultHomeRoute() { return <Home />; }
 
 const queryClient = new QueryClient({
@@ -63,6 +65,7 @@ function Router() {
       <Route path="/szervezo/:slug" component={OrganizerProfileRoute} />
       <Route path="/szervezoi-felulet" component={OrganizerHubRoute} />
       <Route path="/arak" component={PricingRoute} />
+      <Route path="/szekelyfold-napok" component={SzekelyfoldDaysRoute} />
       <Route path="/klasszikus" component={ClassicHomeRoute} />
       <Route path="/varos/:slug" component={CityEventsRoute} />
       <Route path="/szekelyfold" component={RegionHomeRoute} />
