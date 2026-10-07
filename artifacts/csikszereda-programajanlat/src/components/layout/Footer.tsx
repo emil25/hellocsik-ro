@@ -1,12 +1,42 @@
 import { Link } from "wouter";
-import { ArrowRight } from "lucide-react";
+import helloCsikLogo from "@/assets/hellocsik-logo-header.png";
+
+const footerLinks = [
+  { href: "/#kozelgo", label: "Programok" },
+  { href: "/naptar", label: "Naptár" },
+  { href: "/helyszinek", label: "Helyszínek" },
+  { href: "/szervezok", label: "Szervezők" },
+  { href: "/arak", label: "Árak" },
+  { href: "/erdekel", label: "Érdekel" },
+  { href: "/bekuldese", label: "Program beküldése" },
+  { href: "/szekelyfold", label: "Székelyföldi programok" },
+  { href: "/admin", label: "Szerkesztőség" },
+];
 
 export function Footer() {
-  return <footer className="bg-background border-t border-border">
-    <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10 flex flex-wrap items-center justify-between gap-6">
-      <div><Link href="/" className="text-2xl font-extrabold tracking-tight">hellocsík<span className="text-primary">.ro</span></Link><p className="text-sm text-muted-foreground mt-2">Csíkszereda és Csík környékének programjai.</p></div>
-      <nav aria-label="Lábléc" className="flex flex-wrap gap-5 text-sm font-semibold"><a href="/#kozelgo">Programok</a><Link href="/naptar">Naptár</Link><Link href="/helyszinek">Helyszínek</Link><Link href="/szervezok">Szervezők</Link><Link href="/arak">Árak</Link><Link href="/erdekel">Érdekel</Link><Link href="/bekuldese" className="flex items-center gap-2 text-primary">Program beküldése <ArrowRight size={16} /></Link><Link href="/szekelyfold">Székelyföldi programok</Link><Link href="/admin">Szerkesztőség</Link></nav>
-    </div>
-    <div className="max-w-7xl mx-auto px-5 sm:px-8 py-5 border-t border-border text-sm text-muted-foreground">© {new Date().getFullYear()} HelloCsík · Csíkszereda és környéke <p className="mt-2 text-xs"><a className="underline" href="https://commons.wikimedia.org/wiki/File:RO_HR_Miercurea_Ciuc_center_1.jpg" target="_blank" rel="noreferrer">Fotó: Andrei Stroe / Wikimedia Commons</a> · <a className="underline" href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noreferrer">CC BY-SA 3.0</a> · Vágott kép</p></div>
-  </footer>;
+  return (
+    <footer id="lablec" className="bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+        <div className="border-t border-border pt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <Link href="/" className="self-start shrink-0" aria-label="HelloCsík főoldal">
+            <img src={helloCsikLogo} alt="HelloCsík" className="h-8 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity" loading="lazy" />
+          </Link>
+          <div className="min-w-0 md:max-w-3xl md:text-right">
+            <nav aria-label="Lábléc" className="grid grid-cols-3 gap-x-4 gap-y-1 md:flex md:flex-wrap md:justify-end md:gap-x-4 text-xs text-muted-foreground">
+              {footerLinks.map(link => (
+                <a key={link.href} href={link.href} className="py-2 hover:text-primary transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2">{link.label}</a>
+              ))}
+            </nav>
+            <p className="mt-3 md:mt-2 text-xs text-muted-foreground">
+              &copy; {new Date().getFullYear()} HelloCsík · Programok · Helyek · Élmények · Csíkszereda
+            </p>
+          </div>
+        </div>
+        <p className="mt-5 text-[10px] leading-relaxed text-muted-foreground md:text-right">
+          <a className="underline underline-offset-2" href="https://commons.wikimedia.org/wiki/File:RO_HR_Miercurea_Ciuc_center_1.jpg" target="_blank" rel="noreferrer">Fotó: Andrei Stroe / Wikimedia Commons</a>
+          {" · "}<a className="underline underline-offset-2" href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noreferrer">CC BY-SA 3.0</a>{" · Vágott kép"}
+        </p>
+      </div>
+    </footer>
+  );
 }
