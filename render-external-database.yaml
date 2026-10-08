@@ -1,0 +1,22 @@
+# Alternative blueprint for a free Render web service + external PostgreSQL.
+# Existing deployments should change DATABASE_URL only after a verified restore.
+# Do not delete the old database during migration.
+services:
+  - type: web
+    name: hellocsik-ro
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: pnpm install --frozen-lockfile && pnpm build:app
+    startCommand: pnpm start
+    healthCheckPath: /api/healthz
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: FIRECRAWL_API_KEY
+        sync: false

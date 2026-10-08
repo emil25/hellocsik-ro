@@ -51,3 +51,19 @@ A referenciaoldal képei a `public/reference` mappába kerültek; a forrás-URL-
 ### Render telepítés
 
 A gyökérben lévő `render.yaml` egy Node webszolgáltatást készít. A `pnpm build:app` felépíti az API-t és a React felületet, a szerver pedig ugyanazon a nyilvános címen szolgálja ki mindkettőt. Telepítéskor tartós PostgreSQL-kapcsolatot kell megadni `DATABASE_URL` néven. Az adatbázis táblái és az alap kategóriák az első induláskor automatikusan létrejönnek. Az `ADMIN_PASSWORD` titkos változó; a `FIRECRAWL_API_KEY` elhagyható, de nélküle a gazdagabb automatikus forrásfrissítés nem fut.
+
+### Adatbázismentés és ingyenes külső adatbázis
+
+A Render ingyenes PostgreSQL-je 30 nap után lejár. Az ingyenes webszolgáltatás külső PostgreSQL-lel is működhet (például Neon Free); ehhez a `render-external-database.yaml` tartalmaz alternatív konfigurációt. A meglévő telepítésnél csak az adatbázis-kapcsolatot kell átállítani a sikeres visszaállítás után. A webszolgáltatás ingyenes csomagjának alvása és használati korlátai ettől megmaradnak.
+
+Az adminjelszóval védett `GET /api/admin/database-backup` az öt alkalmazástábla konzisztens JSON-mentését adja, a szervezői jelszólenyomatokkal, beküldői adatokkal és számlálókkal együtt. A fájl személyes adatokat tartalmaz: csak a Gitből kizárt `.local/backups` mappába vagy más biztonságos helyre kerüljön. A mentés nem tartalmaz képfájlokat, környezeti titkokat vagy más PostgreSQL-sémákat. A képeket és az `ADMIN_PASSWORD` értékét külön kell megőrizni.
+
+Letöltés a helyi `.env.local` adminjelszavával: `node scripts/backup-database.mjs`. A program ellenőrzi a mentés szerkezetét, a `.local/backups` mappába ment és SHA-256 ellenőrzőösszeget készít. Másik webcímhez a `HELLOCSIK_SITE_URL` környezeti változó használható.
+
+Visszaállítás kizárólag új, üres adatbázisba, biztonságosan megadott `RESTORE_DATABASE_URL` környezeti változóval:
+
+```sh
+pnpm --filter @workspace/scripts exec tsx ./restore-database.ts /absolute/path/backup.json
+```
+
+A művelet tranzakcióban őrzi meg az azonosítókat, szervezőket, időpontokat és azonosítószámlálókat; meglévő adat esetén leáll. A teljes mentés–visszaállítás próbája: `pnpm --filter @workspace/scripts exec tsx ./test-database-backup.ts`. Éles költözéskor a mentés és az átállás között ne történjen szerkesztés vagy beküldés; a régi adatbázist csak az ellenőrzött átállás után szabad kivezetni.
