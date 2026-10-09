@@ -9,7 +9,6 @@ import headerLogo from "@/assets/hellocsik-logo-header.png";
 const navLinks = [
   { href: "/#hetvege", label: "Hétvége" },
   { href: "/naptar", label: "Naptár" },
-  { href: "/#kozelgo", label: "Programok" },
   { href: "/helyszinek", label: "Helyszínek" },
   { href: "/szervezok", label: "Szervezők" },
   { href: "/arak", label: "Árak" },
