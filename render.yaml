@@ -1,8 +1,5 @@
-databases:
-  - name: hellocsik-ro-db
-    plan: free
-    region: frankfurt
-
+# The web service uses an external PostgreSQL database (Neon Free).
+# Keep credentials in Render; never put connection strings in this file.
 services:
   - type: web
     name: hellocsik-ro
@@ -17,10 +14,8 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: hellocsik-ro-db
-          property: connectionString
+        sync: false
       - key: ADMIN_PASSWORD
-        generateValue: true
+        sync: false
       - key: FIRECRAWL_API_KEY
         sync: false
