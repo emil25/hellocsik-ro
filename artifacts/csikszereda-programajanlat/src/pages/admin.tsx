@@ -36,8 +36,8 @@ function ImageUploadField({
       setUploadError("");
       onBusyChange?.(false);
     },
-    onError: () => {
-      setUploadError("Feltöltési hiba. Kérjük próbáld újra.");
+    onError: (error) => {
+      setUploadError(error.message || "Feltöltési hiba. Kérjük próbáld újra.");
       onBusyChange?.(false);
     },
   });
@@ -1014,14 +1014,33 @@ export default function AdminPage() {
     setSyncing(true); setSyncMessage("");
     try {
       const response = await fetch(`${API}/admin/source-sync`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
-      const result = await response.json();
+      let result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "A forrásfrissítés nem sikerült.");
+      if (result.background) {
+        const jobId = result.jobId;
+        setSyncMessage("A frissítés elindult a háttérben. Az új programokat a Közzétett fülön találod majd.");
+        const deadline = Date.now() + 120_000;
+        let completed = false;
+        while (Date.now() < deadline) {
+          await new Promise(resolve => setTimeout(resolve, 4000));
+          const progress = await fetch(`${API}/admin/source-sync`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+          if (!progress.ok) throw new Error("A frissítés állapota nem kérhető le. Nyisd meg újra a Közzétett listát.");
+          const { job } = await progress.json();
+          if (!job || job.id !== jobId) break;
+          if (job.status === "failed") throw new Error(job.error ?? "A forrásfrissítés nem sikerült.");
+          if (job.status === "completed") { result = job.result; completed = true; break; }
+        }
+        if (!completed) {
+          setSyncMessage("A háttérfrissítés még folyamatban lehet. Később frissítsd a Közzétett listát.");
+          return;
+        }
+      }
       const firecrawlNote = result.firecrawlConfigured === false
         ? " A Firecrawl API-kulcs még nincs beállítva, ezért most csak a közvetlen forrás frissült."
         : "";
-      setSyncMessage(`${result.imported} új csíki esemény került a jóváhagyásra váró listába. ${result.skipped} találat már szerepelt vagy nem volt használható.${firecrawlNote}`);
-      setTab("pending");
-      await fetchEvents("pending");
+      setSyncMessage(`${result.imported} új esemény került a Közzétett listába. ${result.skipped} találat már szerepelt vagy nem volt használható.${firecrawlNote}`);
+      setTab("published");
+      await fetchEvents("published");
     } catch (error) {
       setSyncMessage(error instanceof Error ? error.message : "A forrásfrissítés nem sikerült.");
     } finally { setSyncing(false); }

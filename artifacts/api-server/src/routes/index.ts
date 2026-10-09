@@ -10,6 +10,7 @@ import newsletterRouter from "./newsletter";
 import cinemaRouter from "./cinema";
 import organizersRouter from "./organizers";
 import databaseBackupRouter from "./database-backup";
+import netlifyStorageRouter from "./netlify-storage";
 
 const router: IRouter = Router();
 
@@ -17,8 +18,11 @@ router.use(healthRouter);
 router.use(eventsRouter);
 router.use(categoriesRouter);
 router.use(adminRouter);
-router.use(localStorageRouter);
-router.use(storageRouter);
+if (process.env.NETLIFY === "true") router.use(netlifyStorageRouter);
+else {
+  router.use(localStorageRouter);
+  router.use(storageRouter);
+}
 router.use(bannersRouter);
 router.use(newsletterRouter);
 router.use(cinemaRouter);

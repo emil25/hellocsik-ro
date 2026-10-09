@@ -1,0 +1,35 @@
+[build]
+  command = "pnpm build:netlify"
+  publish = "artifacts/csikszereda-programajanlat/dist/public"
+  functions = "artifacts/api-server/dist/netlify"
+
+[build.environment]
+  NODE_VERSION = "24"
+  PNPM_VERSION = "11.25.0"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["artifacts/csikszereda-programajanlat/dist/public/index.html"]
+
+[functions.events-schedule]
+  schedule = "0 */6 * * *"
+
+[functions.events-sync-background]
+  background = true
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/esemeny/*"
+  to = "/.netlify/functions/api/esemeny/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

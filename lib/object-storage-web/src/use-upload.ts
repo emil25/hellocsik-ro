@@ -99,7 +99,8 @@ export function useUpload(options: UseUploadOptions = {}) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to upload file to storage");
+        const details = await response.json().catch(() => ({}));
+        throw new Error(details.error || "A képfeltöltés nem sikerült. Próbáld újra.");
       }
     },
     []

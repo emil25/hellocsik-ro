@@ -40,8 +40,8 @@ if (process.env.NODE_ENV === "production") {
   const staticDir = process.env.STATIC_DIR ?? path.resolve(process.cwd(), "artifacts/csikszereda-programajanlat/dist/public");
   if (existsSync(staticDir)) {
     const indexHtml = readFileSync(path.join(staticDir, "index.html"), "utf8");
-    const siteOrigin = new URL(process.env.PUBLIC_SITE_URL || process.env.RENDER_EXTERNAL_URL || "https://hellocsik-ro.onrender.com").origin;
-    app.use(express.static(staticDir));
+    const siteOrigin = new URL(process.env.PUBLIC_SITE_URL || process.env.URL || process.env.RENDER_EXTERNAL_URL || "https://hellocsik-ro.onrender.com").origin;
+    if (process.env.NETLIFY !== "true") app.use(express.static(staticDir));
     app.get("/esemeny/:id", async (req, res) => {
       const id = Number(req.params.id);
       const [event] = Number.isSafeInteger(id) && id > 0 ? await db.select({

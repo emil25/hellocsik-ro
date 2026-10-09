@@ -5,6 +5,7 @@ import { assertEventRange } from "../../../../shared/event-time.mjs";
 import { eq, desc } from "drizzle-orm";
 import { ADMIN_PASSWORD, requireAdmin } from "../lib/admin-auth";
 import { getLastSourceSync, syncEventSources } from "../lib/source-sync";
+import { getSourceSyncJob, startNetlifySourceSync } from "../lib/netlify-source-sync";
 import { extractFacebookEvent, isFirecrawlConfigured } from "../lib/firecrawl";
 
 const router = Router();
@@ -276,12 +277,20 @@ router.post("/admin/login", (req, res) => {
   }
 });
 
-router.get("/admin/source-sync", requireAdmin, (_req, res) => {
-  res.json({ lastResult: getLastSourceSync() });
+router.get("/admin/source-sync", requireAdmin, async (_req, res) => {
+  if (process.env.NETLIFY === "true") {
+    const job = await getSourceSyncJob();
+    res.set("Cache-Control", "no-store").json({ job, lastResult: job?.result ?? null });
+  } else res.json({ lastResult: getLastSourceSync() });
 });
 
 router.post("/admin/source-sync", requireAdmin, async (req, res) => {
   try {
+    if (process.env.NETLIFY === "true") {
+      const job = await startNetlifySourceSync();
+      res.status(202).json({ background: true, jobId: job.id });
+      return;
+    }
     res.json(await syncEventSources());
   } catch (err) {
     req.log.warn({ err }, "Admin: event source sync failed");

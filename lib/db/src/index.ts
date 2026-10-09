@@ -13,10 +13,14 @@ if (!process.env.DATABASE_URL && !process.env.PGLITE_DATA_DIR) {
   );
 }
 
-export const pool = process.env.DATABASE_URL ? new Pool({ connectionString: process.env.DATABASE_URL }) : null;
+export const pool = process.env.DATABASE_URL ? new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ...(process.env.NETLIFY === "true" ? { max: 3, allowExitOnIdle: true, connectionTimeoutMillis: 10_000, idleTimeoutMillis: 10_000 } : {}),
+}) : null;
 const localClient = pool ? null : new PGlite(process.env.PGLITE_DATA_DIR!);
 if (localClient) await initializeLocalDatabase(localClient);
-if (pool) await pool.query(INITIAL_SCHEMA_SQL);
+// Netlify uses the already migrated database; cold starts must not run schema DDL.
+if (pool && process.env.NETLIFY !== "true") await pool.query(INITIAL_SCHEMA_SQL);
 export const db = pool ? drizzle(pool, { schema }) : drizzleLocal(localClient!, { schema });
 
 export * from "./schema";
