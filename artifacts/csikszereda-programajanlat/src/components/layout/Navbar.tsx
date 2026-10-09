@@ -65,9 +65,6 @@ export function Navbar() {
                 <Search className="w-3.5 h-3.5" />
                 <span>Keresés...</span>
               </button>
-              <a href="/#hozzaadas" className="ml-1 px-4 py-2 rounded-full bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20">
-                Csatlakozz
-              </a>
             </div>
 
             {/* Mobile: search + burger */}
@@ -111,12 +108,6 @@ export function Navbar() {
                     {link.label}{link.href === "/erdekel" && favoriteIds.length > 0 ? ` (${favoriteIds.length})` : ""}
                   </a>
                 ))}
-                <div className="pt-2">
-                  <a href="/#hozzaadas" onClick={() => setOpen(false)}
-                    className="block w-full text-center py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors">
-                    Csatlakozz
-                  </a>
-                </div>
               </div>
             </motion.div>
           )}
