@@ -11,7 +11,7 @@ await build({
   platform: "node",
   target: "node22",
   format: "esm",
-  external: ["@electric-sql/pglite", "@google-cloud/storage", "pg-native", "pino-pretty"],
+  external: ["@electric-sql/pglite", "drizzle-orm/pglite", "pg-native", "pino-pretty"],
   banner: { js: "import { createRequire as __createRequire } from 'node:module'; const require = __createRequire(import.meta.url);" },
   logLevel: "info",
 });

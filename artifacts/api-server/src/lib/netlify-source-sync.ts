@@ -28,8 +28,9 @@ export async function getSourceSyncJob() {
 }
 
 export async function startNetlifySourceSync(): Promise<SourceSyncJob> {
-  if (!process.env.ADMIN_PASSWORD || !process.env.URL) throw new Error("A forrásfrissítés nincs beállítva.");
-  const destination = new URL("/.netlify/functions/events-sync-background", process.env.URL);
+  const siteUrl = process.env.PUBLIC_SITE_URL || process.env.URL;
+  if (!process.env.ADMIN_PASSWORD || !siteUrl) throw new Error("A forrásfrissítés nincs beállítva.");
+  const destination = new URL("/.netlify/functions/events-sync-background", siteUrl);
   if (destination.protocol !== "https:" && process.env.NETLIFY_DEV !== "true") throw new Error("Érvénytelen tárhelycím.");
   const current = await store().getWithMetadata(key, { type: "json" });
   if (current && isActive(current.data as SourceSyncJob)) return current.data as SourceSyncJob;
