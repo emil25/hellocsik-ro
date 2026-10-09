@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, eventsTable, categoriesTable } from "@workspace/db";
 import { normalizeEventDates } from "../lib/event-dates";
 import { assertEventRange } from "../../../../shared/event-time.mjs";
+import { normalizeSourceUrl } from "../../../../shared/event-source-url.mjs";
 import { eq, desc } from "drizzle-orm";
 import { ADMIN_PASSWORD, requireAdmin } from "../lib/admin-auth";
 import { getLastSourceSync, syncEventSources } from "../lib/source-sync";
@@ -148,17 +149,6 @@ function normalizeComparable(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
-}
-
-function normalizeSourceUrl(value: string) {
-  try {
-    const parsed = new URL(value);
-    parsed.hash = "";
-    parsed.search = "";
-    return parsed.toString().replace(/\/$/, "").toLowerCase();
-  } catch {
-    return value.trim().toLowerCase().replace(/\/$/, "");
-  }
 }
 
 function sourceUrls(newsLinks: unknown) {
