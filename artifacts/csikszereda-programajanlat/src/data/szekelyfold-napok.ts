@@ -3,7 +3,7 @@ export const SZEKELYFOLD_DAYS = {
   dates: "2026. október 9–18.",
   end: "2026-10-18T23:59:59+03:00",
   source: "https://www.szekelyfoldnapok.ro/?menu=1",
-  checked: "2026. október 6.",
+  checked: "2026. október 11.",
 };
 
 export const festivalAsset = (file: string) => `${import.meta.env.BASE_URL}events/${file}`;
@@ -24,14 +24,26 @@ export type FestivalProgram = {
   eventPath?: string;
 };
 
-// Editorial selection from the official 2026 programme, checked on October 6.
+// Csík and nearby programmes in the official schedule, checked on October 11.
 // Separate dates are deliberately kept explicit rather than shown as daily events.
 export const FESTIVAL_PROGRAMS: FestivalProgram[] = [
+  {
+    id: "mezfesztival", title: "XIV. Csíkszéki Mézfesztivál és hagyományos termékek vására", category: "Vásár",
+    area: "Csíkszereda", location: "Szabadság tér és Promenád · Csíkszereda", dates: "Október 9–10.", time: "08:00–18:00",
+    end: "2026-10-10T18:00:00+03:00", image: "csikszeki-mezfesztival-2026.jpg", sourceId: 87, eventPath: "/esemeny/86",
+    description: "Helyi termelők és kézművesek őszi vására mézekkel, finomságokkal és a mézlovagok felvonulásával. Mindkét napon 8 és 18 óra között.",
+  },
   {
     id: "szakralis-seta", title: "Szakrális séta a Kis-Somlyón", category: "Séta",
     area: "Csíksomlyó", location: "Kis-Somlyó · Csíksomlyó", dates: "Október 9.", time: "14:00–16:00",
     end: "2026-10-09T16:00:00+03:00", image: "szfn-passio-seta-2026.jpg", sourceId: 6,
     description: "Gergely István (Tiszti) vezetésével a Jézus hágójától a Salvator-kápolnáig és a Hármashalom-oltárig. Az I. Kárpát-medencei Passiótalálkozó programja.",
+  },
+  {
+    id: "gyermek-neptanc", title: "XIV. Gyermek Néptáncfesztivál", category: "Gyerekprogram",
+    area: "Csík környéke", location: "Ózon szálloda előtti park · Tusnádfürdő", dates: "Október 10.", time: "10:00–14:30",
+    end: "2026-10-10T14:30:00+03:00", image: "szfn-neptanc-2026.jpg", sourceId: 86, eventPath: "/esemeny/98",
+    description: "Felvonulás, ifjúsági szentmise, Bíró Julcsi és a Lelkes zenekar mesekoncertje, valamint gyerek néptánccsoportok gálaműsora. Kézműves foglalkozások és helyi termelők vására is várja a családokat.",
   },
   {
     id: "passio30", title: "Passió30 – könyvbemutató", category: "Irodalom",
@@ -65,6 +77,13 @@ export const FESTIVAL_PROGRAMS: FestivalProgram[] = [
     description: "Interaktív gyerekkoncert állatokról szóló dalokkal, közös énekléssel, tánccal és dobolással a csíkmadarasi Művelődési Házban.",
   },
   {
+    id: "kaptar", title: "Kaptár 5 – filmvetítés és közönségtalálkozó", category: "Film",
+    area: "Csíkszereda", location: "Hargita Megyei Kulturális Központ · Mihai Eminescu 3/A", dates: "Október 15.", time: "18:00–19:30",
+    end: "2026-10-15T19:30:00+03:00", image: "szfn-kaptar-2026.jpg", sourceId: 83, eventPath: "/esemeny/101",
+    description: "A Csíki konfekció és a Gubán Balázs legendája című dokumentumfilmek vetítése után beszélgetés az alkotókkal és Gagyi József társadalomkutatóval.",
+    note: "A részvétel ingyenes.",
+  },
+  {
     id: "erdovidek", title: "Erdővidék nagyjai", category: "Kirándulás",
     area: "Csíkszereda", location: "Indulás Csíkszeredából · autóbuszos túra", dates: "Október 17.", time: "07:45–21:00",
     end: "2026-10-17T21:00:00+03:00", image: "szfn-erdovidek-2026.jpg", sourceId: 19,
@@ -82,5 +101,12 @@ export const FESTIVAL_PROGRAMS: FestivalProgram[] = [
     area: "Csík környéke", location: "Skanzen · Borospatak, Gyimesközéplok", dates: "Október 17.", time: "20:00–23:00",
     end: "2026-10-17T23:00:00+03:00", image: "szfn-tanchaz-2026.jpg", sourceId: 60,
     description: "Csángó táncház a borospataki skanzenben, kosteleki gyerekekkel és fiatalokkal, valamint a gyimesbükki Csalóka tánccsoporttal.",
+  },
+  {
+    id: "szinjatszo", title: "Műkedvelő Színjátszó Találkozó", category: "Színház",
+    area: "Csík környéke", location: "Művelődési Ház · Csíkvacsárcsi", dates: "Október 18.", time: "16:00–20:30",
+    end: "2026-10-18T20:30:00+03:00", image: "szfn-szinjatszo-2026.jpg", sourceId: 85, eventPath: "/esemeny/110",
+    description: "Amatőr színjátszó csoportok huszonharmadik találkozója. Meghívott vendég a Csíkszentgyörgyi Székely Góbék.",
+    note: "A színjátszó csoportok október 14-ig jelentkezhetnek: vacsarcsi@gmail.com.",
   },
 ];

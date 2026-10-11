@@ -25,9 +25,11 @@ export function SzekelyfoldDays() {
   }, []);
   const now = Date.now();
   if (now > Date.parse(SZEKELYFOLD_DAYS.end)) return null;
-  const preferred = ["passiojatek", "felhold", "tekergok", "kaposztavasar", "borospatak"];
-  const previews = preferred.map(id => FESTIVAL_PROGRAMS.find(program => program.id === id)!)
-    .filter(program => Date.parse(program.end) >= now).slice(0, 3);
+  const preferred = ["felhold", "tekergok", "kaptar", "kaposztavasar", "borospatak", "szinjatszo"];
+  const previews = [
+    ...preferred.flatMap(id => FESTIVAL_PROGRAMS.filter(program => program.id === id)),
+    ...FESTIVAL_PROGRAMS.filter(program => !preferred.includes(program.id)),
+  ].filter(program => Date.parse(program.end) >= now).slice(0, 3);
 
   return <section ref={section} className="szfn-section" id="szekelyfold-napok" aria-labelledby="szfn-heading">
     <div className="szfn-wrap">
@@ -53,7 +55,7 @@ export function SzekelyfoldDays() {
               <div className="szfn-preview-copy"><span className="szfn-preview-date">{program.dates}</span><h4>{program.title}</h4><p><MapPin size={13} />{program.area === "Csík környéke" ? program.location.split(" · ").at(-1) : program.area}</p><ArrowUpRight className="szfn-preview-arrow" size={18} /></div>
             </Link>)}
           </div>
-          <div className="szfn-actions"><Link href="/szekelyfold-napok" className="szfn-button">Csíki programok <ArrowRight size={18} /></Link><a href={SZEKELYFOLD_DAYS.source} target="_blank" rel="noopener noreferrer">Teljes fesztiválprogram <ArrowUpRight size={16} /></a></div>
+          <div className="szfn-actions"><Link href="/szekelyfold-napok" className="szfn-button">Mind a {FESTIVAL_PROGRAMS.length} csíki program <ArrowRight size={18} /></Link><a href={SZEKELYFOLD_DAYS.source} target="_blank" rel="noopener noreferrer">Teljes fesztiválprogram <ArrowUpRight size={16} /></a></div>
         </div>
       </div>
     </div>

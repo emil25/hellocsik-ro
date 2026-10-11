@@ -36,11 +36,11 @@ export default function SzekelyfoldDaysPage() {
   return <div className="szfn-page">
     <div className="szfn-page-hero"><div className="szfn-wrap">
       <Link href="/#szekelyfold-napok" className="szfn-back"><ArrowLeft size={16} /> Vissza a főoldalra</Link>
-      <div className="szfn-page-title"><div><p className="szfn-edition">XVII. kiadás · {SZEKELYFOLD_DAYS.dates}</p><h1>Székelyföld Napok</h1><p>Csíkszereda, Csíksomlyó és a környék programjaiból.</p></div><img src={festivalAsset("szekelyfold-napok-logo.png")} alt="Székelyföld Napok" width="230" height="193" /></div>
+      <div className="szfn-page-title"><div><p className="szfn-edition">XVII. kiadás · {SZEKELYFOLD_DAYS.dates}</p><h1>Székelyföld Napok</h1><p>{FESTIVAL_PROGRAMS.length} program Csíkszeredában, Csíksomlyón és a környéken. A többnapos programokat egy kártyán találod.</p></div><img src={festivalAsset("szekelyfold-napok-logo.png")} alt="Székelyföld Napok" width="230" height="193" /></div>
       <img className="szfn-official-banner" src={festivalAsset("szekelyfold-napok-2026.jpg")} width="2688" height="1142" alt="XVII. Székelyföld Napok – Örökségből jövő. 2026. október 9–18." />
     </div></div>
     <div className="szfn-wrap szfn-page-programs">
-      <div className="szfn-page-programs-heading"><div><p className="szfn-eyebrow">{expired ? "Archív programválogatás" : "Csíki programválogatás"}</p><h2>Merre induljunk?</h2></div><a href={SZEKELYFOLD_DAYS.source} target="_blank" rel="noopener noreferrer">Teljes fesztiválprogram <ArrowUpRight size={16} /></a></div>
+      <div className="szfn-page-programs-heading"><div><p className="szfn-eyebrow">{expired ? "Archív csíki programok" : "Csíki és környékbeli programok"}</p><h2>Merre induljunk?</h2></div><a href={SZEKELYFOLD_DAYS.source} target="_blank" rel="noopener noreferrer">Teljes fesztiválprogram <ArrowUpRight size={16} /></a></div>
       <div className="szfn-filters" role="group" aria-label="Programok helyszíne">{areas.map(item => <button key={item} aria-pressed={area === item} onClick={() => setArea(item)}>{item}<span>{item === "Mind" ? FESTIVAL_PROGRAMS.length : FESTIVAL_PROGRAMS.filter(program => program.area === item).length}</span></button>)}</div>
       <p className="sr-only" aria-live="polite">{programs.length} program</p>
       <div className="szfn-program-grid">{programs.map(program => <ProgramCard key={program.id} program={program} />)}</div>

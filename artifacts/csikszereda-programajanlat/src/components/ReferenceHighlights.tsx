@@ -73,16 +73,25 @@ type CinemaMovie = { title: string; date: string; imageUrl: string; url: string;
 
 export function CinemaPicks() {
   const [films, setFilms] = useState<CinemaMovie[]>([]);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const [notice, setNotice] = useState("Műsor betöltése…");
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/cinema", { signal: controller.signal })
       .then(response => response.ok ? response.json() : Promise.reject())
-      .then(data => { if (Array.isArray(data.movies) && data.movies.length) setFilms(data.movies.slice(0, 4)); })
-      .catch(() => undefined);
+      .then(data => {
+        if (!Array.isArray(data.movies) || !data.movies.length) throw new Error("Empty cinema schedule");
+        setFilms(data.movies.slice(0, 4));
+        if (typeof data.updatedAt === "string" && Number.isFinite(Date.parse(data.updatedAt))) setUpdatedAt(data.updatedAt);
+        setNotice(data.stale ? "A legutóbbi műsort mutatjuk; a frissítés átmenetileg nem elérhető." : "");
+      })
+      .catch(() => { if (!controller.signal.aborted) setNotice("A mozis műsor most nem tölthető be. A teljes műsort a mozi oldalán találod."); });
     return () => controller.abort();
   }, []);
-  return <section className="cinema-section"><div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  return <section id="mozi" className="cinema-section"><div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div className="flex flex-wrap items-end justify-between gap-4 mb-7"><div><p className="text-sm font-bold tracking-wider text-rose-500 mb-2">MOZI-AJÁNLÓ · CSÍKI MOZI</p><h2 className="text-3xl font-bold tracking-tight">Most a vásznon</h2><p className="text-sm text-muted-foreground mt-2">Aktuális vetítések és a következő premierek a belvárosban.</p></div><a href="https://cinemacsikimozi.ro/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-primary">Teljes műsor a cinemacsikimozi.ro-n <ArrowRight size={16} /></a></div>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">{films.map(film => <a key={film.title} href={film.url} target="_blank" rel="noopener noreferrer" className="group min-w-0"><div className="cinema-poster"><img src={film.imageUrl} alt={film.title} loading="lazy" /><span className="cinema-badge">{film.status}</span><div className="cinema-caption"><h3>{film.title}</h3><p>Aktuális vetítés a Csíki Moziban</p></div></div><div className="flex justify-between gap-2 text-sm mt-3"><span>{film.date}</span><span className="text-primary font-semibold">Filmoldal ↗</span></div><p className="flex items-center gap-1 text-xs text-muted-foreground mt-2"><Ticket size={13} /> Jegyek a mozi pénztárában</p></a>)}</div>
+    {notice && <p className="text-sm text-muted-foreground mb-4" role="status">{notice}</p>}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">{films.map(film => <a key={film.url} href={film.url} target="_blank" rel="noopener noreferrer" className="group min-w-0"><div className="cinema-poster"><img src={film.imageUrl} alt={film.title} loading="lazy" /><span className="cinema-badge">{film.status}</span><div className="cinema-caption"><h3>{film.title}</h3><p>{film.status === "KÖVETKEZIK" ? "Következő vetítés a Csíki Moziban" : "Aktuális vetítés a Csíki Moziban"}</p></div></div><div className="flex justify-between gap-2 text-sm mt-3"><span>{film.date}</span><span className="text-primary font-semibold">Filmoldal ↗</span></div><p className="flex items-center gap-1 text-xs text-muted-foreground mt-2"><Ticket size={13} /> Jegyek a mozi pénztárában</p></a>)}</div>
+    {updatedAt && <p className="text-xs text-muted-foreground mt-5">Műsor ellenőrizve: <time dateTime={updatedAt}>{new Intl.DateTimeFormat("hu-HU", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Bucharest" }).format(new Date(updatedAt))}</time> · Automatikus frissítés a Csíki Mozi hivatalos oldaláról.</p>}
   </div></section>;
 }
