@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
-import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2, Database, CalendarPlus, Download, Flag, CheckCircle2, Loader2 } from "lucide-react";
+import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2, Database, CalendarPlus, Download, Flag, CheckCircle2, Loader2, Maximize2 } from "lucide-react";
 import { Link } from "wouter";
 import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,6 +53,7 @@ export default function EventDetail() {
   const [reportBusy, setReportBusy] = useState(false);
   const [reportSent, setReportSent] = useState(false);
   const [reportError, setReportError] = useState("");
+  const [imageFailed, setImageFailed] = useState(false);
 
   const { data: event, isLoading } = useGetEvent(id, {
     query: { enabled: !!id, queryKey: getGetEventQueryKey(id) },
@@ -183,68 +184,52 @@ export default function EventDetail() {
 
   return (
     <div>
-      {/* ── Cinematic hero ──────────────────────────────────────── */}
-      <div className="relative w-full overflow-hidden h-[340px] sm:h-[clamp(360px,55vh,560px)]">
-        {/* Background image */}
-        <motion.img
-          src={event.imageUrl}
-          alt={event.title}
-          initial={{ scale: 1.06, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+      {/* The full image stays visible, while a soft blurred fill keeps portrait posters
+          and wide photos balanced in the same frame. */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8">
+        <section className="grid overflow-hidden rounded-[26px] border border-stone-200 bg-[#f7f6f2] shadow-sm lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)]">
+          <div className="group relative isolate aspect-[4/3] min-h-[260px] overflow-hidden bg-stone-900 sm:min-h-[360px] lg:aspect-auto lg:min-h-[520px]">
+            {event.imageUrl && !imageFailed ? <>
+              <img src={event.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-45 blur-2xl" />
+              <div className="absolute inset-0 bg-black/20" />
+              <motion.img
+                src={event.imageUrl}
+                alt={event.title}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.45 }}
+                onError={() => setImageFailed(true)}
+                className="absolute inset-0 h-full w-full object-contain p-1 sm:p-2"
+              />
+              <a href={event.imageUrl} target="_blank" rel="noopener noreferrer" aria-label="A teljes eseménykép megnyitása" className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full bg-black/55 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur transition-opacity group-hover:opacity-100 focus:opacity-100">
+                <Maximize2 className="h-3.5 w-3.5" /> Teljes kép
+              </a>
+            </> : <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-emerald-950 to-stone-800 text-sm font-medium text-white/75">Eseménykép nem érhető el</div>}
 
-        {/* Gradient overlays */}
-        <div className="absolute inset-0" style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.75) 100%)"
-        }} />
-
-        {/* Top nav buttons */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 sm:px-8 pt-5">
-          <Link href="/">
-            <button className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/20 px-3 py-2 rounded-xl">
-              <ArrowLeft className="w-4 h-4" /> Vissza
-            </button>
-          </Link>
-          <div className="flex items-center gap-2">
-            <FavoriteButton eventId={event.id} className="w-10 h-10" />
-            <button
-              onClick={handleShare}
-              aria-label="Esemény megosztása"
-              className="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors backdrop-blur-sm bg-black/30 px-3 py-2 rounded-xl"
-            >
-              <Share2 className="w-4 h-4" /> <span className="hidden sm:inline">Megosztás</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom: category + title */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-8 pb-7">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              {event.category && (
-                <span className="text-xs font-bold px-3 py-1.5 rounded-full text-white shadow-sm" style={{ backgroundColor: event.category.color }}>
-                  {event.category.name}
-                </span>
-              )}
-              {event.featured && (
-                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400 text-amber-900 shadow-sm">
-                  ★ Kiemelt
-                </span>
-              )}
+            <div className="absolute left-4 right-4 top-4 flex items-center justify-between sm:left-6 sm:right-6 sm:top-6">
+              <Link href="/" className="inline-flex items-center gap-2 rounded-full bg-black/55 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm backdrop-blur transition-colors hover:bg-black/70">
+                <ArrowLeft className="h-4 w-4" /> Vissza
+              </Link>
+              <div className="flex items-center gap-2">
+                <FavoriteButton eventId={event.id} className="h-10 w-10" />
+                <button onClick={handleShare} aria-label="Esemény megosztása" className="inline-flex h-10 items-center gap-2 rounded-full bg-black/55 px-3.5 text-sm font-semibold text-white shadow-sm backdrop-blur transition-colors hover:bg-black/70">
+                  <Share2 className="h-4 w-4" /><span className="hidden sm:inline">Megosztás</span>
+                </button>
+              </div>
             </div>
-            <motion.h1
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight drop-shadow-md"
-              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
-            >
+          </div>
+
+          <div className="flex min-w-0 flex-col justify-center p-5 sm:p-8 lg:p-10">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              {event.category && <span className="rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm" style={{ backgroundColor: event.category.color }}>{event.category.name}</span>}
+              {event.featured && <span className="rounded-full bg-amber-400 px-3 py-1.5 text-xs font-bold text-amber-950 shadow-sm">★ Kiemelt</span>}
+            </div>
+            <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-6 text-2xl font-bold leading-tight tracking-tight text-stone-900 sm:text-3xl lg:text-[2.15rem]">
               {event.title}
             </motion.h1>
+            <div className="space-y-3">{overview}</div>
           </div>
-        </div>
+        </section>
       </div>
 
       {/* ── Body ────────────────────────────────────────────────── */}
@@ -252,10 +237,9 @@ export default function EventDetail() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10"
       >
-        <div className="mb-7 md:hidden space-y-3 min-w-0">{overview}</div>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,.65fr)] lg:gap-12">
           {/* Left: description + tags */}
           <div className="min-w-0 md:col-span-3 break-words">
             <div className="space-y-3 mb-6">
@@ -278,28 +262,11 @@ export default function EventDetail() {
               </div>
             )}
 
-            {event.imageUrl && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.35 }}
-                className="mt-8"
-              >
-                <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3">Plakát</p>
-                <img
-                  src={event.imageUrl}
-                  alt={`${event.title} – plakát`}
-                  className="w-full rounded-2xl border border-stone-100 shadow-md object-contain bg-white"
-                  style={{ maxHeight: "520px", objectPosition: "top" }}
-                />
-              </motion.div>
-            )}
           </div>
 
           {/* Right: info card */}
           <div className="min-w-0 md:col-span-2 break-words">
             <div className="md:sticky md:top-24 space-y-3">
-              <div className="hidden md:block space-y-3">{overview}</div>
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-5 py-4">
                 <div className="flex items-start gap-4">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-sky-50">

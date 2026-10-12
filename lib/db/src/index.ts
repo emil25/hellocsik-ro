@@ -24,8 +24,27 @@ async function createLocalDatabase() {
   await initializeLocalDatabase(localClient);
   return drizzleLocal(localClient, { schema });
 }
-// Netlify skips the full bootstrap but applies this small idempotent migration.
-if (pool && process.env.NETLIFY === "true") await pool.query(NETLIFY_REPORTS_SCHEMA_SQL);
+async function initializeNetlifySchema() {
+  if (!pool) return;
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    // Netlify may start several function instances at once. Serialize this
+    // first-request migration so concurrent CREATE TABLE IF NOT EXISTS calls
+    // cannot race on PostgreSQL's catalog.
+    await client.query("SELECT pg_advisory_xact_lock(hashtext('hellocsik-event-reports-schema'))");
+    await client.query(NETLIFY_REPORTS_SCHEMA_SQL);
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+// Netlify skips the full bootstrap but applies this small, serialized migration.
+if (pool && process.env.NETLIFY === "true") await initializeNetlifySchema();
 else if (pool) await pool.query(INITIAL_SCHEMA_SQL);
 export const db = pool ? drizzle(pool, { schema }) : await createLocalDatabase();
 

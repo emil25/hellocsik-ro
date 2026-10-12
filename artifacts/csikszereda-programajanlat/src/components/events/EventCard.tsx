@@ -7,6 +7,21 @@ import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { getEventPriceLabel } from "@/lib/event-links";
 
+function facebookCoverFromLinks(newsLinks?: string[]) {
+  for (const rawLink of newsLinks ?? []) {
+    try {
+      const parsed = JSON.parse(rawLink) as { url?: unknown };
+      if (typeof parsed.url !== "string") continue;
+      const match = parsed.url.match(/facebook\.com\/events\/(\d+)/i);
+      if (match) return `/api/facebook-events/${match[1]}/image`;
+    } catch {
+      const match = rawLink.match(/facebook\.com\/events\/(\d+)/i);
+      if (match) return `/api/facebook-events/${match[1]}/image`;
+    }
+  }
+  return null;
+}
+
 interface EventCardProps {
   event: {
     id: number;
@@ -31,8 +46,18 @@ interface EventCardProps {
 
 export function EventCard({ event, index = 0, promoted = Boolean(event.featured) }: EventCardProps) {
   const [imageError, setImageError] = useState(false);
-  const usesGenericImage = !event.imageUrl || event.imageUrl.includes("images.unsplash.com/photo-149268") || event.imageUrl.includes("hellocsik-logo");
-  const showFallback = usesGenericImage || imageError;
+  const [retryFacebookImage, setRetryFacebookImage] = useState(false);
+  const rawImage = event.imageUrl?.trim() ?? "";
+  const usesGenericImage = !rawImage || rawImage.includes("images.unsplash.com/photo-149268") || rawImage.includes("hellocsik-logo");
+  const facebookImage = facebookCoverFromLinks(event.newsLinks);
+  const primaryImage = usesGenericImage ? facebookImage : rawImage;
+  const alternateImage = facebookImage && facebookImage !== primaryImage ? facebookImage : null;
+  const imageUrl = retryFacebookImage && alternateImage ? alternateImage : primaryImage;
+  const showFallback = !imageUrl || imageError;
+  const onImageError = () => {
+    if (!retryFacebookImage && alternateImage) setRetryFacebookImage(true);
+    else setImageError(true);
+  };
   const fallbackColor = event.category?.color ?? "#24543b";
   const source = getEventSource(event.newsLinks);
   const paidPromotion = event.promotionStatus === "paid" && event.promotionPlan !== "free";
@@ -49,15 +74,17 @@ export function EventCard({ event, index = 0, promoted = Boolean(event.featured)
       <Link href={`/esemeny/${event.id}`}>
         <div className={`group relative h-full cursor-pointer bg-card rounded-2xl overflow-hidden border hover:border-primary/30 hover:shadow-lg transition-all duration-300 ${paidPromotion ? "border-violet-300/90 shadow-violet-100/50" : promoted ? "border-amber-400 shadow-amber-100/50" : "border-card-border"}`}>
           <span className="event-half-frame" style={{ borderColor: event.category?.color ?? "#16816c" }} aria-hidden="true" />
-          <div className="relative overflow-hidden aspect-[4/3] bg-muted">
-            {showFallback ? <div className="h-full flex flex-col justify-center items-center gap-3 text-white p-5" style={{ background: `linear-gradient(135deg, ${fallbackColor}, #172d25)` }}><CalendarDays size={45} strokeWidth={1.5} /><span className="text-[10px] uppercase tracking-[.18em] font-bold opacity-75">{event.category?.name ?? "HelloCsík"}</span><span className="font-bold text-lg text-center leading-tight line-clamp-2">{event.title}</span></div> :
-            <img
-              src={event.imageUrl}
-              alt={event.title}
-              loading="lazy"
-              onError={() => setImageError(true)}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />}
+          <div className="relative isolate overflow-hidden aspect-[4/3] bg-stone-100">
+            {showFallback ? <div className="relative h-full flex flex-col justify-center items-center gap-3 overflow-hidden text-white p-5" style={{ background: `radial-gradient(circle at 82% 18%, ${fallbackColor}cc, transparent 35%), linear-gradient(135deg, ${fallbackColor}, #172d25)` }}><CalendarDays size={40} strokeWidth={1.4} className="opacity-75" /><span className="text-[10px] uppercase tracking-[.18em] font-bold opacity-75">{event.category?.name ?? "HelloCsík"}</span><span className="font-bold text-lg text-center leading-tight line-clamp-2">{event.title}</span></div> : <>
+              <div aria-hidden="true" className="absolute inset-0 -z-10 scale-110 bg-cover bg-center opacity-40 blur-xl" style={{ backgroundImage: `url(${JSON.stringify(imageUrl)})` }} />
+              <img
+                src={imageUrl}
+                alt={event.title}
+                loading="lazy"
+                onError={onImageError}
+                className="relative z-0 h-full w-full object-contain"
+              />
+            </>}
             {event.category && (
               <span
                 className={`absolute top-3 text-xs font-semibold px-2.5 py-1 rounded-full text-white shadow ${event.featured ? "left-36" : "left-3"}`}
