@@ -28,6 +28,17 @@ export const INITIAL_SCHEMA_SQL = `
     display_type TEXT NOT NULL DEFAULT 'full', active BOOLEAN NOT NULL DEFAULT true,
     position INTEGER NOT NULL DEFAULT 6, created_at TIMESTAMP NOT NULL DEFAULT now()
   );
+  CREATE TABLE IF NOT EXISTS event_reports (
+    id SERIAL PRIMARY KEY,
+    event_id INTEGER REFERENCES events(id) ON DELETE SET NULL,
+    event_title TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    message TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    resolved_at TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS event_reports_status_created_at_idx ON event_reports(status, created_at);
   INSERT INTO categories (name, slug, color) VALUES
     ('Koncert', 'koncert', '#24543b'), ('Színház', 'szinhaz', '#804b75'),
     ('Fesztivál', 'fesztival', '#956018'), ('Kiállítás', 'kiallitas', '#326880'),
@@ -38,6 +49,22 @@ export const INITIAL_SCHEMA_SQL = `
   ALTER TABLE events ADD COLUMN IF NOT EXISTS organizer_id INTEGER REFERENCES organizers(id);
   ALTER TABLE events ADD COLUMN IF NOT EXISTS promotion_plan TEXT NOT NULL DEFAULT 'free';
   ALTER TABLE events ADD COLUMN IF NOT EXISTS promotion_status TEXT NOT NULL DEFAULT 'none';
+`;
+
+// Netlify production databases skip the full startup schema bootstrap. Apply
+// this small, idempotent migration there so existing events remain untouched.
+export const NETLIFY_REPORTS_SCHEMA_SQL = `
+  CREATE TABLE IF NOT EXISTS event_reports (
+    id SERIAL PRIMARY KEY,
+    event_id INTEGER REFERENCES events(id) ON DELETE SET NULL,
+    event_title TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    message TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    resolved_at TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS event_reports_status_created_at_idx ON event_reports(status, created_at);
 `;
 
 // Local bootstrap only. Production PostgreSQL keeps its Drizzle schema workflow.

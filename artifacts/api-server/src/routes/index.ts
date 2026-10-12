@@ -11,11 +11,13 @@ import cinemaRouter from "./cinema";
 import organizersRouter from "./organizers";
 import databaseBackupRouter from "./database-backup";
 import netlifyStorageRouter from "./netlify-storage";
+import eventReportsRouter from "./event-reports";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(eventsRouter);
+router.use(eventReportsRouter);
 router.use(categoriesRouter);
 router.use(adminRouter);
 if (process.env.NETLIFY === "true") router.use(netlifyStorageRouter);

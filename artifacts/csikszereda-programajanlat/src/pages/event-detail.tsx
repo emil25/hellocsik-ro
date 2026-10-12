@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
-import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2, Database, CalendarPlus, Download } from "lucide-react";
+import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2, Database, CalendarPlus, Download, Flag, CheckCircle2, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +47,12 @@ function EventCard({ event, index = 0 }: { event: any; index?: number }) {
 export default function EventDetail() {
   const params = useParams<{ id: string }>();
   const id = Number(params.id);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("wrong_time");
+  const [reportMessage, setReportMessage] = useState("");
+  const [reportBusy, setReportBusy] = useState(false);
+  const [reportSent, setReportSent] = useState(false);
+  const [reportError, setReportError] = useState("");
 
   const { data: event, isLoading } = useGetEvent(id, {
     query: { enabled: !!id, queryKey: getGetEventQueryKey(id) },
@@ -70,6 +76,27 @@ export default function EventDetail() {
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
     window.open(url, "facebook-share", "width=680,height=520,noopener,noreferrer");
   };
+
+  async function submitReport(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    setReportBusy(true);
+    setReportError("");
+    try {
+      const response = await fetch(`/api/events/${id}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reportReason, message: reportMessage, website: formData.get("website") }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "A jelzést most nem sikerült elküldeni.");
+      setReportSent(true);
+    } catch (error) {
+      setReportError(error instanceof Error ? error.message : "A jelzést most nem sikerült elküldeni.");
+    } finally {
+      setReportBusy(false);
+    }
+  }
 
   useEffect(() => {
     if (!event) return;
@@ -315,6 +342,41 @@ export default function EventDetail() {
               {/* External links: keep tickets and Facebook separate. */}
               {externalLinks.facebookUrl && <a href={externalLinks.facebookUrl} target="_blank" rel="noopener noreferrer" className="block"><button className="w-full py-3.5 font-bold text-sm rounded-xl text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2" style={{ background: "linear-gradient(135deg,#1877f2,#0e5ab8)" }}><Link2 className="w-4 h-4" /> Facebook esemény <ExternalLink className="w-3.5 h-3.5 opacity-70" /></button></a>}
               {externalLinks.otherLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block"><button className="w-full py-3 border border-stone-200 text-stone-700 font-semibold rounded-xl hover:bg-stone-50 transition-colors text-sm flex items-center justify-center gap-2"><ExternalLink className="w-4 h-4 text-primary" /> {link.title}</button></a>)}
+
+              <div className="rounded-2xl border border-stone-200 bg-white p-4">
+                {reportSent ? (
+                  <div className="flex items-start gap-2 text-sm text-emerald-800" role="status">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>Köszönjük, megkaptuk a jelzést. Átnézzük az esemény adatait.</span>
+                  </div>
+                ) : (
+                  <>
+                    <button type="button" onClick={() => { setReportOpen(value => !value); setReportError(""); }} className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-stone-600 hover:text-primary transition-colors">
+                      <Flag className="w-4 h-4" /> {reportOpen ? "Jelzés bezárása" : "Hibás adatot találtál? Jelezd"}
+                    </button>
+                    {reportOpen && <form onSubmit={submitReport} className="mt-4 space-y-3">
+                      <label className="block text-xs font-semibold text-stone-600">Mi változott?
+                        <select value={reportReason} onChange={e => setReportReason(e.target.value)} className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                          <option value="wrong_time">Hibás időpont</option>
+                          <option value="wrong_place">Hibás helyszín</option>
+                          <option value="cancelled">Elmarad vagy megváltozott</option>
+                          <option value="ticket_link">Hibás jegy- vagy információs link</option>
+                          <option value="other">Egyéb hiba</option>
+                        </select>
+                      </label>
+                      <label className="block text-xs font-semibold text-stone-600">Rövid megjegyzés <span className="font-normal text-stone-400">(nem kötelező)</span>
+                        <textarea value={reportMessage} onChange={e => setReportMessage(e.target.value)} maxLength={1200} rows={3} placeholder="Mi a helyes információ?" className="mt-1.5 w-full resize-y rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                      </label>
+                      <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[10000px] h-px w-px opacity-0" />
+                      {reportError && <p className="text-xs text-red-700" role="alert">{reportError}</p>}
+                      <button type="submit" disabled={reportBusy} className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:opacity-60">
+                        {reportBusy ? <span className="inline-flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Küldés…</span> : "Jelzés elküldése"}
+                      </button>
+                      <p className="text-[11px] leading-relaxed text-stone-400">Nem kérünk nevet vagy e-mail-címet.</p>
+                    </form>}
+                  </>
+                )}
+              </div>
 
               <Link href="/" className="block">
                 <button className="w-full py-3 border border-stone-200 text-stone-600 font-semibold rounded-xl hover:bg-stone-50 transition-colors text-sm">

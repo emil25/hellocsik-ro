@@ -3,3 +3,4 @@ export * from "./events";
 export * from "./banners";
 export * from "./newsletter";
 export * from "./organizers";
+export * from "./event-reports";

@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "./schema";
-import { INITIAL_SCHEMA_SQL, initializeLocalDatabase } from "./local-schema";
+import { INITIAL_SCHEMA_SQL, NETLIFY_REPORTS_SCHEMA_SQL, initializeLocalDatabase } from "./local-schema";
 
 const { Pool } = pg;
 
@@ -24,8 +24,9 @@ async function createLocalDatabase() {
   await initializeLocalDatabase(localClient);
   return drizzleLocal(localClient, { schema });
 }
-// Netlify uses the already migrated database; cold starts must not run schema DDL.
-if (pool && process.env.NETLIFY !== "true") await pool.query(INITIAL_SCHEMA_SQL);
+// Netlify skips the full bootstrap but applies this small idempotent migration.
+if (pool && process.env.NETLIFY === "true") await pool.query(NETLIFY_REPORTS_SCHEMA_SQL);
+else if (pool) await pool.query(INITIAL_SCHEMA_SQL);
 export const db = pool ? drizzle(pool, { schema }) : await createLocalDatabase();
 
 export * from "./schema";

@@ -1,5 +1,5 @@
 export const BACKUP_TABLES = [
-  "categories", "organizers", "events", "banners", "newsletter_subscriptions",
+  "categories", "organizers", "events", "banners", "newsletter_subscriptions", "event_reports",
 ];
 
 // One statement gives every table the same PostgreSQL snapshot. row_to_json
@@ -20,6 +20,14 @@ export const DATABASE_BACKUP_SQL = `SELECT json_build_object(
 export function validateDatabaseBackup(backup) {
   if (backup?.format !== "hellocsik-database-backup" || backup.version !== 1) {
     throw new Error("Unsupported database backup format.");
+  }
+  if (!backup.tables || typeof backup.tables !== "object" || !backup.sequences || typeof backup.sequences !== "object") {
+    throw new Error("Incomplete database backup.");
+  }
+  // Version 1 backups created before event reports existed remain restorable.
+  if (!Array.isArray(backup.tables?.event_reports)) {
+    backup.tables.event_reports = [];
+    backup.sequences.event_reports = { last_value: 1, is_called: false };
   }
   for (const table of BACKUP_TABLES) {
     const rows = backup.tables?.[table];

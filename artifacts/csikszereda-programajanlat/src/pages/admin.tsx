@@ -8,6 +8,7 @@ import {
 import { Link } from "wouter";
 import { useUpload } from "@workspace/object-storage-web";
 import { eventInputToISO, toEventInput } from "../../../../shared/event-time.mjs";
+import { EventReportsManager } from "@/components/admin/EventReportsManager";
 
 const API = "/api";
 
@@ -190,7 +191,7 @@ type BannerRow = {
 type Category = { id: number; name: string; color: string; slug: string };
 
 type Tab = "pending" | "published" | "all";
-type Section = "events" | "banners";
+type Section = "events" | "reports" | "banners";
 
 // ─── SHARED FORM FIELDS ───────────────────────────────────────────────────────
 
@@ -1143,7 +1144,7 @@ export default function AdminPage() {
         </div>
 
         {/* Section toggle */}
-        <div className="grid grid-cols-2 sm:flex gap-2 mb-5 sm:mb-6">
+        <div className="grid grid-cols-3 sm:flex gap-2 mb-5 sm:mb-6">
           <button onClick={() => setSection("events")}
             className={`px-4 sm:px-5 py-2.5 sm:py-2 rounded-xl text-sm font-bold transition-all ${section === "events" ? "bg-primary text-white shadow-sm" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
             Események
@@ -1152,10 +1153,16 @@ export default function AdminPage() {
             className={`px-4 sm:px-5 py-2.5 sm:py-2 rounded-xl text-sm font-bold transition-all ${section === "banners" ? "bg-primary text-white shadow-sm" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
             Bannerek
           </button>
+          <button onClick={() => setSection("reports")}
+            className={`px-3 sm:px-5 py-2.5 sm:py-2 rounded-xl text-sm font-bold transition-all ${section === "reports" ? "bg-primary text-white shadow-sm" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
+            Hibajelzések
+          </button>
         </div>
 
         {section === "banners" ? (
           <BannerManager token={token!} />
+        ) : section === "reports" ? (
+          <EventReportsManager token={token!} />
         ) : (
         <>
         {/* Event Tabs */}
