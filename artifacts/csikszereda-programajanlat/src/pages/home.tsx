@@ -184,11 +184,11 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
               style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.1)" }}
             >
               {/* Cover image */}
-              <div className="relative h-44 overflow-hidden">
+              <div className="classic-hero-event-image relative h-44 overflow-hidden" style={{ backgroundImage: `url("${events[0].imageUrl}")` }}>
                 <img
                   src={events[0].imageUrl}
                   alt={events[0].title}
-                  className="w-full h-full object-cover"
+                  className="relative w-full h-full object-contain"
                 />
                 <div className="absolute inset-0"
                   style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)" }} />
@@ -261,8 +261,8 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
                     boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
                   }}
                 >
-                  <div className="relative h-24 overflow-hidden">
-                    <img src={ev.imageUrl} alt={ev.title} className="w-full h-full object-cover" />
+                  <div className="classic-hero-event-image relative h-24 overflow-hidden" style={{ backgroundImage: `url("${ev.imageUrl}")` }}>
+                    <img src={ev.imageUrl} alt={ev.title} className="relative w-full h-full object-contain" />
                     <div className="absolute inset-0"
                       style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%)" }} />
                     {ev.category && (

@@ -90,6 +90,17 @@
 }
 
 html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
+.classic-hero-event-image { background-color: #163e31; background-size: 0; }
+.classic-hero-event-image::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background-image: inherit;
+  background-size: cover;
+  background-position: center;
+  filter: blur(16px);
+  opacity: .45;
+}
 :focus-visible { outline: 3px solid hsl(var(--primary)); outline-offset: 4px; }
 .discovery-hero { max-width: 1280px; margin: 0 auto; padding: 3.5rem 2rem 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
 .discovery-eyebrow { display: flex; align-items: center; gap: .5rem; font-size: .875rem; font-weight: 700; letter-spacing: .12em; color: hsl(var(--primary)); margin-bottom: 1.25rem; }
