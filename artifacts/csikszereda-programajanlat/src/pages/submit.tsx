@@ -116,6 +116,7 @@ export default function SubmitPage() {
           <h2 className="text-2xl font-bold text-foreground mb-3">Köszönjük a beküldést!</h2>
           <p className="text-muted-foreground mb-6 leading-relaxed">
             A programod megkaptuk és hamarosan felülvizsgáljuk. Jóváhagyás után megjelenik az oldalon.
+            {form.promotionPlan !== "free" && " A kért kiemelést csak a befizetés visszaigazolása után aktiváljuk; online kártyaterhelés nincs."}
           </p>
           <div className="flex gap-3 justify-center">
             <Link href="/">
@@ -151,7 +152,7 @@ export default function SubmitPage() {
         <div className="mb-8">
           <span className="text-xs font-bold text-primary uppercase tracking-widest">Program beküldése</span>
           <h1 className="text-3xl font-bold text-foreground mt-1 mb-2">Van saját programod?</h1>
-          <p className="text-muted-foreground">Töltsd ki az alábbi formot és mi felülvizsgáljuk, majd közzétesszük az oldalon.</p>
+          <p className="text-muted-foreground">Az esemény beküldése és alapmegjelenése ingyenes. Csak a külön kért kiemelés kerül pénzbe.</p>
           {organizer && <div className="mt-4 rounded-xl border border-[#cce5a5] bg-[#eff8dc] px-4 py-3 text-sm text-[#31553a]"><strong>{organizer.name}</strong> profiljához küldöd be ezt a programot. Több eseményt is beküldhetsz egymás után.</div>}
           {requestedPromotion !== "free" && <div className="mt-4 rounded-xl border border-[#cce5a5] bg-[#eff8dc] px-4 py-3 text-sm text-[#31553a]">A kiválasztott csomag: <strong>{requestedPromotion === "homepage" ? "Főoldal+ · 99 RON / esemény" : "Kiemelt · 49 RON / esemény"}</strong>. A díjról a beküldés után egyeztetünk.</div>}
         </div>
@@ -200,7 +201,7 @@ export default function SubmitPage() {
           <div className="bg-card border border-card-border rounded-2xl p-6 space-y-5">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Részletek</p>
 
-            <Field label="Megjelenés" icon={DollarSign} hint="Az alap megjelenés ingyenes. A kiemelési díj eseményenként egyszeri; beküldés után egyeztetünk.">
+            <Field label="Megjelenés" icon={DollarSign} hint="A normál megjelenés ingyenes. Csak a kiemelés fizetős, egyszeri eseménydíjjal. A befizetést ellenőrizzük, automatikus kártyaterhelés nincs.">
               <select className={inputClass} value={form.promotionPlan} onChange={e => set("promotionPlan", e.target.value)}>
                 <option value="free">Alap megjelenés · 0 RON</option>
                 <option value="featured">Kiemelt · 49 RON / esemény · egyszeri</option>

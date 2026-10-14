@@ -38,7 +38,7 @@ export default function PricingPage() {
       <header className="pricing-header">
         <div className="pricing-kicker"><Sparkles size={14} /> SZERVEZŐKNEK</div>
         <h1>Egy esemény.<br /><em>Egy kis plusz figyelem.</em></h1>
-        <p>Az alap beküldés mindig ingyenes. Ha egy programod fontosabb láthatóságot kapjon, egyszeri kiemelést kérhetsz – nincs havidíj és nincs előfizetés.</p>
+        <p>Az esemény beküldése és normál megjelenése ingyenes. Csak a külön kért kiemelés fizetős, eseményenként egyszeri díjjal; nincs havidíj vagy előfizetés.</p>
       </header>
       <main className="pricing-main">
         <div className="pricing-grid">
@@ -50,7 +50,7 @@ export default function PricingPage() {
             <ul>{plan.features.map((feature) => <li key={feature}><Check size={15} /> {feature}</li>)}</ul>
           </article>)}
         </div>
-        <section className="pricing-note"><HelpCircle size={19} /><div><strong>Hogyan működik?</strong><p>Beküldöd az eseményt, kiválasztod a kívánt kiemelést, mi pedig egyeztetünk és jóváhagyás után elhelyezzük a kiemelt felületen. A kiemelés az esemény végéig él.</p></div><Link href="/szervezoi-felulet">Szervezői felület <ArrowRight size={15} /></Link></section>
+        <section className="pricing-note"><HelpCircle size={19} /><div><strong>Hogyan működik?</strong><p>Ingyen beküldheted az eseményt. A fiókodban eseményenként kérhetsz kiemelést; a díjat előre egyeztetjük, és csak a befizetés visszaigazolása után aktiváljuk. Jelenleg nincs automatikus bankkártyás terhelés. A kiemelés az esemény végéig él.</p></div><Link href="/szervezoi-felulet">Szervezői felület <ArrowRight size={15} /></Link></section>
       </main>
     </div>
   );

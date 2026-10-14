@@ -1213,7 +1213,7 @@ export default function AdminPage() {
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Hó ajánlata</span>
                       )}
                       {ev.promotionStatus === "requested" && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{ev.promotionPlan === "homepage" ? "Főoldal+ kérés" : "Kiemelés kérés"}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{ev.promotionPlan === "homepage" ? "Főoldal+ · 99 RON · fizetést ellenőrizni" : "Kiemelt · 49 RON · fizetést ellenőrizni"}</span>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mb-1">
@@ -1261,7 +1261,7 @@ export default function AdminPage() {
                     {ev.promotionStatus === "requested" && (
                       <button onClick={() => patch(ev.id, { featured: true, promotionStatus: "paid" })} disabled={actionId === ev.id}
                         className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors">
-                        <CheckCircle2 className="w-3 h-3" /> Kiemelés aktiválása
+                        <CheckCircle2 className="w-3 h-3" /> Befizetés igazolása + aktiválás
                       </button>
                     )}
                     <button onClick={() => del(ev.id)} disabled={actionId === ev.id}

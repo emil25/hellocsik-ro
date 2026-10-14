@@ -122,6 +122,25 @@ router.post("/organizers/me/events", requireOrganizer, normalizeEventDates, asyn
   }
 });
 
+router.post("/organizers/me/events/:id/promotion", requireOrganizer, async (req, res) => {
+  const id = Number(req.params.id);
+  const plan = req.body?.promotionPlan;
+  if (!Number.isInteger(id)) { res.status(400).json({ error: "Érvénytelen eseményazonosító." }); return; }
+  if (!["featured", "homepage"].includes(plan)) { res.status(400).json({ error: "Válassz érvényes kiemelési csomagot." }); return; }
+  try {
+    const rows = await db.select().from(eventsTable).where(and(eq(eventsTable.id, id), eq(eventsTable.organizerId, res.locals.organizer.id))).limit(1);
+    const event = rows[0];
+    if (!event) { res.status(404).json({ error: "Az esemény nem található a fiókodban." }); return; }
+    if (event.promotionStatus === "paid") { res.status(409).json({ error: "Ehhez az eseményhez már aktív, kifizetett kiemelés tartozik." }); return; }
+    if (event.promotionStatus === "requested") { res.status(409).json({ error: "Ehhez az eseményhez már rögzítettünk egy kiemelési kérést. A fizetés visszaigazolása után aktiváljuk." }); return; }
+    const [updated] = await db.update(eventsTable).set({ promotionPlan: plan, promotionStatus: "requested", updatedAt: new Date() }).where(eq(eventsTable.id, id)).returning();
+    res.json({ ok: true, id: updated.id, promotionPlan: updated.promotionPlan, promotionStatus: updated.promotionStatus });
+  } catch (error) {
+    req.log.error({ error }, "Organizer promotion request failed");
+    res.status(500).json({ error: "A kiemelési kérést nem sikerült rögzíteni." });
+  }
+});
+
 router.patch("/organizers/me/events/:id", requireOrganizer, normalizeEventDates, async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) { res.status(400).json({ error: "Érvénytelen eseményazonosító." }); return; }
@@ -160,10 +179,6 @@ router.patch("/organizers/me/events/:id", requireOrganizer, normalizeEventDates,
     }
     if (body.categoryId === null) patch.categoryId = null;
     else if (typeof body.categoryId === "number" && Number.isInteger(body.categoryId)) patch.categoryId = body.categoryId;
-    if (["free", "featured", "homepage"].includes(body.promotionPlan)) {
-      patch.promotionPlan = body.promotionPlan;
-      patch.promotionStatus = body.promotionPlan === "free" ? "none" : "requested";
-    }
     if (Object.keys(patch).length === 0) { res.status(400).json({ error: "Nincs módosítható adat." }); return; }
     patch.status = "pending";
     patch.updatedAt = new Date();
