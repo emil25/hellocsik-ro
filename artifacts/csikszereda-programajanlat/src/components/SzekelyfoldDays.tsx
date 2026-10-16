@@ -25,7 +25,7 @@ export function SzekelyfoldDays() {
   }, []);
   const now = Date.now();
   if (now > Date.parse(SZEKELYFOLD_DAYS.end)) return null;
-  const preferred = ["felhold", "tekergok", "kaptar", "kaposztavasar", "borospatak", "szinjatszo"];
+  const preferred = ["felhold", "szekelyfold-dijak", "tekergok", "kaptar", "kaposztavasar", "borospatak", "szinjatszo"];
   const previews = [
     ...preferred.flatMap(id => FESTIVAL_PROGRAMS.filter(program => program.id === id)),
     ...FESTIVAL_PROGRAMS.filter(program => !preferred.includes(program.id)),

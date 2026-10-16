@@ -3,7 +3,7 @@ export const SZEKELYFOLD_DAYS = {
   dates: "2026. október 9–18.",
   end: "2026-10-18T23:59:59+03:00",
   source: "https://www.szekelyfoldnapok.ro/?menu=1",
-  checked: "2026. október 11.",
+  checked: "2026. október 16.",
 };
 
 export const festivalAsset = (file: string) => `${import.meta.env.BASE_URL}events/${file}`;
@@ -24,7 +24,7 @@ export type FestivalProgram = {
   eventPath?: string;
 };
 
-// Csík and nearby programmes in the official schedule, checked on October 11.
+// Csík and nearby programmes in the official schedule, checked on October 16.
 // Separate dates are deliberately kept explicit rather than shown as daily events.
 export const FESTIVAL_PROGRAMS: FestivalProgram[] = [
   {
@@ -82,6 +82,12 @@ export const FESTIVAL_PROGRAMS: FestivalProgram[] = [
     end: "2026-10-15T19:30:00+03:00", image: "szfn-kaptar-2026.jpg", sourceId: 83, eventPath: "/esemeny/101",
     description: "A Csíki konfekció és a Gubán Balázs legendája című dokumentumfilmek vetítése után beszélgetés az alkotókkal és Gagyi József társadalomkutatóval.",
     note: "A részvétel ingyenes.",
+  },
+  {
+    id: "szekelyfold-dijak", title: "Székelyföld díjak átadó-ünnepsége", category: "Díjátadó",
+    area: "Csíkszereda", location: "Várdomb panzió · Csíkszereda", dates: "Október 16.", time: "12:00",
+    end: "2026-10-16T12:00:00+03:00", image: "szekelyfold-napok-2026.jpg", sourceId: 120,
+    description: "A XVII. Székelyföld Napok díjátadó ünnepsége. A hivatalos program szerint október 16-án 12:00-kor kezdődik a csíkszeredai Várdomb panzióban.",
   },
   {
     id: "erdovidek", title: "Erdővidék nagyjai", category: "Kirándulás",
