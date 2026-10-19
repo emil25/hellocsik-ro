@@ -1,0 +1,312 @@
+/* Only the event display inside the existing green regional hero changes. */
+.rs-spotlight-board.rs-spotlight-player {
+  padding: 15px;
+  border-color: #e4bf6a38;
+  background: linear-gradient(145deg, #ffffff0b, #071d161a);
+}
+
+.rs-spotlight-player .rs-player-feature {
+  min-height: 286px;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-card.is-lead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  width: 100%;
+  min-height: 286px;
+  overflow: hidden;
+  border: 1px solid #d8b66454;
+  border-radius: 14px 4px 14px 4px;
+  background: #102e24;
+  box-shadow: 0 12px 28px #071c1638;
+  animation: rs-player-reveal .28s ease-out;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-card:hover {
+  transform: none;
+  border-color: #edc56b;
+  box-shadow: 0 14px 30px #071c1655;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-art {
+  position: relative;
+  flex: none;
+  min-height: 286px;
+  height: 100%;
+  background: #173a2d;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-art > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-art > .rp-poster-backdrop {
+  opacity: .6;
+  filter: blur(18px) saturate(1.15);
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-copy {
+  position: relative;
+  justify-content: center;
+  gap: 12px;
+  padding: 22px 19px;
+  border-left: 1px dashed #d7be713d;
+  background: linear-gradient(145deg, #1b4635, #102e24);
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-copy::before,
+.rs-spotlight-player .rs-player-feature .rs-spotlight-copy::after {
+  position: absolute;
+  left: -8px;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #d8b66454;
+  border-radius: 50%;
+  background: #193e31;
+  content: "";
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-copy::before { top: -9px; }
+.rs-spotlight-player .rs-player-feature .rs-spotlight-copy::after { bottom: -9px; }
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-copy h2 {
+  color: #fff9e8;
+  font-size: clamp(16px, 1.65vw, 21px);
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: -.5px;
+  -webkit-line-clamp: 5;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-copy > p {
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 0;
+  color: #cfddca;
+  font-size: 10px;
+  line-height: 1.5;
+  white-space: normal;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-copy > p svg {
+  margin-top: 1px;
+  color: #e9bd61;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-foot {
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 13px;
+  border-top: 1px solid #e6cf8f25;
+  color: #efc56b;
+  font-size: 10px;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-foot > span:last-child {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  background: #edbd5e;
+  color: #173e2d;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-badge {
+  top: 12px;
+  left: 12px;
+  padding: 7px 9px;
+  background: #163c2eeb;
+  color: #fff7dc;
+  font-size: 8px;
+  box-shadow: 0 2px 8px #081c1630;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-badge.is-paid {
+  background: #efbf5d;
+  color: #2f371f;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-date {
+  right: 12px;
+  bottom: 12px;
+  padding: 9px 10px;
+  border: 1px solid #ffffff2b;
+  background: #102e24ed;
+  font-size: 9px;
+}
+
+.rs-spotlight-player .rs-player-feature .rs-spotlight-date small {
+  font-size: 8px;
+}
+
+.rs-player-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.rs-player-tabs > button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 6px 9px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 7px 2px 7px 2px;
+  background: #0b261d45;
+  color: #d4dfcf;
+  text-align: left;
+  transition: background .18s, border-color .18s;
+}
+
+.rs-player-tabs > button::after {
+  position: absolute;
+  right: 6px;
+  bottom: 0;
+  left: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: #efc468;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .2s;
+}
+
+.rs-player-tabs > button[aria-pressed="true"] {
+  border-color: #e2be6563;
+  background: #e3b95016;
+  color: #fff5d5;
+}
+
+.rs-player-tabs > button[aria-pressed="true"]::after { transform: scaleX(1); }
+.rs-player-tabs > button:hover { background: #e3b95020; }
+.rs-player-tabs > button:focus-visible,
+.rs-player-controls > button:focus-visible {
+  outline: 2px solid #f5d278;
+  outline-offset: 3px;
+}
+
+.rs-player-thumbnail {
+  position: relative;
+  display: block;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 46px;
+  overflow: hidden;
+  border-radius: 4px 1px 4px 1px;
+  background: #24503a;
+}
+
+.rs-player-thumbnail > img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.rs-player-thumbnail .rp-poster-fallback { padding: 2px; }
+.rs-player-thumbnail .rp-poster-fallback svg { width: 20px; height: 20px; }
+.rs-player-thumbnail .rp-poster-fallback span,
+.rs-player-thumbnail .rp-poster-fallback strong { display: none; }
+
+.rs-player-tab-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rs-player-tab-copy small {
+  overflow: hidden;
+  color: #b9c9ad;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rs-player-tab-copy strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rs-player-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 11px;
+}
+
+.rs-player-footer > .rs-alt-home-link { margin: 0; }
+.rs-player-controls { display: flex; align-items: center; gap: 5px; }
+.rs-player-controls > span { margin-right: 7px; color: #c7d3bc; font-size: 8px; font-weight: 750; letter-spacing: 1px; }
+.rs-player-controls > button {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid #e9c87840;
+  border-radius: 50%;
+  color: #f1ce80;
+  background: #102f243b;
+  transition: background .18s, color .18s;
+}
+.rs-player-controls > button:hover { background: #e9bc5e; color: #193d2c; }
+.rs-spotlight-player .rs-player-feature .rs-spotlight-loading { min-height: 286px; }
+
+@keyframes rs-player-reveal {
+  from { opacity: .3; translate: 0 4px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media (max-width: 1000px) {
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-card.is-lead { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-copy { padding: 18px 13px; }
+  .rs-player-tabs > button { gap: 6px; }
+  .rs-player-thumbnail { flex-basis: 29px; width: 29px; height: 40px; }
+  .rs-player-tab-copy strong { font-size: 8px; }
+}
+
+@media (max-width: 760px) {
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-art { min-height: 255px; }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-card.is-lead { min-height: 255px; }
+  .rs-player-thumbnail { flex-basis: 38px; width: 38px; height: 46px; }
+  .rs-player-tab-copy strong { font-size: 9px; }
+}
+
+@media (max-width: 500px) {
+  .rs-spotlight-board.rs-spotlight-player { padding: 10px; }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-card.is-lead { grid-template-columns: 1fr; }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-art { min-height: 190px; height: 190px; }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-copy { gap: 7px; padding: 13px 14px; border-top: 1px dashed #d7be713d; border-left: 0; }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-copy::before { top: -8px; left: -9px; }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-copy::after { top: -8px; right: -9px; bottom: auto; left: auto; }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-copy h2 { font-size: 15px; -webkit-line-clamp: 3; }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-foot { margin-top: 0; padding-top: 8px; }
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-badge { font-size: 7px; }
+  .rs-player-tabs { gap: 5px; margin-top: 9px; }
+  .rs-player-tabs > button { flex-direction: column; align-items: flex-start; gap: 5px; padding: 6px 6px 9px; }
+  .rs-player-thumbnail { flex: none; width: 100%; height: 43px; }
+  .rs-player-tab-copy { gap: 4px; }
+  .rs-player-tab-copy small { max-width: 100%; font-size: 6px; }
+  .rs-player-tab-copy strong { font-size: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-spotlight-player .rs-player-feature .rs-spotlight-card { animation: none; }
+  .rs-player-tabs > button::after { transition: none; }
+}
