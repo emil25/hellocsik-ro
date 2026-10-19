@@ -1,5 +1,6 @@
 import { db, eventsTable, categoriesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { normalizeSourceUrl } from "../../../../shared/event-source-url.mjs";
 import { extractEventListing, isFirecrawlConfigured, type ExtractedEvent } from "./firecrawl";
 
 const VISIT_HARGHITA_EVENTS = "https://visitharghita.com/hu/events";
@@ -57,6 +58,63 @@ function readMeta(html: string, property: string) {
 
 function normalize(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+const GENERIC_TITLE_WORDS = new Set([
+  "csikszereda", "csikszeredaban", "miercurea", "ciuc", "esemeny", "rendezveny",
+  "program", "eloadas", "koncert", "oktober", "november", "december", "2026",
+]);
+
+function titleTokens(value: string) {
+  return new Set(normalize(value).split(" ").filter(token => token.length >= 4 && !GENERIC_TITLE_WORDS.has(token)));
+}
+
+function likelySameEventTitle(left: string, right: string) {
+  if (normalize(left) === normalize(right)) return true;
+  const a = titleTokens(left);
+  const b = titleTokens(right);
+  if (Math.min(a.size, b.size) < 2) return false;
+  let shared = 0;
+  for (const token of a) if (b.has(token)) shared++;
+  return shared >= 2 && shared / Math.min(a.size, b.size) >= 0.75;
+}
+
+function eventSourceUrls(newsLinks: string[] | null | undefined, ticketUrl?: string | null) {
+  const urls = (newsLinks ?? []).flatMap(raw => {
+    try {
+      const parsed = JSON.parse(raw);
+      return typeof parsed?.url === "string" && parsed.url.trim() ? [normalizeSourceUrl(parsed.url)] : [];
+    } catch {
+      return /^https?:\/\//i.test(raw) ? [normalizeSourceUrl(raw)] : [];
+    }
+  });
+  if (ticketUrl?.trim()) urls.push(normalizeSourceUrl(ticketUrl));
+  return urls;
+}
+
+type ExistingEvent = {
+  id: number;
+  title: string;
+  startDate: Date;
+  newsLinks: string[] | null;
+  ticketUrl: string | null;
+};
+
+function findMatchingEvent(events: ExistingEvent[], title: string, startDate: Date, sourceUrls: Set<string>) {
+  const day = localDateKey(startDate);
+  return events.find(event => {
+    if (sourceUrls.size && eventSourceUrls(event.newsLinks, event.ticketUrl).some(url => sourceUrls.has(url))) return true;
+    return localDateKey(event.startDate) === day && likelySameEventTitle(event.title, title);
+  });
+}
+
+async function rememberSource(event: ExistingEvent, sourceName: string, sourceUrl: string) {
+  const canonicalUrl = normalizeSourceUrl(sourceUrl);
+  const links = [...(event.newsLinks ?? [])];
+  if (eventSourceUrls(links).includes(canonicalUrl)) return;
+  links.push(JSON.stringify({ title: sourceName, url: sourceUrl }));
+  await db.update(eventsTable).set({ newsLinks: links, updatedAt: new Date() }).where(eq(eventsTable.id, event.id));
+  event.newsLinks = links;
 }
 
 function localDateKey(date: Date) {
@@ -156,19 +214,10 @@ function validExtractedEvent(event: ExtractedEvent) {
 async function runFirecrawlSync(): Promise<SyncResult> {
   const sources = parseFirecrawlSources();
   const [existing, categories] = await Promise.all([
-    db.select({ title: eventsTable.title, startDate: eventsTable.startDate, newsLinks: eventsTable.newsLinks }).from(eventsTable),
+    db.select({ id: eventsTable.id, title: eventsTable.title, startDate: eventsTable.startDate, newsLinks: eventsTable.newsLinks, ticketUrl: eventsTable.ticketUrl }).from(eventsTable),
     db.select().from(categoriesTable),
   ]);
-  const knownUrls = new Set<string>();
-  const knownTitleDates = new Set(existing.map(event => `${normalize(event.title)}|${localDateKey(event.startDate)}`));
-  for (const event of existing) for (const raw of event.newsLinks ?? []) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (typeof parsed?.url === "string") knownUrls.add(parsed.url);
-    } catch {
-      if (/^https?:\/\//.test(raw)) knownUrls.add(raw);
-    }
-  }
+  const knownEvents = existing as ExistingEvent[];
 
   let examined = 0;
   let local = 0;
@@ -189,8 +238,13 @@ async function runFirecrawlSync(): Promise<SyncResult> {
       local++;
 
       const eventUrl = absoluteUrl(event.eventUrl, source.url) ?? source.url;
-      const key = `${normalize(event.title)}|${localDateKey(dates.startDate)}`;
-      if (knownUrls.has(eventUrl) || knownTitleDates.has(key)) { skipped++; continue; }
+      const canonicalEventUrl = normalizeSourceUrl(eventUrl);
+      const duplicate = findMatchingEvent(knownEvents, event.title, dates.startDate, new Set([canonicalEventUrl]));
+      if (duplicate) {
+        await rememberSource(duplicate, source.name, eventUrl);
+        skipped++;
+        continue;
+      }
 
       const sourceNames = categoryCandidates(event.category ?? "").map(normalize);
       const category = categories.find(item => sourceNames.includes(normalize(item.name))) ?? null;
@@ -199,7 +253,7 @@ async function runFirecrawlSync(): Promise<SyncResult> {
         JSON.stringify({ title: source.name, url: eventUrl }),
         ...(event.organizerName?.trim() ? [JSON.stringify({ title: "Szervező", url: "", name: event.organizerName.trim() })] : []),
       ];
-      await db.insert(eventsTable).values({
+      const [created] = await db.insert(eventsTable).values({
         title: event.title.trim(),
         description: event.description?.trim() || "Részletek a forrásoldalon.",
         imageUrl,
@@ -215,9 +269,8 @@ async function runFirecrawlSync(): Promise<SyncResult> {
         tags: ["automatikus-import", "Firecrawl", source.name],
         newsLinks,
         status: "published",
-      });
-      knownUrls.add(eventUrl);
-      knownTitleDates.add(key);
+      }).returning();
+      knownEvents.push({ id: created.id, title: event.title.trim(), startDate: dates.startDate, newsLinks, ticketUrl: eventUrl });
       imported++;
     }
   }
@@ -243,26 +296,15 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
   const listing = await fetchHtml(VISIT_HARGHITA_EVENTS);
   const cards = parseCards(listing).slice(0, 40);
   const [existing, categories] = await Promise.all([
-    db.select({ id: eventsTable.id, title: eventsTable.title, startDate: eventsTable.startDate, newsLinks: eventsTable.newsLinks }).from(eventsTable),
+    db.select({ id: eventsTable.id, title: eventsTable.title, startDate: eventsTable.startDate, newsLinks: eventsTable.newsLinks, ticketUrl: eventsTable.ticketUrl }).from(eventsTable),
     db.select().from(categoriesTable),
   ]);
+  const knownEvents = existing as ExistingEvent[];
   const knownUrls = new Set<string>();
   const knownUrlEventIds = new Map<string, number>();
-  const knownTitleDates = new Set(existing.map(event => `${normalize(event.title)}|${localDateKey(event.startDate)}`));
-  for (const event of existing) for (const raw of event.newsLinks ?? []) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (typeof parsed?.url === "string") {
-        knownUrls.add(parsed.url);
-        knownUrlEventIds.set(parsed.url, event.id);
-      }
-    }
-    catch {
-      if (/^https?:\/\//.test(raw)) {
-        knownUrls.add(raw);
-        knownUrlEventIds.set(raw, event.id);
-      }
-    }
+  for (const event of knownEvents) for (const url of eventSourceUrls(event.newsLinks, event.ticketUrl)) {
+    knownUrls.add(url);
+    knownUrlEventIds.set(url, event.id);
   }
 
   let imported = 0;
@@ -272,9 +314,11 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
   const candidates: Array<{ card: SourceCard; sourceUrl: string }> = [];
   for (const card of cards) {
     const sourceUrl = new URL(card.path, VISIT_HARGHITA_EVENTS).toString();
-    if (knownUrls.has(sourceUrl)) {
-      const existingId = knownUrlEventIds.get(sourceUrl);
-      if (existingId) await db.update(eventsTable).set({ updatedAt: new Date() }).where(eq(eventsTable.id, existingId));
+    const canonicalUrl = normalizeSourceUrl(sourceUrl);
+    if (knownUrls.has(canonicalUrl)) {
+      const existingId = knownUrlEventIds.get(canonicalUrl);
+      const matching = knownEvents.find(event => event.id === existingId);
+      if (matching) await rememberSource(matching, "Visit Harghita", sourceUrl);
       skipped++;
     }
     else candidates.push({ card, sourceUrl });
@@ -285,17 +329,29 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
     for (const detail of details) {
       if (detail.status === "rejected") { failed++; continue; }
       const { card, sourceUrl, html } = detail.value;
+      const canonicalUrl = normalizeSourceUrl(sourceUrl);
       const title = readMeta(html, "og:title");
       const dates = parseDate(html);
       if (!title || !dates || dates.startDate < new Date(Date.now() - 86_400_000)) { skipped++; continue; }
       const place = parseLocation(html, card.location);
       if (!REGION_PLACE.test(`${title} ${card.location} ${place.location} ${place.address ?? ""}`)) { skipped++; continue; }
       local++;
-      const key = `${normalize(title)}|${localDateKey(dates.startDate)}`;
-      if (knownTitleDates.has(key)) { skipped++; continue; }
       const sourceNames = categoryCandidates(card.category).map(normalize);
       const category = categories.find(item => sourceNames.includes(normalize(item.name))) ?? null;
       const ticketUrl = decodeHtml(html.match(/href=["']([^"']+)["'][^>]*>\s*Jegyek\s*<\/a>/i)?.[1] ?? "");
+      const absoluteTicketUrl = ticketUrl ? new URL(ticketUrl, sourceUrl).toString() : null;
+      const duplicate = findMatchingEvent(knownEvents, title, dates.startDate, new Set([canonicalUrl, ...(absoluteTicketUrl ? [normalizeSourceUrl(absoluteTicketUrl)] : [])]));
+      if (duplicate) {
+        await rememberSource(duplicate, "Visit Harghita", sourceUrl);
+        knownUrls.add(canonicalUrl);
+        knownUrlEventIds.set(canonicalUrl, duplicate.id);
+        if (absoluteTicketUrl) {
+          knownUrls.add(normalizeSourceUrl(absoluteTicketUrl));
+          knownUrlEventIds.set(normalizeSourceUrl(absoluteTicketUrl), duplicate.id);
+        }
+        skipped++;
+        continue;
+      }
       const imageUrl = readMeta(html, "og:image") || "/hellocsik-logo.png";
       const description = parseDescription(html);
       const organizerName = parseOrganizer(description);
@@ -303,7 +359,7 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
         JSON.stringify({ title: "Visit Harghita", url: sourceUrl }),
         ...(organizerName ? [JSON.stringify({ title: "Szervező", url: "", name: organizerName })] : []),
       ];
-      await db.insert(eventsTable).values({
+      const [created] = await db.insert(eventsTable).values({
         title,
         description,
         imageUrl,
@@ -314,14 +370,15 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
         categoryId: category?.id ?? null,
         featured: false,
         monthHighlight: false,
-        ticketUrl: ticketUrl ? new URL(ticketUrl, sourceUrl).toString() : sourceUrl,
+        ticketUrl: absoluteTicketUrl ?? sourceUrl,
         price: null,
         tags: ["automatikus-import", "Visit Harghita"],
         newsLinks,
         status: "published",
-      });
-      knownUrls.add(sourceUrl);
-      knownTitleDates.add(key);
+      }).returning();
+      knownUrls.add(canonicalUrl);
+      knownUrlEventIds.set(canonicalUrl, created.id);
+      knownEvents.push({ id: created.id, title, startDate: dates.startDate, newsLinks, ticketUrl: absoluteTicketUrl ?? sourceUrl });
       imported++;
     }
   }

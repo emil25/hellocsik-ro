@@ -45,15 +45,17 @@ function categoryName(value: string | null) {
 }
 
 /**
- * The original local database contained manually curated public events. Render
- * was connected to a fresh database, so restore those records once at startup.
- * The title/date and source checks make this safe on every subsequent restart.
+ * The original local database contained manually curated public events. Seed a
+ * fresh database once, but do not refill gaps in an established database: a
+ * deleted legacy event must stay deleted after a server restart.
  */
 export async function restoreLegacyEvents() {
   const [existing, categories] = await Promise.all([
     db.select({ title: eventsTable.title, startDate: eventsTable.startDate, newsLinks: eventsTable.newsLinks }).from(eventsTable),
     db.select({ id: categoriesTable.id, name: categoriesTable.name }).from(categoriesTable),
   ]);
+
+  if (existing.length > 0) return 0;
 
   const knownTitleDates = new Set(existing.map((event) => `${normalize(event.title)}|${dateKey(event.startDate)}`));
   const knownSources = new Set(existing.flatMap((event) => readSourceUrls(event.newsLinks ?? [])));
