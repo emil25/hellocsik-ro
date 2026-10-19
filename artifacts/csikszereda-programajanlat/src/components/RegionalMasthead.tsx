@@ -1,18 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
   MapPin,
   Sparkles,
 } from "lucide-react";
 import { RegionalPoster } from "./RegionalPortal";
-import {
-  cityForEvent,
-  type RegionEvent,
-} from "@/lib/regional-events";
+import { cityForEvent, type RegionEvent } from "@/lib/regional-events";
 import { getEventPriceLabel } from "@/lib/event-links";
 import { formatShortDate, formatTime } from "@/utils/date-format";
 
@@ -25,43 +25,49 @@ function eventBadge(event: RegionEvent) {
   return event.category?.name ?? "Program";
 }
 
-function SpotlightCard({
+function SceneEvent({
   event,
-  lead = false,
+  index,
 }: {
   event: RegionEvent;
-  lead?: boolean;
+  index: number;
 }) {
-  const place = cityForEvent(event)?.name ?? event.location;
+  const city = cityForEvent(event)?.name ?? event.location;
+  const classes = ["rs-scene-event", `rs-scene-event-${index + 1}`].join(" ");
   return (
     <Link
       href={`/esemeny/${event.id}`}
-      className={`rs-spotlight-card${lead ? " is-lead" : ""}`}
-      aria-label={`${event.title} – ${place}, ${formatShortDate(event.startDate)}`}
+      className={classes}
+      aria-label={`${event.title} – ${city}, ${formatShortDate(event.startDate)}`}
     >
-      <div className="rs-spotlight-art">
-        <RegionalPoster event={event} priority={lead} />
-        <span className={`rs-spotlight-badge${isPaid(event) ? " is-paid" : ""}`}>
+      <span className="rs-scene-art">
+        <RegionalPoster event={event} priority={index === 0} />
+        <span className={`rs-scene-badge${isPaid(event) ? " is-paid" : ""}`}>
           {eventBadge(event)}
         </span>
-        <span className="rs-spotlight-date">
+        <span className="rs-scene-date">
           <b>{formatShortDate(event.startDate)}</b>
           <small>{formatTime(event.startDate)}</small>
         </span>
-      </div>
-      <div className="rs-spotlight-copy">
-        <h2>{event.title}</h2>
-        <p>
-          <MapPin size={13} />
-          <span>{place}</span>
-        </p>
-        <div className="rs-spotlight-foot">
-          <span>{getEventPriceLabel(event)}</span>
-          <span aria-hidden="true">
-            <ArrowUpRight size={17} />
-          </span>
-        </div>
-      </div>
+        <span className="rs-scene-number" aria-hidden="true">
+          0{index + 1}
+        </span>
+      </span>
+      <span className="rs-scene-copy">
+        <strong>{event.title}</strong>
+        <span>
+          <MapPin size={12} /> {city}
+        </span>
+        <span className="rs-scene-mobile-date">
+          <CalendarDays size={11} /> {formatShortDate(event.startDate)} · {formatTime(event.startDate)}
+        </span>
+        {index === 0 && (
+          <span className="rs-scene-price">{getEventPriceLabel(event)}</span>
+        )}
+      </span>
+      <span className="rs-scene-arrow" aria-hidden="true">
+        <ArrowUpRight size={17} />
+      </span>
     </Link>
   );
 }
@@ -81,6 +87,7 @@ export function RegionalMasthead({
   areaLabel?: string;
   onDate: (value: string) => void;
 }) {
+  const [active, setActive] = useState(0);
   const spotlights = useMemo(() => {
     const upcoming = events
       .filter((event) => Date.parse(event.endDate || event.startDate) >= Date.now())
@@ -109,26 +116,53 @@ export function RegionalMasthead({
     return selected;
   }, [events]);
 
+  const allUpcoming = useMemo(
+    () =>
+      events
+        .filter((event) => Date.parse(event.endDate || event.startDate) >= Date.now())
+        .sort(
+          (a, b) =>
+            Number(isPaid(b)) - Number(isPaid(a)) ||
+            Number(Boolean(b.featured)) - Number(Boolean(a.featured)) ||
+            Date.parse(a.startDate) - Date.parse(b.startDate),
+        ),
+    [events],
+  );
+  const lead = allUpcoming.length ? allUpcoming[active % allUpcoming.length] : undefined;
+  const related = lead
+    ? [
+        ...spotlights.filter((event) => event.id !== lead.id),
+        ...allUpcoming.filter(
+          (event) => event.id !== lead.id && !spotlights.some((item) => item.id === event.id),
+        ),
+      ].slice(0, 2)
+    : [];
+  const sceneEvents = lead ? [lead, ...related] : [];
+  const current = active % Math.max(1, allUpcoming.length);
+
   return (
-    <section className="rs-masthead" aria-labelledby="rs-masthead-title">
-      <div className="rs-masthead-orbit" aria-hidden="true" />
+    <section className="rs-masthead rs-masthead-collage" aria-labelledby="rs-masthead-title">
+      <div className="rs-masthead-decoration" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
       <div className="rs-masthead-inner rl-container">
         <div className="rs-masthead-copy">
           <span className="rs-masthead-label">
-            <span /> HELLO SZÉKELYFÖLD <i /> PROGRAMAJÁNLÓ
+            <span /> HELLO SZÉKELYFÖLD <i /> PROGRAMOK EGY HELYEN
           </span>
           <h1 id="rs-masthead-title">
-            {cityLabel ?? areaLabel ?? "Programok"}
+            {cityLabel ?? areaLabel ?? "Események"}
             <br />
-            <span>{cityLabel || areaLabel ? "programjai." : "Székelyföldön."}</span>
+            <span>{cityLabel ? "közel hozzád." : areaLabel ? "a térségben." : "Székelyföldön."}</span>
           </h1>
           <p>
-            Kiemelt események és friss programok a térség településeiről, egy
-            helyen.
+            Koncertek, előadások, fesztiválok és közösségi programok a térség településeiről.
           </p>
           <div className="rs-masthead-actions">
             <button onClick={() => onDate("all")}>
-              Programot keresek <ArrowDown size={18} />
+              Programok böngészése <ArrowDown size={17} />
             </button>
             <Link href="/naptar">
               <CalendarDays size={17} /> Naptár
@@ -142,44 +176,55 @@ export function RegionalMasthead({
               Hétvégén <ArrowRight size={14} />
             </button>
           </div>
+          <div className="rs-masthead-region-note">
+            <span><MapPin size={14} /> {cityLabel ?? areaLabel ?? "Székelyföld"}</span>
+            <i />
+            <span>{count} közelgő program</span>
+          </div>
         </div>
 
-        <div className="rs-spotlight-board" aria-label="Kiemelt események">
-          <div className="rs-spotlight-heading">
-            <span>
-              <Sparkles size={15} /> AMIRE MOST ÉRDEMES FIGYELNI
-            </span>
-            <span className="rs-spotlight-count">
-              {isLoading ? "BETÖLTÉS…" : `${count} AKTUÁLIS PROGRAM`}
-            </span>
+        <div className="rs-event-stage" aria-label="Válogatás a közelgő programokból">
+          <div className="rs-stage-head">
+            <span><Sparkles size={15} /> MOST ÉRDEMES FIGYELNI</span>
+            <span>{isLoading ? "BETÖLTÉS…" : `${count} PROGRAM`}</span>
           </div>
-          <div className="rs-spotlight-grid">
-            {isLoading ? (
-              <div className="rs-spotlight-loading" aria-label="Programok betöltése">
-                <span />
-                <span />
-                <span />
-              </div>
-            ) : spotlights.length ? (
-              <>
-                <SpotlightCard event={spotlights[0]} lead />
-                {spotlights.slice(1, 3).map((event) => (
-                  <SpotlightCard key={event.id} event={event} />
-                ))}
-              </>
-            ) : (
-              <div className="rs-spotlight-empty">
-                <CalendarDays size={27} />
-                <strong>Hamarosan új programok érkeznek.</strong>
-                <Link href="/naptar">
-                  Naptár megnyitása <ArrowUpRight size={15} />
-                </Link>
+          {isLoading ? (
+            <div className="rs-scene-loading" aria-label="Programok betöltése">
+              <span /><span /><span />
+            </div>
+          ) : sceneEvents.length ? (
+            <div className={`rs-poster-scene${sceneEvents.length < 3 ? " is-sparse" : ""}`}>
+              <span className="rs-scene-orbit rs-scene-orbit-one" aria-hidden="true" />
+              <span className="rs-scene-orbit rs-scene-orbit-two" aria-hidden="true" />
+              {sceneEvents.map((event, index) => (
+                <SceneEvent key={`${event.id}-${index}`} event={event} index={index} />
+              ))}
+              <span className="rs-scene-pin" aria-hidden="true"><MapPin size={15} /> SZÉKELYFÖLD</span>
+              <span className="rs-scene-stamp" aria-hidden="true">KÖZELGŐ<br />PROGRAMOK</span>
+            </div>
+          ) : (
+            <div className="rs-scene-empty">
+              <CalendarDays size={28} />
+              <strong>Hamarosan új programok érkeznek.</strong>
+              <Link href="/naptar">Naptár megnyitása <ArrowUpRight size={15} /></Link>
+            </div>
+          )}
+          <div className="rs-stage-foot">
+            <Link href="/plakatfal">Az összes plakát <ArrowUpRight size={15} /></Link>
+            {allUpcoming.length > 1 && (
+              <div className="rs-scene-controls" aria-label="Kiemelt események lapozása">
+                <span>{String(current + 1).padStart(2, "0")} <i /> {String(allUpcoming.length).padStart(2, "0")}</span>
+                <button
+                  onClick={() => setActive((value) => (value - 1 + allUpcoming.length) % allUpcoming.length)}
+                  aria-label="Előző program"
+                ><ChevronLeft size={16} /></button>
+                <button
+                  onClick={() => setActive((value) => (value + 1) % allUpcoming.length)}
+                  aria-label="Következő program"
+                ><ChevronRight size={16} /></button>
               </div>
             )}
           </div>
-          <Link href="/plakatfal" className="rs-alt-home-link">
-            Plakátfal nézet <ArrowUpRight size={15} />
-          </Link>
         </div>
       </div>
     </section>
