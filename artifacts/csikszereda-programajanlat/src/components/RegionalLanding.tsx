@@ -666,7 +666,7 @@ export function RegionalHome() {
         cityLabel={cityLabel}
         areaLabel={selectedArea?.name}
         onDate={(value) => setDate(value, true)}
-      />
+      >
       <div className="rl-container rl-search-dock">
         <form
           className="rl-searchbar"
@@ -833,6 +833,7 @@ export function RegionalHome() {
           </div>
         )}
       </div>
+      </RegionalMasthead>
       {!filtersActive && (
         <Regional56Feature events={events} initialCity={city} />
       )}

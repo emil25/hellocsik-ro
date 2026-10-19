@@ -1,32 +1,43 @@
-import { useMemo, useState } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Link } from "wouter";
-import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, Compass, MapPin } from "lucide-react";
 import { RegionalPoster } from "./RegionalPortal";
 import { cityForEvent, type RegionEvent } from "@/lib/regional-events";
 import { getEventPriceLabel } from "@/lib/event-links";
-import { withEventPresentation } from "@/lib/event-presentation";
 import { formatShortDate, formatTime } from "@/utils/date-format";
 import "./regional-spotlight.css";
 
 const isPaid = (event: RegionEvent) =>
   event.promotionStatus === "paid" && event.promotionPlan !== "free";
 
-function eventBadge(event: RegionEvent) {
-  if (isPaid(event)) return "Fizetett kiemelés";
-  if (event.featured) return "Kiemelt ajánló";
-  return "A programajánlóból";
+function PortalPreview({ event, index }: { event: RegionEvent; index: number }) {
+  const place = cityForEvent(event)?.name ?? event.location;
+  const ongoing = Date.parse(event.startDate) < Date.now() && Boolean(event.endDate);
+  return (
+    <Link href={`/esemeny/${event.id}`} className="sf-discovery-card" aria-label={`${event.title} – ${place}, ${formatShortDate(event.startDate)}`}>
+      <div className="sf-discovery-poster">
+        <RegionalPoster event={event} priority={index < 3} />
+        <span className="sf-discovery-city"><MapPin size={11} />{place}</span>
+        {isPaid(event) ? (
+          <span className="sf-discovery-promotion is-paid">Fizetett kiemelés</span>
+        ) : event.featured ? (
+          <span className="sf-discovery-promotion">Kiemelt ajánló</span>
+        ) : null}
+      </div>
+      <div className="sf-discovery-preview-meta"><CalendarDays size={12} />{ongoing ? <>Folyamatban<i />{formatShortDate(event.endDate!).replace(/\.$/, "")}-ig</> : <>{formatShortDate(event.startDate)}<i />{formatTime(event.startDate)}</>}</div>
+      <h3>{event.title}</h3>
+      <div className="sf-discovery-preview-foot"><span>{event.category?.name ?? "Program"}</span><span>{getEventPriceLabel(event)}</span><ArrowUpRight size={16} /></div>
+    </Link>
+  );
 }
 
-const eventDay = (date: string) => new Intl.DateTimeFormat("hu-HU", { day: "2-digit", timeZone: "Europe/Bucharest" }).format(new Date(date));
-const eventMonth = (date: string) => new Intl.DateTimeFormat("hu-HU", { month: "long", timeZone: "Europe/Bucharest" }).format(new Date(date));
-
 export function RegionalMasthead({
-  count,
   events = [],
   isLoading,
   cityLabel,
   areaLabel,
   onDate,
+  children,
 }: {
   count: number;
   events: RegionEvent[];
@@ -34,9 +45,9 @@ export function RegionalMasthead({
   cityLabel?: string;
   areaLabel?: string;
   onDate: (value: string) => void;
+  children?: ReactNode;
 }) {
-  const [active, setActive] = useState(0);
-  const spotlights = useMemo(() => {
+  const picks = useMemo(() => {
     const upcoming = events
       .filter((event) => Date.parse(event.endDate || event.startDate) >= Date.now())
       .sort((a, b) =>
@@ -44,10 +55,10 @@ export function RegionalMasthead({
         Number(Boolean(b.featured)) - Number(Boolean(a.featured)) ||
         Date.parse(a.startDate) - Date.parse(b.startDate),
       );
-    const selected = upcoming.filter(isPaid).slice(0, 4);
+    const selected = upcoming.filter(isPaid).slice(0, 5);
     const towns = new Set(selected.map((event) => cityForEvent(event)?.slug ?? event.location));
     for (const event of upcoming) {
-      if (selected.length >= 4) break;
+      if (selected.length >= 5) break;
       const town = cityForEvent(event)?.slug ?? event.location;
       if (!towns.has(town) && !selected.some((item) => item.id === event.id)) {
         selected.push(event);
@@ -55,100 +66,47 @@ export function RegionalMasthead({
       }
     }
     for (const event of upcoming) {
-      if (selected.length >= 4) break;
+      if (selected.length >= 5) break;
       if (!selected.some((item) => item.id === event.id)) selected.push(event);
     }
     return selected;
   }, [events]);
 
-  const current = active % Math.max(1, spotlights.length);
-  const selectedEvent = spotlights[current];
-  const image = selectedEvent ? withEventPresentation(selectedEvent).imageUrl : undefined;
-  const place = selectedEvent ? cityForEvent(selectedEvent)?.name ?? selectedEvent.location : "";
-  const cycle = (direction: number) => setActive((current + direction + spotlights.length) % spotlights.length);
+  const pickedPlaces = new Set(picks.map((event) => cityForEvent(event)?.slug ?? event.location)).size;
 
   return (
-    <section className="sf-cinema" aria-labelledby="sf-cinema-heading">
-      <div
-        className="sf-cinema-atmosphere"
-        aria-hidden="true"
-        style={image ? { backgroundImage: `url(${JSON.stringify(image)})` } : undefined}
-      />
-      <div className="sf-cinema-top rl-container">
-        <div className="sf-cinema-identity">
-          <span><i /> HELLO SZÉKELYFÖLD</span>
-          <h1 id="sf-cinema-heading">{cityLabel ?? areaLabel ?? "Székelyföld"} programjai</h1>
-        </div>
-        <div className="sf-cinema-top-actions">
-          <span>{isLoading ? "Programok betöltése…" : `${count} aktuális program`}</span>
-          <button type="button" onClick={() => onDate("all")}>Programot keresek <ArrowDown size={16} /></button>
-        </div>
+    <section className="sf-discovery" aria-labelledby="sf-discovery-heading">
+      <svg className="sf-discovery-lines" viewBox="0 0 1440 760" preserveAspectRatio="none" aria-hidden="true"><path d="M-100 490C180 170 330 700 780 230S1290 340 1550-90" /><path d="M-80 530C210 210 350 740 800 270S1320 380 1570-50" /><path d="M-60 570C240 250 370 780 820 310S1350 420 1590-10" /></svg>
+      <header className="sf-discovery-heading rl-container">
+        <span className="sf-discovery-label"><Compass size={14} /> SZÉKELYFÖLDI ESEMÉNYAJÁNLÓ</span>
+        <h1 id="sf-discovery-heading">{cityLabel || areaLabel ? <>{cityLabel ?? areaLabel} <em>programjai.</em></> : <>Események <em>Székelyföldön.</em></>}</h1>
+        <p>Koncertek, színház, fesztiválok és közösségi programok.<br className="sf-mobile-break" /> Keress város és időpont szerint.</p>
+      </header>
+
+      {children}
+
+      <div className="sf-discovery-quick rl-container">
+        <span>Gyorsválasztó</span>
+        <button type="button" onClick={() => onDate("today")}>Ma <ArrowUpRight size={13} /></button>
+        <button type="button" onClick={() => onDate("week")}>Ezen a héten <ArrowUpRight size={13} /></button>
+        <button type="button" onClick={() => onDate("weekend")}>Hétvégén <ArrowUpRight size={13} /></button>
+        <Link href="/naptar"><CalendarDays size={14} /> Naptár</Link>
       </div>
 
-      {isLoading ? (
-        <div className="sf-cinema-loading rl-container" aria-label="Kiemelt programok betöltése"><span /></div>
-      ) : selectedEvent ? (
-        <article className="sf-cinema-feature" key={selectedEvent.id}>
-          <div className="sf-cinema-screen rl-container">
-            <div className="sf-cinema-date" aria-hidden="true">
-              <span>{eventMonth(selectedEvent.startDate)}</span>
-              <b>{eventDay(selectedEvent.startDate)}</b>
-              <small>{formatTime(selectedEvent.startDate)}</small>
-            </div>
-            <Link href={`/esemeny/${selectedEvent.id}`} className="sf-cinema-art" aria-label={`${selectedEvent.title} – plakát és részletek`}>
-              <RegionalPoster event={selectedEvent} priority />
-              <span>Plakát és részletek <ArrowUpRight size={15} /></span>
-            </Link>
-            <span className="sf-cinema-position" aria-hidden="true"><b>{String(current + 1).padStart(2, "0")}</b><i />{String(spotlights.length).padStart(2, "0")}</span>
-          </div>
-          <div className="sf-cinema-caption rl-container">
-            <div className="sf-cinema-event-copy">
-              <div className="sf-cinema-kicker">
-                <span className={`sf-cinema-badge${isPaid(selectedEvent) ? " is-paid" : ""}`}>{eventBadge(selectedEvent)}</span>
-                <span>{selectedEvent.category?.name ?? "Program"}</span>
-                <span><MapPin size={13} />{place}</span>
-              </div>
-              <h2><Link href={`/esemeny/${selectedEvent.id}`}>{selectedEvent.title}</Link></h2>
-              <div className="sf-cinema-event-meta">
-                <span><CalendarDays size={14} />{formatShortDate(selectedEvent.startDate)} · {formatTime(selectedEvent.startDate)}</span>
-                <i />
-                <span>{getEventPriceLabel(selectedEvent)}</span>
-              </div>
-            </div>
-            <Link href={`/esemeny/${selectedEvent.id}`} className="sf-cinema-details">Részletek <ArrowUpRight size={20} /></Link>
-          </div>
-        </article>
-      ) : (
-        <div className="sf-cinema-empty rl-container"><CalendarDays size={35} /><h2>Hamarosan új programok érkeznek.</h2><Link href="/naptar">Naptár megnyitása <ArrowUpRight size={16} /></Link></div>
-      )}
-
-      {!isLoading && spotlights.length > 1 && (
-        <div className="sf-cinema-lineup">
-          <div className="sf-cinema-lineup-inner rl-container">
-            <div className="sf-cinema-choices" role="group" aria-label="Válassz kiemelt programot">
-              {spotlights.map((event, index) => (
-                <button type="button" key={event.id} aria-pressed={index === current} aria-label={`${event.title} megjelenítése a kiemelt ajánlóban`} onClick={() => setActive(index)}>
-                  <span className="sf-cinema-choice-number">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="sf-cinema-choice-copy">
-                    <small>{formatShortDate(event.startDate)} · {cityForEvent(event)?.name ?? "Székelyföld"}</small>
-                    <strong>{event.title}</strong>
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className="sf-cinema-controls">
-              <button type="button" aria-label="Előző kiemelt program" onClick={() => cycle(-1)}><ChevronLeft size={19} /></button>
-              <button type="button" aria-label="Következő kiemelt program" onClick={() => cycle(1)}><ChevronRight size={19} /></button>
-            </div>
-          </div>
+      <div className="sf-discovery-picks rl-container">
+        <div className="sf-discovery-picks-heading">
+          <div><h2><i /> Most a programajánlóban</h2>{!isLoading && pickedPlaces > 1 && <span>{pickedPlaces} település programjaiból</span>}</div>
+          <button type="button" onClick={() => onDate("all")}>Összes program <ArrowRight size={16} /></button>
         </div>
-      )}
-      <div className="sf-cinema-browse rl-container">
-        <span>Mikor mennél?</span>
-        <button type="button" onClick={() => onDate("today")}>Ma <ArrowRight size={13} /></button>
-        <button type="button" onClick={() => onDate("week")}>Ezen a héten <ArrowRight size={13} /></button>
-        <button type="button" onClick={() => onDate("weekend")}>Hétvégén <ArrowRight size={13} /></button>
-        <Link href="/naptar"><CalendarDays size={14} /> Teljes naptár</Link>
+        {isLoading ? (
+          <div className="sf-discovery-loading" aria-label="Programajánló betöltése">{Array.from({ length: 5 }, (_, index) => <span key={index} />)}</div>
+        ) : picks.length ? (
+          <div className={`sf-discovery-posters${picks.length < 3 ? " is-sparse" : ""}`}>
+            {picks.map((event, index) => <PortalPreview key={event.id} event={event} index={index} />)}
+          </div>
+        ) : (
+          <div className="sf-discovery-empty"><CalendarDays size={26} /><p>Erre a helyre most nincs közelgő program. A keresőben más települést vagy időpontot is választhatsz.</p></div>
+        )}
       </div>
     </section>
   );
