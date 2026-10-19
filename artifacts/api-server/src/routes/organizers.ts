@@ -3,6 +3,7 @@ import { and, asc, eq, gte, or, isNull } from "drizzle-orm";
 import { db, eventsTable, categoriesTable, organizersTable } from "@workspace/db";
 import { normalizeEventDates } from "../lib/event-dates";
 import { assertEventRange } from "../../../../shared/event-time.mjs";
+import { submissionOptions } from "../../../../shared/event-submission.mjs";
 import { CreateEventBody } from "@workspace/api-zod";
 import { createOrganizerToken, hashPassword, normalizeEmail, requireOrganizer, slugify, verifyPassword } from "../lib/organizer-auth";
 
@@ -111,10 +112,11 @@ router.post("/organizers/me/events", requireOrganizer, normalizeEventDates, asyn
   const parsed = CreateEventBody.safeParse({ ...req.body, imageUrl: req.body?.imageUrl || "/hellocsik-logo.png" });
   if (!parsed.success) { res.status(400).json({ error: "Hiányzó vagy hibás eseményadatok.", details: parsed.error }); return; }
   const data = parsed.data;
-  const requestedPlan = ["free", "featured", "homepage"].includes(req.body?.promotionPlan) ? req.body.promotionPlan : "free";
-  const facebookUrl = typeof req.body?.facebookUrl === "string" ? req.body.facebookUrl.trim() : "";
+  let options;
+  try { options = submissionOptions(req.body); assertEventRange(data.startDate, data.endDate); }
+  catch (error) { res.status(400).json({ error: (error as Error).message }); return; }
   try {
-    const [event] = await db.insert(eventsTable).values({ title: data.title, description: data.description, imageUrl: data.imageUrl, startDate: new Date(data.startDate), endDate: data.endDate ? new Date(data.endDate) : null, location: data.location, locationAddress: data.locationAddress ?? null, categoryId: data.categoryId ?? null, organizerId: res.locals.organizer.id, promotionPlan: requestedPlan, promotionStatus: requestedPlan === "free" ? "none" : "requested", featured: false, monthHighlight: false, ticketUrl: data.ticketUrl ?? null, price: data.price ?? null, tags: data.tags ?? [], newsLinks: withFacebookLink([], facebookUrl), status: "pending", submitterName: res.locals.organizer.name, submitterEmail: res.locals.organizer.email }).returning();
+    const [event] = await db.insert(eventsTable).values({ title: data.title, description: data.description, imageUrl: data.imageUrl, startDate: new Date(data.startDate), endDate: data.endDate ? new Date(data.endDate) : null, location: data.location, locationAddress: options.locationAddress, categoryId: data.categoryId ?? null, organizerId: res.locals.organizer.id, promotionPlan: options.promotionPlan, promotionStatus: options.promotionStatus, featured: false, monthHighlight: false, ticketUrl: options.ticketUrl, price: data.price ?? null, tags: data.tags ?? [], newsLinks: options.newsLinks, status: "pending", submitterName: res.locals.organizer.name, submitterEmail: res.locals.organizer.email }).returning();
     res.status(201).json({ ok: true, id: event.id, status: event.status });
   } catch (error) {
     req.log.error({ error }, "Organizer event submission failed");

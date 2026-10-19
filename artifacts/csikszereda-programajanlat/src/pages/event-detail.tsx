@@ -7,7 +7,7 @@ import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatEndDate, formatShortDate } from "@/utils/date-format";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
-import { getVenueInfo } from "@/lib/venues";
+import { getEventVenueInfo } from "@/lib/venues";
 import { organizerForEvent } from "@/data/organizers";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { downloadCalendarFile, googleCalendarUrl } from "@/lib/calendar-links";
@@ -49,7 +49,7 @@ function EventCard({ event, index = 0 }: { event: any; index?: number }) {
 }
 
 export default function EventDetail() {
-  const { name: portalName } = usePortal();
+  const { name: portalName, regional } = usePortal();
   const params = useParams<{ id: string }>();
   const id = Number(params.id);
   const [reportOpen, setReportOpen] = useState(false);
@@ -134,7 +134,7 @@ export default function EventDetail() {
   }
 
   const source = getEventSource(event.newsLinks);
-  const venue = getVenueInfo(event.location);
+  const venue = getEventVenueInfo(event, regional);
   const registeredOrganizer = (event as any).organizer;
   const organizer = organizerForEvent(event) ?? (registeredOrganizer?.slug ? {
     slug: registeredOrganizer.slug, name: registeredOrganizer.name, accent: "#df523e",

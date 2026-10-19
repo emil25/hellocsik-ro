@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { ArrowRight, Building2, MapPin } from "lucide-react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getVenueInfo } from "@/lib/venues";
+import { getEventVenueInfo } from "@/lib/venues";
 import { isCsikEvent } from "@/lib/csik-events";
 import { usePortal } from "@/lib/portal";
 import { usePortalEvents } from "@/lib/regional-events";
@@ -16,7 +16,7 @@ export default function VenuesPage() {
     const map = new Map<string, { name: string; slug: string; address?: string; titles: string[]; categories: Set<string> }>();
     for (const event of allEvents.filter(event => regional || isCsikEvent(event))) {
       if (!event.location) continue;
-      const info = getVenueInfo(event.location);
+      const info = getEventVenueInfo(event, regional);
       if (!map.has(info.slug)) map.set(info.slug, { name: info.name, slug: info.slug, address: event.locationAddress || info.address, titles: [], categories: new Set() });
       const venue = map.get(info.slug)!;
       venue.titles.push(event.title);

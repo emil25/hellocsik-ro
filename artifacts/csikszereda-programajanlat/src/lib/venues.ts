@@ -1,3 +1,4 @@
+import { regionPlaceForEvent } from "../../../../shared/region-places.mjs";
 export type VenueInfo = {
   slug: string;
   name: string;
@@ -108,4 +109,14 @@ export function venueMapPosition(venue: VenueInfo) {
     left: `${Math.max(4, Math.min(96, left))}%`,
     top: `${Math.max(8, Math.min(92, top))}%`,
   };
+}
+
+// The same venue name in two towns must open two different calendars.
+export function getEventVenueInfo(event: {location: string; locationAddress?: string | null; title?: string}, regional = false): VenueInfo {
+  const info = getVenueInfo(event.location);
+  if (!regional) return info;
+  const place = regionPlaceForEvent(event);
+  if (VENUE_DIRECTORY.includes(info) && (!place || place.slug === "csikszereda")) return info;
+  const name = event.location.split(/[\n]/)[0].replace(/Keresd térképen.*/i, "").trim();
+  return {slug: slugifyVenue(name) + (place ? "-" + place.slug : ""), name: name || info.name, aliases: [event.location], address: event.locationAddress || place?.name};
 }

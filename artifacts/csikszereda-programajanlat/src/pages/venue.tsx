@@ -3,22 +3,23 @@ import { Link, useParams } from "wouter";
 import { ArrowLeft, Building2, CalendarDays, MapPin } from "lucide-react";
 import { EventCard } from "@/components/events/EventCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { eventMatchesVenue, getVenueInfo, VENUE_DIRECTORY } from "@/lib/venues";
+import { getEventVenueInfo, VENUE_DIRECTORY } from "@/lib/venues";
 import { usePortalEvents } from "@/lib/regional-events";
 import { usePortal } from "@/lib/portal";
 
 export default function VenuePage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { regional } = usePortal();
-  const { data: allEvents = [], isLoading } = usePortalEvents();
+  const { data: allEvents = [], isLoading, isError, refetch } = usePortalEvents();
   const events = useMemo(
-    () => allEvents.filter((event) => eventMatchesVenue(event.location, slug)),
-    [allEvents, slug],
+    () => allEvents.filter((event) => getEventVenueInfo(event, regional).slug === slug),
+    [allEvents, slug, regional],
   );
   const firstEvent = events[0];
   const venue = VENUE_DIRECTORY.find((item) => item.slug === slug)
-    ?? (firstEvent ? getVenueInfo(firstEvent.location) : null);
+    ?? (firstEvent ? getEventVenueInfo(firstEvent, regional) : null);
 
+  if (isError) return <div role="alert" className="rp-empty"><h1>A helyszín programjai nem töltődtek be.</h1><button onClick={()=>refetch()}>Újrapróbálom</button></div>;
   if (!isLoading && !venue) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-24 text-center">

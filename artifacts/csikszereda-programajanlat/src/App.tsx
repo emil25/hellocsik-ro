@@ -21,7 +21,8 @@ import OrganizerProfilePage from "@/pages/organizer-profile";
 import OrganizerHubPage from "@/pages/organizer-hub";
 import PricingPage from "@/pages/pricing";
 import SzekelyfoldDaysPage from "@/pages/szekelyfold-napok";
-import { RegionalHome, RegionalCitiesPage, RegionalLayout } from "@/components/RegionalPortal";
+import { RegionalLayout } from "@/components/RegionalPortal";
+import { RegionalHome, RegionalCitiesPage, RegionalSourcesPage } from "@/components/RegionalDiscovery";
 import { RegionalPortalProvider } from "@/lib/portal";
 
 function ClassicHomeRoute() {
@@ -36,7 +37,9 @@ function RegionalRouter() {
   return <RegionalPortalProvider><RegionalLayout><Switch>
     <Route path="/" component={RegionalHome} />
     <Route path="/varos/:slug" component={RegionalHome} />
+    <Route path="/terseg/:area" component={RegionalHome} />
     <Route path="/varosok" component={RegionalCitiesPage} />
+    <Route path="/forrasok" component={RegionalSourcesPage} />
     <Route path="/naptar" component={CalendarPage} />
     <Route path="/esemeny/:id" component={EventDetail} />
     <Route path="/helyszinek" component={VenuesPage} />

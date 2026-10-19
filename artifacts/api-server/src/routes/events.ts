@@ -3,6 +3,7 @@ import { db, eventsTable, categoriesTable, organizersTable } from "@workspace/db
 import { eq, and, gte, lte, desc, asc, ne, or, isNull } from "drizzle-orm";
 import { requireAdmin } from "../lib/admin-auth";
 import { normalizeEventDates } from "../lib/event-dates";
+import { submissionOptions } from "../../../../shared/event-submission.mjs";
 import {
   ListEventsQueryParams,
   CreateEventBody,
@@ -116,6 +117,9 @@ router.post("/events/submit", normalizeEventDates, async (req, res) => {
     if (Number.isNaN(start.getTime()) || (end && (Number.isNaN(end.getTime()) || end < start))) {
       res.status(400).json({ error: "Érvénytelen dátum vagy dátumtartomány." }); return;
     }
+    let options;
+    try { options = submissionOptions(body); }
+    catch (error) { res.status(400).json({ error: (error as Error).message }); return; }
     const [event] = await db
       .insert(eventsTable)
       .values({
@@ -125,9 +129,12 @@ router.post("/events/submit", normalizeEventDates, async (req, res) => {
         startDate: new Date(body.startDate),
         endDate: body.endDate ? new Date(body.endDate) : null,
         location: body.location,
-        locationAddress: body.locationAddress ?? null,
+        locationAddress: options.locationAddress,
         categoryId: body.categoryId ? Number(body.categoryId) : null,
-        ticketUrl: body.ticketUrl ?? null,
+        ticketUrl: options.ticketUrl,
+        newsLinks: options.newsLinks,
+        promotionPlan: options.promotionPlan,
+        promotionStatus: options.promotionStatus,
         price: body.price ?? null,
         tags: [],
         featured: false,

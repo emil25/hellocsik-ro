@@ -1,21 +1,63 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  useId,
+  cloneElement,
+  Children,
+  isValidElement,
+} from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Send, CheckCircle2, MapPin, Calendar, Tag, Link2, User, Mail, Image, FileText, DollarSign } from "lucide-react";
+import {
+  ArrowLeft,
+  Send,
+  CheckCircle2,
+  MapPin,
+  Calendar,
+  Tag,
+  Link2,
+  User,
+  Mail,
+  Image,
+  FileText,
+  DollarSign,
+} from "lucide-react";
 import { Link } from "wouter";
 import { useListCategories } from "@workspace/api-client-react";
 import { getOrganizer } from "@/data/organizers";
-import { eventInputToISO } from "../../../../shared/event-time.mjs";
+import {
+  eventInputToISO,
+  assertEventRange,
+} from "../../../../shared/event-time.mjs";
 import { usePortal } from "@/lib/portal";
-import { REGION_CITIES } from "@/lib/regional-events";
+import { REGION_PLACES } from "@/lib/regional-events";
 
-function Field({ label, icon: Icon, children, hint }: { label: string; icon?: any; children: React.ReactNode; hint?: string }) {
+function Field({
+  label,
+  icon: Icon,
+  children,
+  hint,
+}: {
+  label: string;
+  icon?: any;
+  children: React.ReactNode;
+  hint?: string;
+}) {
+  const id = useId();
+  const control = Children.map(children, (child, index) =>
+    index === 0 && isValidElement(child)
+      ? cloneElement(child as React.ReactElement<{ id?: string }>, { id })
+      : child,
+  );
   return (
     <div className="space-y-1.5">
-      <label className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+      <label
+        htmlFor={id}
+        className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
+      >
         {Icon && <Icon className="w-3.5 h-3.5 text-primary" />}
         {label}
       </label>
-      {children}
+      {control}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
@@ -24,9 +66,16 @@ function Field({ label, icon: Icon, children, hint }: { label: string; icon?: an
 export default function SubmitPage() {
   const { regional } = usePortal();
   const [city, setCity] = useState("");
-  const query = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const query = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : "",
+  );
   const organizerSlug = query.get("organizer") ?? "";
-  const requestedPromotion = query.get("csomag") === "fooldal" ? "homepage" : query.get("csomag") === "kiemelt" ? "featured" : "free";
+  const requestedPromotion =
+    query.get("csomag") === "fooldal"
+      ? "homepage"
+      : query.get("csomag") === "kiemelt"
+        ? "featured"
+        : "free";
   const organizer = getOrganizer(organizerSlug);
   const [organizerToken, setOrganizerToken] = useState<string | null>(null);
   useEffect(() => {
@@ -52,12 +101,51 @@ export default function SubmitPage() {
     submitterName: organizer?.name ?? "",
     submitterEmail: "",
   });
+  const [profile, setProfile] = useState<{
+    name: string;
+    city: string;
+    slug: string;
+  } | null>(null);
+  useEffect(() => {
+    if (!organizerToken) return;
+    const controller = new AbortController();
+    fetch("/api/organizers/me", {
+      headers: { Authorization: `Bearer ${organizerToken}` },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (response.status === 401) {
+          window.localStorage.removeItem("organizer_token");
+          setOrganizerToken(null);
+          setError(
+            "A szervezői belépés lejárt. Lépj be újra, hogy az esemény a profilodhoz kerüljön.",
+          );
+          return;
+        }
+        if (!response.ok) return;
+        const data = await response.json();
+        setProfile(data.organizer);
+        setCity(
+          (value) =>
+            value ||
+            (data.organizer.city === "Székelyföld"
+              ? ""
+              : (data.organizer.city ?? "")),
+        );
+        setForm((value) => ({
+          ...value,
+          submitterName: value.submitterName || data.organizer.name,
+        }));
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [organizerToken]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
   function set(k: string, v: string) {
-    setForm(f => ({ ...f, [k]: v }));
+    setForm((f) => ({ ...f, [k]: v }));
     setError("");
   }
 
@@ -68,14 +156,26 @@ export default function SubmitPage() {
       return;
     }
     if (regional && !city.trim()) {
-      setError("Add meg a várost vagy települést, hogy a program a megfelelő helyen jelenjen meg.");
+      setError(
+        "Add meg a várost vagy települést, hogy a program a megfelelő helyen jelenjen meg.",
+      );
       return;
     }
     setLoading(true);
     try {
-      const startDateTime = eventInputToISO(form.startDate + "T" + form.startTime + ":00");
-      const endpoint = organizerToken ? "/api/organizers/me/events" : "/api/events/submit";
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const startDateTime = eventInputToISO(
+        form.startDate + "T" + form.startTime + ":00",
+      );
+      assertEventRange(
+        startDateTime,
+        form.endDate ? eventInputToISO(form.endDate + "T23:59:59") : undefined,
+      );
+      const endpoint = organizerToken
+        ? "/api/organizers/me/events"
+        : "/api/events/submit";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
       if (organizerToken) headers.Authorization = `Bearer ${organizerToken}`;
       const res = await fetch(endpoint, {
         method: "POST",
@@ -85,9 +185,12 @@ export default function SubmitPage() {
           description: form.description,
           imageUrl: form.imageUrl || undefined,
           startDate: startDateTime,
-          endDate: form.endDate ? eventInputToISO(form.endDate + "T23:59:59") : undefined,
+          endDate: form.endDate
+            ? eventInputToISO(form.endDate + "T23:59:59")
+            : undefined,
           location: form.location,
-          locationAddress: regional ? [form.locationAddress.trim(), city.trim()].filter(Boolean).join(", ") : form.locationAddress || undefined,
+          locationAddress: form.locationAddress || undefined,
+          locality: regional ? city.trim() : undefined,
           categoryId: form.categoryId ? Number(form.categoryId) : undefined,
           price: form.price || undefined,
           ticketUrl: form.ticketUrl || undefined,
@@ -99,12 +202,25 @@ export default function SubmitPage() {
       });
       if (!res.ok) {
         const d = await res.json();
-        setError(d.error ?? "Hiba történt a beküldéskor.");
+        if (res.status === 401) {
+          window.localStorage.removeItem("organizer_token");
+          setOrganizerToken(null);
+          setProfile(null);
+        }
+        setError(
+          res.status === 401
+            ? "A szervezői belépés lejárt. Lépj be újra a beküldéshez; az adatokat megtartottuk."
+            : (d.error ?? "Hiba történt a beküldéskor."),
+        );
       } else {
         setSuccess(true);
       }
     } catch (error) {
-      setError(error instanceof RangeError ? error.message : "Hálózati hiba. Kérjük próbáld újra.");
+      setError(
+        error instanceof RangeError
+          ? error.message
+          : "Hálózati hiba. Kérjük próbáld újra.",
+      );
     } finally {
       setLoading(false);
     }
@@ -121,10 +237,14 @@ export default function SubmitPage() {
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
             <CheckCircle2 className="w-8 h-8 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-foreground mb-3">Köszönjük a beküldést!</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-3">
+            Köszönjük a beküldést!
+          </h2>
           <p className="text-muted-foreground mb-6 leading-relaxed">
-            A programod megkaptuk és hamarosan felülvizsgáljuk. Jóváhagyás után megjelenik az oldalon.
-            {form.promotionPlan !== "free" && " A kért kiemelést csak a befizetés visszaigazolása után aktiváljuk; online kártyaterhelés nincs."}
+            A programod megkaptuk és hamarosan felülvizsgáljuk. Jóváhagyás után
+            megjelenik az oldalon.
+            {form.promotionPlan !== "free" &&
+              " A kért kiemelést csak a befizetés visszaigazolása után aktiváljuk; online kártyaterhelés nincs."}
           </p>
           <div className="flex gap-3 justify-center">
             <Link href="/">
@@ -133,7 +253,26 @@ export default function SubmitPage() {
               </button>
             </Link>
             <button
-              onClick={() => { setSuccess(false); setForm({ title:"",description:"",imageUrl:"",startDate:"",startTime:"18:00",endDate:"",location:"",locationAddress:"",categoryId:"",price:"",ticketUrl:"",facebookUrl:"",promotionPlan: requestedPromotion,submitterName: organizer?.name ?? "",submitterEmail:"" }); }}
+              onClick={() => {
+                setSuccess(false);
+                setForm({
+                  title: "",
+                  description: "",
+                  imageUrl: "",
+                  startDate: "",
+                  startTime: "18:00",
+                  endDate: "",
+                  location: "",
+                  locationAddress: "",
+                  categoryId: "",
+                  price: "",
+                  ticketUrl: "",
+                  facebookUrl: "",
+                  promotionPlan: requestedPromotion,
+                  submitterName: organizer?.name ?? "",
+                  submitterEmail: "",
+                });
+              }}
               className="px-5 py-2.5 rounded-xl border border-border text-foreground font-semibold hover:bg-muted transition-colors"
             >
               Másik program
@@ -144,7 +283,8 @@ export default function SubmitPage() {
     );
   }
 
-  const inputClass = "w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors";
+  const inputClass =
+    "w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors";
   const textareaClass = inputClass + " resize-none";
 
   return (
@@ -156,109 +296,292 @@ export default function SubmitPage() {
         </button>
       </Link>
 
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="mb-8">
-          <span className="text-xs font-bold text-primary uppercase tracking-widest">Program beküldése</span>
-          <h1 className="text-3xl font-bold text-foreground mt-1 mb-2">Van saját programod?</h1>
-          <p className="text-muted-foreground">Az esemény beküldése és alapmegjelenése ingyenes. Csak a külön kért kiemelés kerül pénzbe.</p>
-          {organizer && <div className="mt-4 rounded-xl border border-[#cce5a5] bg-[#eff8dc] px-4 py-3 text-sm text-[#31553a]"><strong>{organizer.name}</strong> profiljához küldöd be ezt a programot. Több eseményt is beküldhetsz egymás után.</div>}
-          {requestedPromotion !== "free" && <div className="mt-4 rounded-xl border border-[#cce5a5] bg-[#eff8dc] px-4 py-3 text-sm text-[#31553a]">A kiválasztott csomag: <strong>{requestedPromotion === "homepage" ? "Főoldal+ · 99 RON / esemény" : "Kiemelt · 49 RON / esemény"}</strong>. A díjról a beküldés után egyeztetünk.</div>}
+          <span className="text-xs font-bold text-primary uppercase tracking-widest">
+            Program beküldése
+          </span>
+          <h1 className="text-3xl font-bold text-foreground mt-1 mb-2">
+            Van saját programod?
+          </h1>
+          <p className="text-muted-foreground">
+            Az esemény beküldése és alapmegjelenése ingyenes. Csak a külön kért
+            kiemelés kerül pénzbe.
+          </p>
+          {profile && (
+            <div className="mt-4 rounded-xl border border-[#cce5a5] bg-[#eff8dc] px-4 py-3 text-sm text-[#31553a]">
+              <strong>{profile.name}</strong> szervezői profiljához küldöd be
+              ezt a programot. Több eseményt is beküldhetsz egymás után.
+            </div>
+          )}
+          {requestedPromotion !== "free" && (
+            <div className="mt-4 rounded-xl border border-[#cce5a5] bg-[#eff8dc] px-4 py-3 text-sm text-[#31553a]">
+              A kiválasztott csomag:{" "}
+              <strong>
+                {requestedPromotion === "homepage"
+                  ? "Főoldal+ · 99 RON / esemény"
+                  : "Kiemelt · 49 RON / esemény"}
+              </strong>
+              . A díjról a beküldés után egyeztetünk.
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Basic info */}
           <div className="bg-card border border-card-border rounded-2xl p-6 space-y-5">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Alapadatok</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              Alapadatok
+            </p>
 
             <Field label="Program neve *" icon={FileText}>
-              <input className={inputClass} placeholder="pl. Esztendő kereke – Táncest" value={form.title} onChange={e => set("title", e.target.value)} />
+              <input
+                required
+                className={inputClass}
+                placeholder="pl. Esztendő kereke – Táncest"
+                value={form.title}
+                onChange={(e) => set("title", e.target.value)}
+              />
             </Field>
 
-            <Field label="Leírás *" icon={FileText} hint="Pár mondat a programról, mi várja a látogatókat.">
-              <textarea className={textareaClass} rows={4} placeholder="Rövid, lelkes leírás a programról..." value={form.description} onChange={e => set("description", e.target.value)} />
+            <Field
+              label="Leírás *"
+              icon={FileText}
+              hint="Pár mondat a programról, mi várja a látogatókat."
+            >
+              <textarea
+                required
+                className={textareaClass}
+                rows={4}
+                placeholder="Rövid, lelkes leírás a programról..."
+                value={form.description}
+                onChange={(e) => set("description", e.target.value)}
+              />
             </Field>
 
-            <Field label="Borítókép URL" icon={Image} hint="Opcionális – egy jó minőségű kép URL-je (pl. Dropbox, Google Drive nyilvános link).">
-              <input className={inputClass} placeholder="https://..." value={form.imageUrl} onChange={e => set("imageUrl", e.target.value)} />
+            <Field
+              label="Borítókép URL"
+              icon={Image}
+              hint="Közvetlenül megnyitható kép linkje; a fájlmegosztó előnézeti oldalának linkje nem képcím."
+            >
+              <input
+                className={inputClass}
+                placeholder="https://..."
+                value={form.imageUrl}
+                onChange={(e) => set("imageUrl", e.target.value)}
+              />
             </Field>
           </div>
 
           {/* When & where */}
           <div className="bg-card border border-card-border rounded-2xl p-6 space-y-5">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Mikor & hol</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              Mikor & hol
+            </p>
 
             <div className="grid grid-cols-2 gap-4">
               <Field label="Dátum *" icon={Calendar}>
-                <input type="date" className={inputClass} value={form.startDate} onChange={e => set("startDate", e.target.value)} />
+                <input
+                  required
+                  type="date"
+                  className={inputClass}
+                  value={form.startDate}
+                  onChange={(e) => set("startDate", e.target.value)}
+                />
               </Field>
               <Field label="Időpont" icon={Calendar}>
-                <input type="time" className={inputClass} value={form.startTime} onChange={e => set("startTime", e.target.value)} />
+                <input
+                  type="time"
+                  className={inputClass}
+                  value={form.startTime}
+                  onChange={(e) => set("startTime", e.target.value)}
+                />
               </Field>
             </div>
 
-            <Field label="Helyszín *" icon={MapPin} hint="A helyszín neve, pl. Csíki Játékszín">
-              <input className={inputClass} placeholder="pl. Csíki Játékszín" value={form.location} onChange={e => set("location", e.target.value)} />
+            <Field
+              label="Zárónap"
+              icon={Calendar}
+              hint="Többnapos eseménynél add meg az utolsó napot. Egynaposnál üresen maradhat."
+            >
+              <input
+                type="date"
+                min={form.startDate || undefined}
+                className={inputClass}
+                value={form.endDate}
+                onChange={(e) => set("endDate", e.target.value)}
+              />
             </Field>
 
-            {regional && <Field label="Város / település *" icon={MapPin} hint="A települést külön add meg a helyszín nevétől."><input required list="regional-cities" className={inputClass} placeholder="pl. Székelyudvarhely" value={city} onChange={event => setCity(event.target.value)} /><datalist id="regional-cities">{REGION_CITIES.filter(item => item.slug !== "csik-kornyeke").map(item => <option key={item.slug} value={item.name} />)}</datalist></Field>}
+            <Field
+              label="Helyszín *"
+              icon={MapPin}
+              hint="A helyszín neve, pl. Csíki Játékszín"
+            >
+              <input
+                required
+                className={inputClass}
+                placeholder="pl. Csíki Játékszín"
+                value={form.location}
+                onChange={(e) => set("location", e.target.value)}
+              />
+            </Field>
+
+            {regional && (
+              <Field
+                label="Város / település *"
+                icon={MapPin}
+                hint="A települést külön add meg a helyszín nevétől."
+              >
+                <input
+                  required
+                  list="regional-cities"
+                  className={inputClass}
+                  placeholder="pl. Székelyudvarhely"
+                  value={city}
+                  onChange={(event) => setCity(event.target.value)}
+                />
+                <datalist id="regional-cities">
+                  {REGION_PLACES.filter(
+                    (item) => item.slug !== "csik-kornyeke",
+                  ).map((item) => (
+                    <option key={item.slug} value={item.name} />
+                  ))}
+                </datalist>
+              </Field>
+            )}
 
             <Field label="Pontos cím" icon={MapPin} hint="Opcionális">
-              <input className={inputClass} placeholder="pl. Piața Cetății 2, Miercurea Ciuc" value={form.locationAddress} onChange={e => set("locationAddress", e.target.value)} />
+              <input
+                className={inputClass}
+                placeholder="pl. Piața Cetății 2, Miercurea Ciuc"
+                value={form.locationAddress}
+                onChange={(e) => set("locationAddress", e.target.value)}
+              />
             </Field>
           </div>
 
           {/* Details */}
           <div className="bg-card border border-card-border rounded-2xl p-6 space-y-5">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Részletek</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              Részletek
+            </p>
 
-            <Field label="Megjelenés" icon={DollarSign} hint="A normál megjelenés ingyenes. Csak a kiemelés fizetős, egyszeri eseménydíjjal. A befizetést ellenőrizzük, automatikus kártyaterhelés nincs.">
-              <select className={inputClass} value={form.promotionPlan} onChange={e => set("promotionPlan", e.target.value)}>
+            <Field
+              label="Megjelenés"
+              icon={DollarSign}
+              hint="A normál megjelenés ingyenes. Csak a kiemelés fizetős, egyszeri eseménydíjjal. A befizetést ellenőrizzük, automatikus kártyaterhelés nincs."
+            >
+              <select
+                className={inputClass}
+                value={form.promotionPlan}
+                onChange={(e) => set("promotionPlan", e.target.value)}
+              >
                 <option value="free">Alap megjelenés · 0 RON</option>
-                <option value="featured">Kiemelt · 49 RON / esemény · egyszeri</option>
-                <option value="homepage">Főoldal+ · 99 RON / esemény · egyszeri</option>
+                <option value="featured">
+                  Kiemelt · 49 RON / esemény · egyszeri
+                </option>
+                <option value="homepage">
+                  Főoldal+ · 99 RON / esemény · egyszeri
+                </option>
               </select>
             </Field>
 
             <Field label="Kategória" icon={Tag}>
-              <select className={inputClass} value={form.categoryId} onChange={e => set("categoryId", e.target.value)}>
+              <select
+                className={inputClass}
+                value={form.categoryId}
+                onChange={(e) => set("categoryId", e.target.value)}
+              >
                 <option value="">– Válassz kategóriát –</option>
-                {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </Field>
 
             <div className="grid grid-cols-2 gap-4">
               <Field label="Belépő ára" icon={DollarSign}>
-                <input className={inputClass} placeholder="pl. 50 RON vagy Ingyenes" value={form.price} onChange={e => set("price", e.target.value)} />
+                <input
+                  className={inputClass}
+                  placeholder="pl. 50 RON vagy Ingyenes"
+                  value={form.price}
+                  onChange={(e) => set("price", e.target.value)}
+                />
               </Field>
               <Field label="Jegyvásárlás / info link" icon={Link2}>
-                <input className={inputClass} placeholder="https://..." value={form.ticketUrl} onChange={e => set("ticketUrl", e.target.value)} />
+                <input
+                  className={inputClass}
+                  placeholder="https://..."
+                  value={form.ticketUrl}
+                  onChange={(e) => set("ticketUrl", e.target.value)}
+                />
               </Field>
             </div>
 
-            <Field label="Facebook-esemény link" icon={Link2} hint="Opcionális – külön marad a jegy / info linktől.">
-              <input className={inputClass} placeholder="https://facebook.com/events/..." value={form.facebookUrl} onChange={e => set("facebookUrl", e.target.value)} />
+            <Field
+              label="Facebook-esemény link"
+              icon={Link2}
+              hint="Opcionális – külön marad a jegy / info linktől."
+            >
+              <input
+                className={inputClass}
+                placeholder="https://facebook.com/events/..."
+                value={form.facebookUrl}
+                onChange={(e) => set("facebookUrl", e.target.value)}
+              />
             </Field>
           </div>
 
           {/* Contact */}
           <div className="bg-card border border-card-border rounded-2xl p-6 space-y-5">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Kapcsolat (opcionális)</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              Kapcsolat (opcionális)
+            </p>
 
             <div className="grid grid-cols-2 gap-4">
               <Field label="Neved" icon={User}>
-                <input className={inputClass} placeholder="Kovács János" value={form.submitterName} onChange={e => set("submitterName", e.target.value)} />
+                <input
+                  className={inputClass}
+                  placeholder="Kovács János"
+                  value={form.submitterName}
+                  onChange={(e) => set("submitterName", e.target.value)}
+                />
               </Field>
               <Field label="Email" icon={Mail}>
-                <input type="email" className={inputClass} placeholder="pelda@gmail.com" value={form.submitterEmail} onChange={e => set("submitterEmail", e.target.value)} />
+                <input
+                  type="email"
+                  className={inputClass}
+                  placeholder="pelda@gmail.com"
+                  value={form.submitterEmail}
+                  onChange={(e) => set("submitterEmail", e.target.value)}
+                />
               </Field>
             </div>
-            <p className="text-xs text-muted-foreground">Kapcsolattartáshoz, ha kérdésünk van a programmal kapcsolatban. Nem tesszük közzé.</p>
+            <p className="text-xs text-muted-foreground">
+              Kapcsolattartáshoz, ha kérdésünk van a programmal kapcsolatban.
+              Nem tesszük közzé.
+            </p>
           </div>
 
           {error && (
-            <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>
+            <div
+              role="alert"
+              className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700"
+            >
+              {error}{" "}
+              {error.includes("belépés lejárt") && (
+                <Link href="/szervezoi-felulet" className="font-bold underline">
+                  Szervezői belépés
+                </Link>
+              )}
+            </div>
           )}
 
           <button
