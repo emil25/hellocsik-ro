@@ -58,6 +58,12 @@ const programDate = (event: RegionEvent) =>
     : formatShortDate(event.startDate);
 const isPaid = (event: RegionEvent) =>
   event.promotionStatus === "paid" && event.promotionPlan !== "free";
+const promotionLabel = (event: RegionEvent) =>
+  isPaid(event)
+    ? "Fizetett kiemelés"
+    : event.featured
+      ? "Kiemelt ajánló"
+      : "";
 const goToPrograms = () =>
   document
     .getElementById("programok")
@@ -94,10 +100,8 @@ function StoryCard({
       <Link href={`/esemeny/${event.id}`} className="rl-story-link">
         <div className="rl-story-image">
           <RegionalPoster event={event} priority={kind !== "weekend"} />
-          <span className="rl-story-tag">
-            {isPaid(event)
-              ? "Kiemelt · hirdetés"
-              : (event.category?.name ?? "Program")}
+          <span className={"rl-story-tag" + (promotionLabel(event) ? " is-promoted" : "")}>
+            {promotionLabel(event) || event.category?.name || "Program"}
           </span>
         </div>
         <div className="rl-story-copy">
@@ -187,8 +191,8 @@ function RegionalRecommendations({
             <article className="rl-feature" key={main.id}>
               <Link href={`/esemeny/${main.id}`} className="rl-feature-image">
                 <RegionalPoster event={main} priority />
-                <span className="rl-feature-label">
-                  {isPaid(main) ? "Kiemelt · hirdetés" : "Az ajánlóból"}
+                <span className={"rl-feature-label" + (promotionLabel(main) ? " is-promoted" : "")}>
+                  {promotionLabel(main) || "Az ajánlóból"}
                 </span>
                 <span className="rl-feature-date">
                   <CalendarDays size={15} />
@@ -829,10 +833,10 @@ export function RegionalHome() {
         )}
       </div>
       {!filtersActive && (
-        <RegionalRecommendations events={scoped} isLoading={isLoading} />
+        <Regional56Feature events={events} initialCity={city} />
       )}
       {!filtersActive && !isError && (
-        <Regional56Feature events={events} initialCity={city} />
+        <RegionalRecommendations events={scoped} isLoading={isLoading} />
       )}
       {!filtersActive && !isError && (
         <WeeklySelection

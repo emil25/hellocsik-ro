@@ -313,7 +313,11 @@ export function RegionalEventCard({ event }: { event: RegionEvent }) {
               ? `${formatShortDate(event.endDate!).replace(/\.$/, "")}-ig`
               : formatShortDate(event.startDate)}
           </span>
-          {paid && <span className="rp-ad-label">Kiemelt · hirdetés</span>}
+          {paid ? (
+            <span className="rp-ad-label">Fizetett kiemelés</span>
+          ) : event.featured ? (
+            <span className="rp-ad-label rp-editor-pick-label">Kiemelt ajánló</span>
+          ) : null}
         </div>
         <div className="rp-event-body">
           <div className="rp-event-kicker">

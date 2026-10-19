@@ -49,14 +49,14 @@ export function RegionalMasthead({
         </div>
         <div className="rs-masthead-photo">
           <img
-            src="/reference/cloud-hero.jpg"
-            alt="Szabadtéri koncert közönsége"
+            src="/reference/city-center.jpg"
+            alt="A csíkszeredai központ sétálóutcája"
             fetchPriority="high"
           />
           <div className="rs-photo-shade" />
           <span className="rs-photo-note">
             <Sparkles size={17} />
-            {isLoading ? "Programok betöltése" : `${count} aktuális program`}
+            {isLoading ? "Programok betöltése" : `${count} közelgő program`}
           </span>
           {!isLoading && count > 0 && Date.now() < OCTOBER_1956_END && (
             <a href="#szekelyfold-1956" className="rs-campaign-teaser">
@@ -67,6 +67,9 @@ export function RegionalMasthead({
               </span>
             </a>
           )}
+          <Link href="/plakatfal" className="rs-alt-home-link">
+            Másik főoldalnézet <ArrowUpRight size={15} />
+          </Link>
         </div>
       </div>
       <div className="rs-masthead-ribbon" aria-hidden="true">

@@ -24,6 +24,7 @@ import SzekelyfoldDaysPage from "@/pages/szekelyfold-napok";
 import { RegionalLayout } from "@/components/RegionalPortal";
 import { RegionalHome, RegionalCitiesPage, RegionalSourcesPage } from "@/components/RegionalDiscovery";
 import { RegionalPortalProvider } from "@/lib/portal";
+import { RegionalPosterWall } from "@/components/RegionalPosterWall";
 
 function ClassicHomeRoute() {
   return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16"><Home initialDesign="classic" /></main><Footer /></div>;
@@ -36,6 +37,7 @@ function CityEventsRoute({ params }: { params: { slug?: string } }) {
 function RegionalRouter() {
   return <RegionalPortalProvider><RegionalLayout><Switch>
     <Route path="/" component={RegionalHome} />
+    <Route path="/plakatfal" component={RegionalPosterWall} />
     <Route path="/varos/:slug" component={RegionalHome} />
     <Route path="/terseg/:area" component={RegionalHome} />
     <Route path="/varosok" component={RegionalCitiesPage} />
