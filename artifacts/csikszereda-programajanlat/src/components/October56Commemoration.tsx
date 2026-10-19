@@ -26,13 +26,27 @@ export function October56Commemoration() {
         <div className="oct56-content">
           <div className="oct56-topline"><span className="oct56-label">Megemlékezés és ünnepi program</span><span className="oct56-year">’56</span></div>
           <h2 id="oct56-title">Ünnepi megemlékezés az 1956-os forradalom 70. évfordulóján</h2>
-          <p className="oct56-intro">Csíkszereda több helyszínen tiszteleg a forradalom és szabadságharc hősei előtt. A nap része a közös felvonulás, ünnepi műsor, koszorúzás és hangverseny.</p>
+          <p className="oct56-intro">Csíkszereda több helyszínen tiszteleg a forradalom és szabadságharc hősei előtt. A városi megemlékezést iskolai és történelmi programok, majd ünnepi hangverseny egészíti ki.</p>
           <div className="oct56-meta"><span><CalendarDays size={17} /> Október 23. · 12:00–19:00</span><span><MapPin size={17} /> Csíkszereda</span></div>
 
           <div className="oct56-timeline" aria-label="A megemlékezés programja">
             <div className="oct56-stop"><span className="oct56-dot" /><div><small>Délelőtt</small><strong>Megemlékezés a Kalász negyedi kopjafánál</strong></div></div>
             <div className="oct56-stop"><span className="oct56-dot" /><div><small>Kora este</small><strong>Gyertyás felvonulás a Gloria Victis emlékműhöz</strong><p>Ünnepi műsor a Csíki Játékszín művészeivel és a Role zenekarral, beszédek és koszorúzás.</p></div></div>
-            <div className="oct56-stop"><span className="oct56-dot" /><div><small>A nap zárásaként</small><strong>Ünnepi hangverseny</strong></div></div>
+            <div className="oct56-stop"><span className="oct56-dot" /><div><small>20:00 · Cinema Csíki Mozi</small><a className="oct56-stop-link" href="/esemeny/133">Magyar költők énekelt versei – ünnepi hangverseny</a><p>Hangverseny az 1956-os forradalom emlékére. <a href="https://www.facebook.com/events/1386581736793712/?locale=hu_HU" target="_blank" rel="noopener noreferrer">Facebook-esemény <ArrowUpRight size={13} /></a></p></div></div>
+          </div>
+
+          <div className="oct56-education" aria-labelledby="oct56-education-title">
+            <div className="oct56-education-heading">
+              <div><small>Az emléknapot megelőzően</small><h3 id="oct56-education-title">Iskolai és történelmi programok</h3></div>
+              <span aria-hidden="true">1956</span>
+            </div>
+            <div className="oct56-education-grid">
+              <div className="oct56-education-item"><span>01</span><strong>Középiskolások történelmi vetélkedője</strong></div>
+              <a className="oct56-education-item oct56-education-event" href="/esemeny/121"><span>Okt. 20. · 14:00</span><strong>Történészkonferencia – történelem, emlékezet, személyes sorsok</strong><small>Sapientia EMTE, Csíkszereda · Részletek <ArrowUpRight size={13} /></small></a>
+              <div className="oct56-education-item"><span>03</span><strong>Történelmi séta és kvíz általános iskolásoknak</strong></div>
+              <div className="oct56-education-item"><span>04</span><strong>Rendhagyó történelem- és irodalomórák</strong></div>
+            </div>
+            <p className="oct56-education-note">A részletes időpontokat és helyszíneket a hivatalos program közli.</p>
           </div>
 
           <div className="oct56-footer"><span>Forrás: Csíkszereda Városháza</span><a href={officialEventUrl} target="_blank" rel="noopener noreferrer">Program és részletek <ArrowUpRight size={17} /></a></div>
