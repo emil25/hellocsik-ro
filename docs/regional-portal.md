@@ -4,7 +4,9 @@ The original HelloCsík stays at /. The separate regional router and brand live 
 
 ## Discovery and geography
 
-- Four equal poster recommendations; contained images with a blurred backdrop.
+- Large central heading and a three-poster hero with manual navigation; contained images keep the complete poster visible.
+- Weekly editorial mosaic, a separate weekend feature and horizontal area tiles. No left sidebar; the compact search bar expands extra filters inline.
+- Full results start with eight cards and load eight more on demand. Curated sections are replaced by results when filters are active. Filter shortcuts use a results anchor after the layout changes.
 - URL-preserved search, category, explicit free entry, date presets, custom interval and sorting.
 - /varos/:slug and /terseg/:area are shareable inside the regional prefix.
 - shared/region-places.mjs supplies six areas and a bilingual directory of cities and smaller settlements. Addresses take precedence over titles. Unclassified events remain accessible in all results and under other.
