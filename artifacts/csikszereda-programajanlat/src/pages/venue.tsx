@@ -1,17 +1,19 @@
 import { useMemo } from "react";
 import { Link, useParams } from "wouter";
 import { ArrowLeft, Building2, CalendarDays, MapPin } from "lucide-react";
-import { useListUpcomingEvents } from "@workspace/api-client-react";
 import { EventCard } from "@/components/events/EventCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { eventMatchesVenue, getVenueInfo, VENUE_DIRECTORY } from "@/lib/venues";
+import { usePortalEvents } from "@/lib/regional-events";
+import { usePortal } from "@/lib/portal";
 
 export default function VenuePage() {
   const { slug = "" } = useParams<{ slug: string }>();
-  const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
+  const { regional } = usePortal();
+  const { data: allEvents = [], isLoading } = usePortalEvents();
   const events = useMemo(
-    () => (data?.events ?? []).filter((event) => eventMatchesVenue(event.location, slug)),
-    [data, slug],
+    () => allEvents.filter((event) => eventMatchesVenue(event.location, slug)),
+    [allEvents, slug],
   );
   const firstEvent = events[0];
   const venue = VENUE_DIRECTORY.find((item) => item.slug === slug)
@@ -22,7 +24,7 @@ export default function VenuePage() {
       <div className="max-w-4xl mx-auto px-4 py-24 text-center">
         <Building2 className="w-10 h-10 text-primary mx-auto mb-4" />
         <h1 className="text-3xl font-bold text-foreground mb-3">A helyszín nem található</h1>
-        <Link href="/#helyszinek" className="inline-flex items-center gap-2 text-primary font-semibold">
+        <Link href={regional ? "/helyszinek" : "/#helyszinek"} className="inline-flex items-center gap-2 text-primary font-semibold">
           <ArrowLeft className="w-4 h-4" /> Vissza a helyszínekhez
         </Link>
       </div>
@@ -31,10 +33,10 @@ export default function VenuePage() {
 
   return (
     <div className="bg-background min-h-screen">
-      <section className="relative overflow-hidden border-b border-border bg-[#10251c] text-white">
+      <section className={`relative overflow-hidden border-b border-border ${regional ? "rp-venue-header bg-[#fcf3e6] text-[#222b43]" : "bg-[#10251c] text-white"}`}>
         <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 78% 20%, #4ade80 0%, transparent 32%), radial-gradient(circle at 15% 80%, #fbbf24 0%, transparent 28%)" }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20">
-          <Link href="/#helyszinek" className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white mb-8">
+          <Link href={regional ? "/helyszinek" : "/#helyszinek"} className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white mb-8">
             <ArrowLeft className="w-4 h-4" /> Összes helyszín
           </Link>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
@@ -77,7 +79,7 @@ export default function VenuePage() {
           <div className="rounded-3xl border border-border bg-card px-6 py-16 text-center">
             <CalendarDays className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
             <p className="font-semibold text-foreground">Ehhez a helyszínhez most nincs közelgő program.</p>
-            <Link href="/#kozelgo" className="inline-flex mt-5 text-sm font-bold text-primary">Összes program megtekintése</Link>
+            <Link href={regional ? "/#programok" : "/#kozelgo"} className="inline-flex mt-5 text-sm font-bold text-primary">Összes program megtekintése</Link>
           </div>
         )}
       </section>

@@ -1,14 +1,16 @@
 import { Heart, Sparkles, Trash2 } from "lucide-react";
 import { Link } from "wouter";
-import { useListUpcomingEvents } from "@workspace/api-client-react";
 import { EventCard } from "@/components/events/EventCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFavorites } from "@/hooks/use-favorites";
+import { usePortalEvents } from "@/lib/regional-events";
+import { usePortal } from "@/lib/portal";
 
 export default function FavoritesPage() {
   const { favoriteIds, clearFavorites } = useFavorites();
-  const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
-  const events = (data?.events ?? []).filter((event) => favoriteIds.includes(event.id));
+  const { regional } = usePortal();
+  const { data: allEvents = [], isLoading } = usePortalEvents();
+  const events = allEvents.filter((event) => favoriteIds.includes(event.id));
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,7 +47,7 @@ export default function FavoritesPage() {
             <Sparkles className="w-10 h-10 text-amber-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-foreground mb-2">Még nincs elmentett programod</h2>
             <p className="text-sm text-muted-foreground mb-6">Nyomd meg a szív ikont egy eseményen, és itt fog megjelenni.</p>
-            <Link href="/#kozelgo" className="inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white">Programok böngészése</Link>
+            <Link href={regional ? "/#programok" : "/#kozelgo"} className="inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white">Programok böngészése</Link>
           </div>
         )}
       </section>

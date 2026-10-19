@@ -12,8 +12,12 @@ import { organizerForEvent } from "@/data/organizers";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { downloadCalendarFile, googleCalendarUrl } from "@/lib/calendar-links";
 import { getEventLinks, getEventPriceLabel } from "@/lib/event-links";
+import { usePortal } from "@/lib/portal";
+import { RegionalEventCard } from "@/components/RegionalPortal";
 
 function EventCard({ event, index = 0 }: { event: any; index?: number }) {
+  const { regional } = usePortal();
+  if (regional) return <RegionalEventCard event={event} />;
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -45,6 +49,7 @@ function EventCard({ event, index = 0 }: { event: any; index?: number }) {
 }
 
 export default function EventDetail() {
+  const { name: portalName } = usePortal();
   const params = useParams<{ id: string }>();
   const id = Number(params.id);
   const [reportOpen, setReportOpen] = useState(false);
@@ -102,9 +107,9 @@ export default function EventDetail() {
   useEffect(() => {
     if (!event) return;
     const previousTitle = document.title;
-    document.title = `${event.title} – HelloCsík`;
+    document.title = `${event.title} – ${portalName}`;
     return () => { document.title = previousTitle; };
-  }, [event]);
+  }, [event, portalName]);
 
   if (isLoading) {
     return (
@@ -130,7 +135,11 @@ export default function EventDetail() {
 
   const source = getEventSource(event.newsLinks);
   const venue = getVenueInfo(event.location);
-  const organizer = organizerForEvent(event);
+  const registeredOrganizer = (event as any).organizer;
+  const organizer = organizerForEvent(event) ?? (registeredOrganizer?.slug ? {
+    slug: registeredOrganizer.slug, name: registeredOrganizer.name, accent: "#df523e",
+    initials: String(registeredOrganizer.name).split(/\s+/).map((part: string) => part[0]).join("").slice(0, 2).toUpperCase(),
+  } : null);
   const externalLinks = getEventLinks(event);
   const organizerName = organizer?.name ?? externalLinks.organizerName ?? (event as any).organizer?.name;
   const overview = <>
@@ -241,7 +250,7 @@ export default function EventDetail() {
       >
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,.65fr)] lg:gap-12">
           {/* Left: description + tags */}
-          <div className="min-w-0 md:col-span-3 break-words">
+          <div className="min-w-0 break-words">
             <div className="space-y-3 mb-6">
               {(event.description ?? "").split(/\n\n+/).map((para, i) => (
                 <p key={i} className="text-[15px] leading-relaxed text-stone-600">
@@ -265,7 +274,7 @@ export default function EventDetail() {
           </div>
 
           {/* Right: info card */}
-          <div className="min-w-0 md:col-span-2 break-words">
+          <div className="min-w-0 break-words">
             <div className="md:sticky md:top-24 space-y-3">
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-5 py-4">
                 <div className="flex items-start gap-4">

@@ -40,7 +40,7 @@ export default function PricingPage() {
         <h1>Egy esemény.<br /><em>Egy kis plusz figyelem.</em></h1>
         <p>Az esemény beküldése és normál megjelenése ingyenes. Csak a külön kért kiemelés fizetős, eseményenként egyszeri díjjal; nincs havidíj vagy előfizetés.</p>
       </header>
-      <main className="pricing-main">
+      <div className="pricing-main">
         <div className="pricing-grid">
           {plans.map((plan) => <article key={plan.name} className={`pricing-card ${plan.featured ? "pricing-card-featured" : ""}`}>
             {plan.featured && <div className="pricing-popular">AJÁNLOTT</div>}
@@ -51,7 +51,7 @@ export default function PricingPage() {
           </article>)}
         </div>
         <section className="pricing-note"><HelpCircle size={19} /><div><strong>Hogyan működik?</strong><p>Ingyen beküldheted az eseményt. A fiókodban eseményenként kérhetsz kiemelést; a díjat előre egyeztetjük, és csak a befizetés visszaigazolása után aktiváljuk. Jelenleg nincs automatikus bankkártyás terhelés. A kiemelés az esemény végéig él.</p></div><Link href="/szervezoi-felulet">Szervezői felület <ArrowRight size={15} /></Link></section>
-      </main>
+      </div>
     </div>
   );
 }

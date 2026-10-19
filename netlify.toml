@@ -24,10 +24,26 @@
   force = true
 
 [[redirects]]
+  from = "/szekelyfold/esemeny/*"
+  to = "/.netlify/functions/api/szekelyfold/esemeny/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/esemeny/*"
   to = "/.netlify/functions/api/esemeny/:splat"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/szekelyfold"
+  to = "/szekelyfold/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/szekelyfold/*"
+  to = "/szekelyfold/index.html"
+  status = 200
 
 [[redirects]]
   from = "/*"

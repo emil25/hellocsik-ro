@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 const rawPort = process.env.PORT ?? "5173";
@@ -31,6 +32,26 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    {
+      name: "regional-static-shell",
+      apply: "build",
+      async closeBundle() {
+        const output = path.resolve(import.meta.dirname, "dist/public");
+        const origin = new URL(process.env.PUBLIC_SITE_URL || process.env.URL || "https://hellocsik-ro.netlify.app").origin;
+        const description = "Koncertek, színház, fesztiválok és közösségi programok Székelyföldön. Keress város, időpont és kategória szerint. Ingyenes eseménybeküldés.";
+        const html = (await readFile(path.join(output, "index.html"), "utf8"))
+          .replace(/<title>[^<]*<\/title>/, "<title>Programtér – Székelyföld programjai</title>")
+          .replace(/<meta name="description"[^>]*>/, `<meta name="description" content="${description}" />`)
+          .replace(/<meta name="keywords"[^>]*>/, '<meta name="keywords" content="Székelyföld, programok, események, koncertek, színház, fesztiválok" />')
+          .replace(/<meta name="author"[^>]*>/, '<meta name="author" content="Programtér" />')
+          .replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${origin}/szekelyfold/" />`)
+          .replace(/<meta (?:property|name)="(?:og:[^"]*|twitter:[^"]*)"[^>]*>/g, "")
+          .replace(/href="\/favicon.svg"/, 'href="/programter-mark.svg"')
+          .replace("</head>", `<meta property="og:title" content="Programtér – Székelyföld programjai" /><meta property="og:description" content="${description}" /><meta property="og:site_name" content="Programtér" /><meta property="og:url" content="${origin}/szekelyfold/" /><meta property="og:type" content="website" /><meta property="og:locale" content="hu_HU" /></head>`);
+        await mkdir(path.join(output, "szekelyfold"), { recursive: true });
+        await writeFile(path.join(output, "szekelyfold/index.html"), html);
+      },
+    },
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined

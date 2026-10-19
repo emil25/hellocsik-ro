@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { ArrowRight, CalendarDays, Check, Plus, Sparkles, Users } from "lucide-react";
 import { Link } from "wouter";
-import { useListUpcomingEvents } from "@workspace/api-client-react";
 import { formatShortDate, formatTime } from "@/utils/date-format";
 import { ORGANIZERS, organizerForEvent, type Organizer } from "@/data/organizers";
 import "@/components/organizer-portal.css";
+import { usePortalEvents } from "@/lib/regional-events";
 
 export function OrganizerEventCard({ event }: { event: any }) {
   const organizer = organizerForEvent(event);
@@ -39,15 +39,22 @@ function OrganizerCard({ organizer, eventCount }: { organizer: Organizer; eventC
 }
 
 export default function OrganizersPage() {
-  const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
-  const events = data?.events ?? [];
-  const counts = useMemo(() => {
+  const { data: events = [], isLoading } = usePortalEvents();
+  const { directory, counts } = useMemo(() => {
     const map = new Map<string, number>();
+    const directory = new Map(ORGANIZERS.map(organizer => [organizer.slug, organizer]));
     for (const event of events) {
-      const organizer = organizerForEvent(event);
+      const registered = event.organizer;
+      const organizer = registered ?? organizerForEvent(event);
       if (organizer) map.set(organizer.slug, (map.get(organizer.slug) ?? 0) + 1);
+      if (registered && !directory.has(registered.slug)) directory.set(registered.slug, {
+        slug: registered.slug, name: registered.name, city: registered.city ?? "Székelyföld",
+        description: "A szervező aktuális eseményei és programjai.", website: registered.website ?? undefined,
+        initials: registered.name.split(/\s+/).map(part => part[0]).join("").slice(0, 2).toUpperCase(),
+        accent: "#df523e", tags: ["szervező"], matches: [],
+      });
     }
-    return map;
+    return { directory: [...directory.values()], counts: map };
   }, [events]);
 
   return (
@@ -62,10 +69,10 @@ export default function OrganizersPage() {
         </div>
       </header>
 
-      <main className="organizer-page-main">
-        <div className="organizer-section-heading"><div><span>HELYI PARTNEREK</span><h2>Szervezők a programok mögött</h2></div><p>{isLoading ? "Betöltés…" : `${ORGANIZERS.length} szervezői profil`}</p></div>
+      <div className="organizer-page-main">
+        <div className="organizer-section-heading"><div><span>HELYI PARTNEREK</span><h2>Szervezők a programok mögött</h2></div><p>{isLoading ? "Betöltés…" : `${directory.length} szervezői profil`}</p></div>
         <div className="organizer-directory-grid">
-          {ORGANIZERS.map((organizer) => <OrganizerCard key={organizer.slug} organizer={organizer} eventCount={counts.get(organizer.slug) ?? 0} />)}
+          {directory.map((organizer) => <OrganizerCard key={organizer.slug} organizer={organizer} eventCount={counts.get(organizer.slug) ?? 0} />)}
         </div>
 
         <section className="organizer-join-card">
@@ -73,7 +80,7 @@ export default function OrganizersPage() {
           <div><span className="organizer-join-label">SZERVEZŐI PROFIL</span><h2>Több eseményt szervezel?</h2><p>Hozz létre egy profilt, tölts fel több programot, és legyen minden eseményed egy helyen.</p></div>
           <Link href="/szervezoi-felulet" className="organizer-primary-button">Profil indítása <ArrowRight size={16} /></Link>
         </section>
-      </main>
+      </div>
     </div>
   );
 }

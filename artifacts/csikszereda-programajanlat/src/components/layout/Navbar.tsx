@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Menu, X, Search, Heart } from "lucide-react";
+import { Menu, X, Search, Heart, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchModal } from "@/components/SearchModal";
 import { useFavorites } from "@/hooks/use-favorites";
@@ -57,6 +57,7 @@ export function Navbar() {
 
             {/* Right actions */}
             <div className="hidden xl:flex items-center gap-1.5">
+              <Link href="/szekelyfold" className="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700">Székelyföld <ArrowUpRight size={12} /></Link>
               <button
                 onClick={() => setSearchOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
@@ -96,6 +97,7 @@ export function Navbar() {
               className="xl:hidden border-t border-gray-100 bg-white overflow-hidden"
             >
               <div className="px-4 py-3 space-y-1">
+                <Link href="/szekelyfold" onClick={() => setOpen(false)} className="block py-2.5 text-sm font-semibold text-orange-700">Székelyföldi változat ↗</Link>
                 {navLinks.map((link) => (
                   <a
                     key={link.href}

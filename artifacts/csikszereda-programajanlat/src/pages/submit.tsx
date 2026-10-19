@@ -5,6 +5,8 @@ import { Link } from "wouter";
 import { useListCategories } from "@workspace/api-client-react";
 import { getOrganizer } from "@/data/organizers";
 import { eventInputToISO } from "../../../../shared/event-time.mjs";
+import { usePortal } from "@/lib/portal";
+import { REGION_CITIES } from "@/lib/regional-events";
 
 function Field({ label, icon: Icon, children, hint }: { label: string; icon?: any; children: React.ReactNode; hint?: string }) {
   return (
@@ -20,6 +22,8 @@ function Field({ label, icon: Icon, children, hint }: { label: string; icon?: an
 }
 
 export default function SubmitPage() {
+  const { regional } = usePortal();
+  const [city, setCity] = useState("");
   const query = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   const organizerSlug = query.get("organizer") ?? "";
   const requestedPromotion = query.get("csomag") === "fooldal" ? "homepage" : query.get("csomag") === "kiemelt" ? "featured" : "free";
@@ -63,6 +67,10 @@ export default function SubmitPage() {
       setError("Kérjük töltsd ki a kötelező mezőket (csillaggal jelölve).");
       return;
     }
+    if (regional && !city.trim()) {
+      setError("Add meg a várost vagy települést, hogy a program a megfelelő helyen jelenjen meg.");
+      return;
+    }
     setLoading(true);
     try {
       const startDateTime = eventInputToISO(form.startDate + "T" + form.startTime + ":00");
@@ -79,7 +87,7 @@ export default function SubmitPage() {
           startDate: startDateTime,
           endDate: form.endDate ? eventInputToISO(form.endDate + "T23:59:59") : undefined,
           location: form.location,
-          locationAddress: form.locationAddress || undefined,
+          locationAddress: regional ? [form.locationAddress.trim(), city.trim()].filter(Boolean).join(", ") : form.locationAddress || undefined,
           categoryId: form.categoryId ? Number(form.categoryId) : undefined,
           price: form.price || undefined,
           ticketUrl: form.ticketUrl || undefined,
@@ -191,6 +199,8 @@ export default function SubmitPage() {
             <Field label="Helyszín *" icon={MapPin} hint="A helyszín neve, pl. Csíki Játékszín">
               <input className={inputClass} placeholder="pl. Csíki Játékszín" value={form.location} onChange={e => set("location", e.target.value)} />
             </Field>
+
+            {regional && <Field label="Város / település *" icon={MapPin} hint="A települést külön add meg a helyszín nevétől."><input required list="regional-cities" className={inputClass} placeholder="pl. Székelyudvarhely" value={city} onChange={event => setCity(event.target.value)} /><datalist id="regional-cities">{REGION_CITIES.filter(item => item.slug !== "csik-kornyeke").map(item => <option key={item.slug} value={item.name} />)}</datalist></Field>}
 
             <Field label="Pontos cím" icon={MapPin} hint="Opcionális">
               <input className={inputClass} placeholder="pl. Piața Cetății 2, Miercurea Ciuc" value={form.locationAddress} onChange={e => set("locationAddress", e.target.value)} />

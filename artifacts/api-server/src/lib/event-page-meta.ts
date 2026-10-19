@@ -19,12 +19,14 @@ function safeImageUrl(value: string, origin: string) {
 }
 
 /** Facebook reads the initial HTML without running our React application. */
-export function renderEventPageMeta(html: string, event: PublicEventPreview | null, origin: string) {
-  const title = event ? `${event.title} – HelloCsík` : "Esemény nem található – HelloCsík";
+export function renderEventPageMeta(html: string, event: PublicEventPreview | null, origin: string, regional = false) {
+  const brand = regional ? "Programtér" : "HelloCsík";
+  const prefix = regional ? "/szekelyfold" : "";
+  const title = event ? `${event.title} – ${brand}` : `Esemény nem található – ${brand}`;
   const description = event
     ? (event.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() || `${event.title} · ${event.location}`).slice(0, 220)
     : "Ez az esemény nem érhető el.";
-  const url = new URL(event ? `/esemeny/${event.id}` : "/", origin).href;
+  const url = new URL(event ? `${prefix}/esemeny/${event.id}` : `${prefix}/`, origin).href;
   const image = safeImageUrl(event?.imageUrl || "/hellocsik-logo.png", origin);
   const tags = [
     `<title>${escapeHtml(title)}</title>`,
@@ -33,11 +35,11 @@ export function renderEventPageMeta(html: string, event: PublicEventPreview | nu
     `<link rel="canonical" href="${escapeHtml(url)}" />`,
     ...Object.entries({
       "og:type": "website", "og:url": url, "og:title": title, "og:description": description,
-      "og:image": image, "og:image:alt": event?.title ?? "HelloCsík", "og:locale": "hu_HU", "og:site_name": "HelloCsík",
+      "og:image": image, "og:image:alt": event?.title ?? brand, "og:locale": "hu_HU", "og:site_name": brand,
     }).map(([key, value]) => `<meta property="${key}" content="${escapeHtml(value)}" />`),
     ...Object.entries({
       "twitter:card": "summary_large_image", "twitter:title": title, "twitter:description": description,
-      "twitter:image": image, "twitter:image:alt": event?.title ?? "HelloCsík",
+      "twitter:image": image, "twitter:image:alt": event?.title ?? brand,
     }).map(([key, value]) => `<meta name="${key}" content="${escapeHtml(value)}" />`),
   ];
   return html.replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, "")

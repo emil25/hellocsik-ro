@@ -6,6 +6,9 @@ import { formatDate, formatTime } from "@/utils/date-format";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { getEventPriceLabel } from "@/lib/event-links";
+import { usePortal } from "@/lib/portal";
+import { RegionalEventCard } from "@/components/RegionalPortal";
+import type { RegionEvent } from "@/lib/regional-events";
 
 function facebookCoverFromLinks(newsLinks?: string[]) {
   for (const rawLink of newsLinks ?? []) {
@@ -45,6 +48,7 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, index = 0, promoted = Boolean(event.featured) }: EventCardProps) {
+  const { regional } = usePortal();
   const [imageError, setImageError] = useState(false);
   const [retryFacebookImage, setRetryFacebookImage] = useState(false);
   const rawImage = event.imageUrl?.trim() ?? "";
@@ -64,6 +68,7 @@ export function EventCard({ event, index = 0, promoted = Boolean(event.featured)
   const promotionLabel = paidPromotion
     ? event.promotionPlan === "homepage" ? "Főoldal+ · hirdetés" : "Kiemelt · hirdetés"
     : "✦ Kihagyhatatlan";
+  if (regional) return <RegionalEventCard event={event as RegionEvent} />;
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

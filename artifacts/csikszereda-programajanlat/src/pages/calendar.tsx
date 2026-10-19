@@ -1,15 +1,19 @@
 import { useMemo, useState } from "react";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useSearch } from "wouter";
-import { useListUpcomingEvents, type Event as ApiEvent } from "@workspace/api-client-react";
+import type { Event as ApiEvent } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatTime } from "@/utils/date-format";
 import { isCsikEvent } from "@/lib/csik-events";
 import { eventDateKey, eventOccursOnDate } from "../../../../shared/event-time.mjs";
+import { usePortal } from "@/lib/portal";
+import { usePortalEvents, REGION_CITIES, cityForEvent } from "@/lib/regional-events";
 
 export default function CalendarPage() {
-  const regional = new URLSearchParams(useSearch()).get("scope") === "szekelyfold";
-  const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
+  const { regional: regionalPortal } = usePortal();
+  const regional = regionalPortal || new URLSearchParams(useSearch()).get("scope") === "szekelyfold";
+  const { data: allEvents = [], isLoading, isError, refetch } = usePortalEvents();
+  const [city, setCity] = useState("");
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const today = eventDateKey(new Date());
@@ -21,21 +25,23 @@ export default function CalendarPage() {
   const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
   const eventsByDate = useMemo(() => {
     const result: Record<string, ApiEvent[]> = {};
-    const events = (data?.events ?? []).filter(event => regional || isCsikEvent(event));
+    const events = allEvents.filter(event => (regional || isCsikEvent(event)) && (!city || cityForEvent(event)?.slug === city));
     for (let day = 1; day <= dayCount; day++) {
       const key = `${monthKey}-${String(day).padStart(2, "0")}`;
       result[key] = events.filter(event => eventOccursOnDate(event, key));
     }
     return result;
-  }, [data, regional, monthKey, dayCount]);
+  }, [allEvents, regional, city, monthKey, dayCount]);
   const selectedEvents = selectedDate ? eventsByDate[selectedDate] ?? [] : [];
 
-  return <section className="min-h-[calc(100vh-4rem)] py-12 sm:py-16 bg-[#eff2e8]">
+  return <section className={`min-h-[calc(100vh-4rem)] py-12 sm:py-16 ${regionalPortal ? "bg-[#fffdf8]" : "bg-[#eff2e8]"}`}>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex flex-wrap justify-between gap-4 items-end mb-7">
-        <div><div className="flex gap-2 items-center text-primary mb-2"><Calendar className="w-4 h-4" /><span className="text-xs font-bold tracking-widest uppercase">Havi naptár</span></div><h1 className="text-3xl sm:text-4xl font-bold">{regional ? "Székelyföldi programnaptár" : "Csíki programnaptár"}</h1><p className="text-sm text-muted-foreground mt-2">Kattints egy napra az ottani eseményekért.</p>{regional && <Link href="/szekelyfold" className="inline-block text-sm font-semibold text-primary mt-3">← Székelyföld összes programja</Link>}</div>
+        <div><div className="flex gap-2 items-center text-primary mb-2"><Calendar className="w-4 h-4" /><span className="text-xs font-bold tracking-widest uppercase">Havi naptár</span></div><h1 className="text-3xl sm:text-4xl font-bold">{regional ? "Székelyföldi programnaptár" : "Csíki programnaptár"}</h1><p className="text-sm text-muted-foreground mt-2">Kattints egy napra az ottani eseményekért.</p>{regional && <Link href={regionalPortal ? "/" : "/szekelyfold"} className="inline-block text-sm font-semibold text-primary mt-3">← Székelyföld összes programja</Link>}</div>
         <div className="flex items-center gap-3"><button aria-label="Előző hónap" onClick={() => { setMonthOffset(v => v - 1); setSelectedDate(null); }} className="w-10 h-10 rounded-full border border-border bg-card flex items-center justify-center hover:border-primary"><ChevronLeft className="w-4 h-4" /></button><span className="capitalize min-w-36 text-center font-semibold">{monthName}</span><button aria-label="Következő hónap" onClick={() => { setMonthOffset(v => v + 1); setSelectedDate(null); }} className="w-10 h-10 rounded-full border border-border bg-card flex items-center justify-center hover:border-primary"><ChevronRight className="w-4 h-4" /></button></div>
       </div>
+      {regional && <label className="flex flex-wrap items-center gap-3 mb-6 text-sm font-semibold">Város<select className="rounded-xl border border-border bg-white px-4 py-2.5 text-sm" aria-label="Naptár szűrése város szerint" value={city} onChange={event => { setCity(event.target.value); setSelectedDate(null); }}><option value="">Egész Székelyföld</option>{REGION_CITIES.map(item => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></label>}
+      {isError && <div role="alert" className="rounded-xl bg-rose-50 p-4 text-sm mb-5">Az eseményeket nem sikerült betölteni. <button className="font-semibold underline" onClick={() => refetch()}>Újrapróbálom</button></div>}
       <div className="grid grid-cols-7 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-2">{["H", "K", "Sze", "Cs", "P", "Szo", "V"].map(day => <span key={day}>{day}</span>)}</div>
       {isLoading ? <div className="grid grid-cols-7 gap-1">{Array.from({ length: 35 }).map((_, i) => <Skeleton key={i} className="h-20 sm:h-24 rounded-lg" />)}</div> : (
         <div className="grid grid-cols-7 gap-1">

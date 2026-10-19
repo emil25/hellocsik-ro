@@ -11,7 +11,7 @@ export default async function api(request: Request) {
   const prefix = "/.netlify/functions/api";
   const url = new URL(request.url);
   const suffix = url.pathname.startsWith(prefix) ? url.pathname.slice(prefix.length) : url.pathname;
-  const pathname = suffix.startsWith("/api/") || suffix.startsWith("/esemeny/")
+  const pathname = suffix.startsWith("/api/") || suffix.startsWith("/esemeny/") || suffix.startsWith("/szekelyfold/esemeny/")
     ? suffix : `/api${suffix || "/"}`;
   const body = ["GET", "HEAD"].includes(request.method) ? null : Buffer.from(await request.arrayBuffer()).toString("base64");
   const response = await serve({

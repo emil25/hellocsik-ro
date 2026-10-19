@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowUpRight, CalendarDays, ExternalLink, MapPin, Plus, Users } from "lucide-react";
 import { Link, useParams } from "wouter";
-import { useListUpcomingEvents } from "@workspace/api-client-react";
 import { formatShortDate } from "@/utils/date-format";
 import { getOrganizer } from "@/data/organizers";
 import { OrganizerEventCard } from "@/pages/organizers";
 import "@/components/organizer-portal.css";
+import { usePortalEvents } from "@/lib/regional-events";
 
 export default function OrganizerProfilePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -22,7 +22,7 @@ export default function OrganizerProfilePage() {
       .finally(() => { if (active) setRemoteLoading(false); });
     return () => { active = false; };
   }, [organizer, slug]);
-  const { data, isLoading } = useListUpcomingEvents({ limit: 100 });
+  const { data: allEvents = [], isLoading } = usePortalEvents();
   const activeOrganizer = organizer ?? (remoteData ? {
     ...remoteData.organizer,
     description: remoteData.organizer.bio,
@@ -36,8 +36,8 @@ export default function OrganizerProfilePage() {
     if (!organizer && remoteData) return remoteData.events;
     if (!organizer) return [];
     const matches = organizer.matches.map((item) => item.toLocaleLowerCase("hu-HU"));
-    return (data?.events ?? []).filter((event) => `${event.title} ${event.location}`.toLocaleLowerCase("hu-HU") && matches.some((match) => `${event.title} ${event.location}`.toLocaleLowerCase("hu-HU").includes(match)));
-  }, [data?.events, organizer, activeOrganizer, remoteData]);
+    return allEvents.filter((event) => `${event.title} ${event.location}`.toLocaleLowerCase("hu-HU") && matches.some((match) => `${event.title} ${event.location}`.toLocaleLowerCase("hu-HU").includes(match)));
+  }, [allEvents, organizer, activeOrganizer, remoteData]);
 
   if (!activeOrganizer && remoteLoading) {
     return <div className="organizer-not-found"><Users size={28} /><h1>Profil betöltése…</h1><p>Egy pillanat, betöltjük a szervezői adatokat.</p></div>;

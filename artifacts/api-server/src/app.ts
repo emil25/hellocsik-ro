@@ -42,14 +42,14 @@ if (process.env.NODE_ENV === "production") {
     const indexHtml = readFileSync(path.join(staticDir, "index.html"), "utf8");
     const siteOrigin = new URL(process.env.PUBLIC_SITE_URL || process.env.URL || process.env.RENDER_EXTERNAL_URL || "https://hellocsik-ro.onrender.com").origin;
     if (process.env.NETLIFY !== "true") app.use(express.static(staticDir));
-    app.get("/esemeny/:id", async (req, res) => {
+    app.get(["/esemeny/:id", "/szekelyfold/esemeny/:id"], async (req, res) => {
       const id = Number(req.params.id);
       const [event] = Number.isSafeInteger(id) && id > 0 ? await db.select({
         id: eventsTable.id, title: eventsTable.title, description: eventsTable.description,
         imageUrl: eventsTable.imageUrl, location: eventsTable.location,
       }).from(eventsTable).where(and(eq(eventsTable.id, id), eq(eventsTable.status, "published"))).limit(1) : [];
       res.status(event ? 200 : 404).set("Cache-Control", "no-cache").type("html")
-        .send(renderEventPageMeta(indexHtml, event ?? null, siteOrigin));
+        .send(renderEventPageMeta(indexHtml, event ?? null, siteOrigin, req.path.startsWith("/szekelyfold/")));
     });
     app.get("/{*path}", (_req, res) => res.sendFile(path.join(staticDir, "index.html")));
   } else {

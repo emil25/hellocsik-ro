@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -21,18 +21,34 @@ import OrganizerProfilePage from "@/pages/organizer-profile";
 import OrganizerHubPage from "@/pages/organizer-hub";
 import PricingPage from "@/pages/pricing";
 import SzekelyfoldDaysPage from "@/pages/szekelyfold-napok";
-import { CityEventsPage, SzekelyfoldHome } from "@/components/SzekelyfoldHome";
+import { RegionalHome, RegionalCitiesPage, RegionalLayout } from "@/components/RegionalPortal";
+import { RegionalPortalProvider } from "@/lib/portal";
 
 function ClassicHomeRoute() {
   return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16"><Home initialDesign="classic" /></main><Footer /></div>;
 }
 
-function RegionHomeRoute() {
-  return <SzekelyfoldHome />;
+function CityEventsRoute({ params }: { params: { slug?: string } }) {
+  return <Redirect to={`/szekelyfold/varos/${params.slug ?? ""}`} />;
 }
 
-function CityEventsRoute({ params }: { params: { slug?: string } }) {
-  return <CityEventsPage slug={params.slug} />;
+function RegionalRouter() {
+  return <RegionalPortalProvider><RegionalLayout><Switch>
+    <Route path="/" component={RegionalHome} />
+    <Route path="/varos/:slug" component={RegionalHome} />
+    <Route path="/varosok" component={RegionalCitiesPage} />
+    <Route path="/naptar" component={CalendarPage} />
+    <Route path="/esemeny/:id" component={EventDetail} />
+    <Route path="/helyszinek" component={VenuesPage} />
+    <Route path="/helyszin/:slug" component={VenuePage} />
+    <Route path="/erdekel" component={FavoritesPage} />
+    <Route path="/bekuldese" component={SubmitPage} />
+    <Route path="/szervezok" component={OrganizersPage} />
+    <Route path="/szervezo/:slug" component={OrganizerProfilePage} />
+    <Route path="/szervezoi-felulet" component={OrganizerHubPage} />
+    <Route path="/arak" component={PricingPage} />
+    <Route component={NotFound} />
+  </Switch></RegionalLayout></RegionalPortalProvider>;
 }
 
 function SitePage({ children }: { children: ReactNode }) {
@@ -59,6 +75,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/admin" component={AdminPage} />
+      <Route path="/szekelyfold" nest><RegionalRouter /></Route>
       <Route path="/programok" component={ProgramokPortal} />
       <Route path="/plakatfal" component={ScenePortal} />
       <Route path="/szervezok" component={OrganizersRoute} />
@@ -68,7 +85,6 @@ function Router() {
       <Route path="/szekelyfold-napok" component={SzekelyfoldDaysRoute} />
       <Route path="/klasszikus" component={ClassicHomeRoute} />
       <Route path="/varos/:slug" component={CityEventsRoute} />
-      <Route path="/szekelyfold" component={RegionHomeRoute} />
       <Route path="/" component={ClassicHomeRoute} />
       <Route>
         <div className="flex flex-col min-h-screen">

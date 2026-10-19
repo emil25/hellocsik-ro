@@ -77,3 +77,11 @@ test("event content cannot escape metadata and unpublished events have noindex",
   assert.match(html, /https:\/\/hellocsik-ro.onrender.com\/hellocsik-logo.png/);
   assert.match(renderEventPageMeta(template, null, "https://hellocsik-ro.onrender.com"), /name="robots" content="noindex, follow"/);
 });
+
+test("regional event shares keep the Programtér brand and regional URL", () => {
+  const html = renderEventPageMeta(template, preview, "https://hellocsik-ro.netlify.app", true);
+  assert.match(html, /property="og:site_name" content="Programtér"/);
+  assert.match(html, /property="og:title" content="A Székely himnusz története – Programtér"/);
+  assert.match(html, /rel="canonical" href="https:\/\/hellocsik-ro.netlify.app\/szekelyfold\/esemeny\/79"/);
+  assert.equal((html.match(/property="og:title"/g) ?? []).length, 1);
+});
