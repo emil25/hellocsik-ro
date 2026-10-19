@@ -1509,3 +1509,304 @@
     font-size: 8px;
   }
 }
+
+/* The 1956 anniversary uses the real municipal poster as its own lead feature. */
+.sf56 {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(28px, 4vw, 48px);
+  border-top: 4px solid transparent;
+  border-image: linear-gradient(90deg, #9f3d3d 0 33%, #eee9dc 33% 66%, #426b50 66% 100%) 1;
+  background: #f3f0e7;
+  color: #243d31;
+}
+.sf56::before {
+  left: auto;
+  right: -260px;
+  top: -260px;
+  width: 620px;
+  height: 620px;
+  border-color: #315d3c12;
+  box-shadow: 0 0 0 55px #315d3c06, 0 0 0 115px #315d3c05;
+}
+.sf56-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.sf56-lead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  min-height: 290px;
+  overflow: hidden;
+  border: 1px solid #e2ddcf;
+  border-radius: 17px 5px 17px 5px;
+  background: #fffdf7;
+  box-shadow: 0 12px 32px #3a39260e;
+}
+.sf56-cover {
+  position: relative;
+  display: block;
+  min-width: 0;
+  min-height: 290px;
+  overflow: hidden;
+  background: #e9e8df;
+}
+.sf56-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.sf56-cover::after {
+  position: absolute;
+  inset: 55% 0 0;
+  content: "";
+  background: linear-gradient(0deg, #172d25a8, transparent);
+  opacity: .42;
+  pointer-events: none;
+}
+.sf56-cover-label {
+  position: absolute;
+  z-index: 1;
+  left: 15px;
+  bottom: 14px;
+  padding: 7px 10px;
+  border: 1px solid #ffffff62;
+  border-radius: 4px;
+  background: #18392ee0;
+  color: #fff8e7;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 1px;
+}
+.sf56-cover-arrow {
+  position: absolute;
+  z-index: 1;
+  right: 14px;
+  bottom: 13px;
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  background: #efc264;
+  color: #203d30;
+  transition: transform .2s ease;
+}
+.sf56-cover:hover .sf56-cover-arrow {
+  transform: translate(2px, -2px);
+}
+.sf56-lead-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(22px, 3vw, 39px);
+}
+.sf56-eyebrow {
+  color: #9c493e;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 1.45px;
+}
+.sf56-lead-copy h2 {
+  max-width: 490px;
+  margin-top: 12px;
+  color: #243d31;
+  font-size: clamp(23px, 2.5vw, 34px);
+  line-height: 1.12;
+  letter-spacing: -1.1px;
+  font-weight: 850;
+}
+.sf56-lead-copy > p {
+  max-width: 430px;
+  margin-top: 12px;
+  color: #687266;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.sf56-lead-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 15px;
+  color: #415d49;
+  font-size: 10px;
+  font-weight: 750;
+}
+.sf56-lead-meta svg {
+  color: #a65742;
+}
+.sf56-lead-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 19px;
+}
+.sf56-lead-actions > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 9px 13px;
+  border: 1px solid #d8ddcf;
+  border-radius: 5px 5px 5px 2px;
+  color: #31563e;
+  background: #f8f7ef;
+  font-size: 10px;
+  font-weight: 800;
+  transition: transform .18s ease, background .18s ease;
+}
+.sf56-lead-actions > *:hover {
+  transform: translateY(-2px);
+}
+.sf56-lead-actions > a:first-child {
+  border-color: #244f3a;
+  background: #244f3a;
+  color: #fffaf0;
+}
+.sf56-lead-actions > a:last-child:hover {
+  background: #edf1e8;
+}
+.sf56-panel {
+  position: relative;
+  padding: 21px;
+  border: 1px solid #e1ddd0;
+  border-radius: 14px 4px 14px 4px;
+  background: #fbfaf5;
+  color: #263d32;
+  box-shadow: 0 7px 20px #3a392609;
+}
+.sf56-panel-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 15px;
+}
+.sf56-panel-heading h3 {
+  margin-top: 5px;
+  color: #274235;
+  font-size: 20px;
+  font-weight: 850;
+  letter-spacing: -.55px;
+}
+.sf56-panel-heading > span {
+  padding-bottom: 3px;
+  color: #7c8578;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sf56-tabs {
+  padding-bottom: 14px;
+}
+.sf56-tabs button {
+  border-color: #e2ded2;
+  border-radius: 5px 5px 5px 2px;
+  color: #657261;
+  background: #fffefa;
+}
+.sf56-tabs button[aria-pressed="true"] {
+  border-color: #315f44;
+  background: #315f44;
+  color: #fffaf0;
+}
+.sf56-program {
+  border-color: #e5e1d7;
+  border-radius: 9px 3px 9px 3px;
+  background: #fffefa;
+}
+.sf56-program:hover {
+  border-color: #b69a5e;
+}
+.sf56-poster {
+  width: 94px;
+  background: #e8e7df;
+}
+.sf56-program h3 {
+  color: #314b3a;
+}
+.sf56-date {
+  color: #945748;
+}
+.sf56-place {
+  color: #647765;
+}
+.sf56-price svg {
+  color: #a65742;
+}
+.sf56-more {
+  color: #355e43;
+}
+.sf56-sources {
+  border-color: #e4dfd2;
+  color: #777d72;
+}
+.sf56-sources a {
+  color: #365c43;
+}
+
+@media (max-width: 760px) {
+  .sf56-lead {
+    grid-template-columns: 1fr;
+  }
+  .sf56-cover {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+  .sf56-lead-copy {
+    padding: 21px;
+  }
+  .sf56-lead-copy h2 {
+    font-size: 25px;
+  }
+  .sf56-programs {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .sf56 {
+    padding-block: 23px;
+  }
+  .sf56-wrap {
+    gap: 12px;
+  }
+  .sf56-cover-label {
+    left: 9px;
+    bottom: 9px;
+    font-size: 6px;
+  }
+  .sf56-cover-arrow {
+    right: 8px;
+    bottom: 8px;
+    width: 27px;
+    height: 27px;
+  }
+  .sf56-lead-copy {
+    padding: 17px;
+  }
+  .sf56-lead-copy h2 {
+    font-size: 22px;
+  }
+  .sf56-panel {
+    padding: 14px;
+  }
+  .sf56-panel-heading h3 {
+    font-size: 16px;
+  }
+  .sf56-tabs button {
+    padding: 8px 10px;
+    font-size: 9px;
+  }
+  .sf56-poster {
+    width: 75px;
+  }
+  .sf56-sources {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

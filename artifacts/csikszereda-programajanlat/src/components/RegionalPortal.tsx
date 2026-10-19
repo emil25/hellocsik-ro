@@ -36,6 +36,7 @@ import {
   type RegionEvent,
 } from "@/lib/regional-events";
 import { formatShortDate, formatTime } from "@/utils/date-format";
+import { withEventPresentation } from "@/lib/event-presentation";
 import "./regional-portal.css";
 
 export function RegionalBrand() {
@@ -233,10 +234,11 @@ export function RegionalPoster({
   event: RegionEvent;
   priority?: boolean;
 }) {
+  const displayEvent = withEventPresentation(event);
   const [failed, setFailed] = useState(false);
   const [alternate, setAlternate] = useState(false);
-  const image = event.imageUrl?.trim();
-  const facebook = getEventLinks(event).facebookUrl?.match(
+  const image = displayEvent.imageUrl?.trim();
+  const facebook = getEventLinks(displayEvent).facebookUrl?.match(
     /facebook\.com\/events\/(\d+)/,
   )?.[1];
   const fallback = facebook ? `/api/facebook-events/${facebook}/image` : "";
@@ -245,7 +247,7 @@ export function RegionalPoster({
   useEffect(() => {
     setFailed(false);
     setAlternate(false);
-  }, [event.imageUrl, event.id]);
+  }, [displayEvent.imageUrl, event.id]);
   if (!src || failed)
     return (
       <div

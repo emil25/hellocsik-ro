@@ -26,6 +26,7 @@ import { getVenueInfo, venueMapPosition } from "@/lib/venues";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
 import { getEventLinks, getEventPriceLabel } from "@/lib/event-links";
 import { isCsikEvent } from "@/lib/csik-events";
+import { withEventPresentation } from "@/lib/event-presentation";
 import "@/components/home-view-switch.css";
 
 function useIsAdmin() {
@@ -184,9 +185,9 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
               style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.1)" }}
             >
               {/* Cover image */}
-              <div className="classic-hero-event-image relative h-44 overflow-hidden" style={{ backgroundImage: `url("${events[0].imageUrl}")` }}>
+              <div className="classic-hero-event-image relative h-44 overflow-hidden" style={{ backgroundImage: `url("${withEventPresentation(events[0]).imageUrl}")` }}>
                 <img
-                  src={events[0].imageUrl}
+                  src={withEventPresentation(events[0]).imageUrl}
                   alt={events[0].title}
                   className="relative w-full h-full object-contain"
                 />
@@ -261,8 +262,8 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
                     boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
                   }}
                 >
-                  <div className="classic-hero-event-image relative h-24 overflow-hidden" style={{ backgroundImage: `url("${ev.imageUrl}")` }}>
-                    <img src={ev.imageUrl} alt={ev.title} className="relative w-full h-full object-contain" />
+                  <div className="classic-hero-event-image relative h-24 overflow-hidden" style={{ backgroundImage: `url("${withEventPresentation(ev).imageUrl}")` }}>
+                    <img src={withEventPresentation(ev).imageUrl} alt={ev.title} className="relative w-full h-full object-contain" />
                     <div className="absolute inset-0"
                       style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%)" }} />
                     {ev.category && (
@@ -419,7 +420,7 @@ function WeeklyCalendar() {
                     <span className="event-half-frame" style={{ borderColor: ev.category?.color ?? "#16816c" }} aria-hidden="true" />
                     <div className="h-1" style={{ backgroundColor: ev.category?.color ?? "#166534" }} />
                     <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                      <img src={ev.imageUrl} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={withEventPresentation(ev).imageUrl} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                       {ev.category && (
                         <span className="absolute left-2 bottom-2 text-[9px] font-bold px-2 py-0.5 rounded-full text-white shadow-sm" style={{ backgroundColor: ev.category.color }}>
@@ -643,7 +644,7 @@ function UpcomingEvents() {
               <div className="group relative cursor-pointer bg-card rounded-2xl overflow-hidden border border-card-border hover:border-primary/20 transition-all duration-300 hover:shadow-xl h-full flex flex-col">
                 <span className="event-half-frame" style={{ borderColor: event.category?.color ?? "#24543b" }} aria-hidden="true" />
                 <div className="relative overflow-hidden" style={{ aspectRatio }}>
-                  <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={withEventPresentation(event).imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                   <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
                     {event.category && (
@@ -683,7 +684,7 @@ function UpcomingEvents() {
               <div className={`group relative cursor-pointer rounded-2xl overflow-hidden border-2 shadow-lg ring-1 bg-gradient-to-br from-amber-50/60 to-card transition-all duration-300 hover:shadow-xl h-full flex flex-col ${promotionInfo(event).paid ? "border-violet-300/80 shadow-violet-100/50 ring-violet-200/50" : "border-amber-300/70 shadow-amber-100/50 ring-amber-200/40 hover:border-amber-400/80"}`}>
                 <span className={`event-half-frame ${promotionInfo(event).paid ? "event-half-frame-paid" : ""}`} style={{ borderColor: event.category?.color ?? (promotionInfo(event).paid ? "#7c3aed" : "#f59e0b") }} aria-hidden="true" />
                 <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-                  <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={withEventPresentation(event).imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                   <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
                     <span className="flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full text-white shadow" style={{ background: promotionInfo(event).paid ? "linear-gradient(135deg, #7c3aed, #2563eb)" : "linear-gradient(135deg, #f59e0b, #f97316)" }}>
@@ -835,7 +836,7 @@ function MonthHighlight() {
         <div className="grid md:grid-cols-2 gap-8 items-center bg-card rounded-3xl overflow-hidden border border-card-border shadow-sm">
           {/* Image */}
           <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-            <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+            <img src={withEventPresentation(event).imageUrl} alt={event.title} className="w-full h-full object-cover" />
             {/* Category badges */}
             <div className="absolute top-4 left-4 flex gap-2">
               {event.category && (

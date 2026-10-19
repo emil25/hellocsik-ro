@@ -12,6 +12,7 @@ import { organizerForEvent } from "@/data/organizers";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { downloadCalendarFile, googleCalendarUrl } from "@/lib/calendar-links";
 import { getEventLinks, getEventPriceLabel } from "@/lib/event-links";
+import { withEventPresentation } from "@/lib/event-presentation";
 import { usePortal } from "@/lib/portal";
 import { RegionalEventCard } from "@/components/RegionalPortal";
 
@@ -133,14 +134,15 @@ export default function EventDetail() {
     );
   }
 
-  const source = getEventSource(event.newsLinks);
+  const displayEvent = withEventPresentation(event);
+  const source = getEventSource(displayEvent.newsLinks);
   const venue = getEventVenueInfo(event, regional);
   const registeredOrganizer = (event as any).organizer;
   const organizer = organizerForEvent(event) ?? (registeredOrganizer?.slug ? {
     slug: registeredOrganizer.slug, name: registeredOrganizer.name, accent: "#df523e",
     initials: String(registeredOrganizer.name).split(/\s+/).map((part: string) => part[0]).join("").slice(0, 2).toUpperCase(),
   } : null);
-  const externalLinks = getEventLinks(event);
+  const externalLinks = getEventLinks(displayEvent);
   const organizerName = organizer?.name ?? externalLinks.organizerName ?? (event as any).organizer?.name;
   const overview = <>
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
@@ -198,11 +200,11 @@ export default function EventDetail() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8">
         <section className="grid overflow-hidden rounded-[26px] border border-stone-200 bg-[#f7f6f2] shadow-sm lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)]">
           <div className="group relative isolate aspect-[4/3] min-h-[260px] overflow-hidden bg-stone-900 sm:min-h-[360px] lg:aspect-auto lg:min-h-[520px]">
-            {event.imageUrl && !imageFailed ? <>
-              <img src={event.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-45 blur-2xl" />
+            {displayEvent.imageUrl && !imageFailed ? <>
+              <img src={displayEvent.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-45 blur-2xl" />
               <div className="absolute inset-0 bg-black/20" />
               <motion.img
-                src={event.imageUrl}
+                src={displayEvent.imageUrl}
                 alt={event.title}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -210,7 +212,7 @@ export default function EventDetail() {
                 onError={() => setImageFailed(true)}
                 className="absolute inset-0 h-full w-full object-contain p-1 sm:p-2"
               />
-              <a href={event.imageUrl} target="_blank" rel="noopener noreferrer" aria-label="A teljes eseménykép megnyitása" className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full bg-black/55 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur transition-opacity group-hover:opacity-100 focus:opacity-100">
+              <a href={displayEvent.imageUrl} target="_blank" rel="noopener noreferrer" aria-label="A teljes eseménykép megnyitása" className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full bg-black/55 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg backdrop-blur transition-opacity group-hover:opacity-100 focus:opacity-100">
                 <Maximize2 className="h-3.5 w-3.5" /> Teljes kép
               </a>
             </> : <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-emerald-950 to-stone-800 text-sm font-medium text-white/75">Eseménykép nem érhető el</div>}

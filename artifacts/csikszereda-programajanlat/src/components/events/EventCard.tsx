@@ -9,6 +9,7 @@ import { getEventPriceLabel } from "@/lib/event-links";
 import { usePortal } from "@/lib/portal";
 import { RegionalEventCard } from "@/components/RegionalPortal";
 import type { RegionEvent } from "@/lib/regional-events";
+import { withEventPresentation } from "@/lib/event-presentation";
 
 function facebookCoverFromLinks(newsLinks?: string[]) {
   for (const rawLink of newsLinks ?? []) {
@@ -49,11 +50,12 @@ interface EventCardProps {
 
 export function EventCard({ event, index = 0, promoted = Boolean(event.featured) }: EventCardProps) {
   const { regional } = usePortal();
+  const displayEvent = withEventPresentation(event);
   const [imageError, setImageError] = useState(false);
   const [retryFacebookImage, setRetryFacebookImage] = useState(false);
-  const rawImage = event.imageUrl?.trim() ?? "";
+  const rawImage = displayEvent.imageUrl?.trim() ?? "";
   const usesGenericImage = !rawImage || rawImage.includes("images.unsplash.com/photo-149268") || rawImage.includes("hellocsik-logo");
-  const facebookImage = facebookCoverFromLinks(event.newsLinks);
+  const facebookImage = facebookCoverFromLinks(displayEvent.newsLinks);
   const primaryImage = usesGenericImage ? facebookImage : rawImage;
   const alternateImage = facebookImage && facebookImage !== primaryImage ? facebookImage : null;
   const imageUrl = retryFacebookImage && alternateImage ? alternateImage : primaryImage;
@@ -63,12 +65,12 @@ export function EventCard({ event, index = 0, promoted = Boolean(event.featured)
     else setImageError(true);
   };
   const fallbackColor = event.category?.color ?? "#24543b";
-  const source = getEventSource(event.newsLinks);
+  const source = getEventSource(displayEvent.newsLinks);
   const paidPromotion = event.promotionStatus === "paid" && event.promotionPlan !== "free";
   const promotionLabel = paidPromotion
     ? event.promotionPlan === "homepage" ? "Főoldal+ · hirdetés" : "Kiemelt · hirdetés"
     : "✦ Kihagyhatatlan";
-  if (regional) return <RegionalEventCard event={event as RegionEvent} />;
+  if (regional) return <RegionalEventCard event={displayEvent as RegionEvent} />;
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

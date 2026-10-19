@@ -1,8 +1,8 @@
 import { ArrowUpRight, CalendarDays, MapPin } from "lucide-react";
+import { CSIK_1956_FACEBOOK_URL, CSIK_1956_POSTER_URL } from "@/lib/event-presentation";
 import "./october-56-commemoration.css";
 
 const officialEventUrl = "https://szereda.ro/esemenyek/unnepi-megemlekezes-az-1956-os-forradalom-es-szabadsagharc-70-evfordulojan/1177";
-const officialPosterUrl = "https://szereda.ro/app/szereda/assets/images/esemenyek_2026_oktober23_megemlekezes.jpg";
 const expiresAt = Date.parse("2026-10-23T23:59:59+03:00");
 
 export function October56Commemoration() {
@@ -13,14 +13,10 @@ export function October56Commemoration() {
       <p className="oct56-eyebrow"><span aria-hidden="true">✦</span> Kiemelt városi program</p>
       <div className="oct56-panel">
         <div className="oct56-poster">
-          <img src={officialPosterUrl} alt="Az 1956-os forradalom és szabadságharc 70. évfordulójának csíkszeredai plakátja" loading="lazy" onError={event => { event.currentTarget.style.display = "none"; }} />
+          <a href={CSIK_1956_FACEBOOK_URL} target="_blank" rel="noopener noreferrer" aria-label="Facebook-esemény megnyitása">
+            <img src={CSIK_1956_POSTER_URL} alt="Csíkszereda Városháza plakátja az 1956-os forradalom és szabadságharc 70. évfordulójáról, 2026. október 23." loading="lazy" />
+          </a>
           <div className="oct56-poster-shade" />
-          <div className="oct56-poster-copy">
-            <span>CSÍKSZEREDA · 2026</span>
-            <strong>1956</strong>
-            <em>70 éve a szabadságért</em>
-            <span className="oct56-poster-date">OKTÓBER 23. · PÉNTEK</span>
-          </div>
         </div>
 
         <div className="oct56-content">
@@ -49,7 +45,7 @@ export function October56Commemoration() {
             <p className="oct56-education-note">A részletes időpontokat és helyszíneket a hivatalos program közli.</p>
           </div>
 
-          <div className="oct56-footer"><span>Forrás: Csíkszereda Városháza</span><a href={officialEventUrl} target="_blank" rel="noopener noreferrer">Program és részletek <ArrowUpRight size={17} /></a></div>
+          <div className="oct56-footer"><span>Forrás: Csíkszereda Városháza</span><div className="oct56-footer-actions"><a href={officialEventUrl} target="_blank" rel="noopener noreferrer">Hivatalos program <ArrowUpRight size={17} /></a><a href={CSIK_1956_FACEBOOK_URL} target="_blank" rel="noopener noreferrer">Facebook-esemény <ArrowUpRight size={17} /></a><a href="/esemeny/144">Esemény adatlapja <ArrowUpRight size={17} /></a></div></div>
         </div>
       </div>
     </div>
