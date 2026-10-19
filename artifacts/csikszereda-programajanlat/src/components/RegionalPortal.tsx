@@ -124,7 +124,11 @@ function RegionalHeader() {
             <Heart size={20} />
             {favoriteIds.length > 0 && <b>{favoriteIds.length}</b>}
           </Link>
-          <Link href="/bekuldese" className="rp-button rp-button-coral rp-add">
+          <Link
+            href="/bekuldese"
+            className="rp-button rp-button-coral rp-add"
+            aria-label="Ingyenes eseménybeküldés"
+          >
             <Plus size={17} />
             <span>Esemény beküldése</span>
           </Link>

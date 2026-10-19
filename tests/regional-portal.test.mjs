@@ -275,3 +275,18 @@ test("separate performances on the same day stay separate without an identical s
  assert.equal(findImportedEvent([{...event,id:1}],{...event,startDate:"2026-10-23T18:00:00Z"}),undefined);
  assert.equal(findImportedEvent([{...event,id:1,title:"Az apa | Tatăl"}],{...event,title:"Az apa"})?.id,1);
 });
+import { october1956Programs, OCTOBER_1956_END } from "../shared/october-1956.mjs";
+
+test("1956 feature uses current related programs and expires after the anniversary", () => {
+  const now = Date.parse("2026-10-19T12:00:00+03:00");
+  const events = [
+    { id: 142, title: "Megemlékezés az 1956-os forradalom évfordulóján", startDate: "2026-10-23T18:00:00+03:00" },
+    { id: 143, title: "Magyar Orpheusz – hangverseny", startDate: "2026-10-22T19:00:00+03:00" },
+    { id: 121, title: "Történészkonferencia", startDate: "2026-10-20T14:00:00+03:00" },
+    { id: 77, title: "1956-os kiállítás", startDate: "2025-10-23T12:00:00+03:00", endDate: "2027-01-01T00:00:00+02:00" },
+    { id: 128, title: "Székelyföld-díjak", description: "1956 emléke is megjelenik", startDate: "2026-10-26T12:00:00+02:00" },
+    { id: 79, title: "Székely himnusz", startDate: "2026-10-06T18:00:00+03:00", endDate: "2026-12-31T23:59:59+02:00" },
+  ];
+  assert.deepEqual(october1956Programs(events, now).map(event => event.id), [121, 143, 142]);
+  assert.deepEqual(october1956Programs(events, OCTOBER_1956_END), []);
+});

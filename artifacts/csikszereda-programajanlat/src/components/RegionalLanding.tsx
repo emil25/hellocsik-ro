@@ -36,7 +36,10 @@ import {
 } from "../../../../shared/event-discovery.mjs";
 import { getEventPriceLabel } from "@/lib/event-links";
 import { formatShortDate, formatTime } from "@/utils/date-format";
+import { Regional56Feature } from "./Regional56Feature";
+import { RegionalMasthead } from "./RegionalMasthead";
 import "./regional-landing.css";
+import "./regional-home-v2.css";
 
 const DATES = [
   { value: "all", name: "Bármikor" },
@@ -116,18 +119,12 @@ function StoryCard({
   );
 }
 
-function RegionalHero({
+function RegionalRecommendations({
   events,
   isLoading,
-  cityLabel,
-  areaLabel,
-  onDate,
 }: {
   events: RegionEvent[];
   isLoading: boolean;
-  cityLabel?: string;
-  areaLabel?: string;
-  onDate: (value: string) => void;
 }) {
   const [active, setActive] = useState(0);
   const picks = useMemo(() => {
@@ -163,27 +160,18 @@ function RegionalHero({
     picks.length > offset ? [picks[(current + offset) % picks.length]] : [],
   );
   return (
-    <section className="rl-hero" aria-labelledby="rl-hero-heading">
-      <div className="rl-hero-heading rl-container">
+    <section
+      className="rl-recommendations"
+      aria-labelledby="rl-recommendations-heading"
+    >
+      <div className="rl-section-title rl-container">
         <div>
-          <span className="rl-eyebrow">
-            <i /> HELLO SZÉKELYFÖLD
-          </span>
-          <h1 id="rl-hero-heading">
-            {cityLabel
-              ? `${cityLabel} programjai`
-              : areaLabel
-                ? `${areaLabel} programjai`
-                : "Székelyföldi programok"}
-          </h1>
+          <span className="rl-eyebrow">AZ AJÁNLÓBÓL</span>
+          <h2 id="rl-recommendations-heading">Közelgő események</h2>
         </div>
-        <div className="rl-hero-shortcuts">
-          <button onClick={() => onDate("today")}>Ma</button>
-          <button onClick={() => onDate("weekend")}>Hétvégén</button>
-          <Link href="/naptar">
-            <CalendarDays size={16} /> Naptár
-          </Link>
-        </div>
+        <Link href="/naptar">
+          Programnaptár <ArrowUpRight size={18} />
+        </Link>
       </div>
       <div
         className={`rl-feature-grid rl-container${!others.length ? " rl-feature-single" : ""}`}
@@ -644,17 +632,6 @@ export function RegionalHome() {
     ],
     [scoped],
   );
-  const areaCounts = useMemo(
-    () =>
-      new Map(
-        REGION_AREAS.map((item) => [
-          item.slug,
-          events.filter((event) => cityForEvent(event)?.area === item.slug)
-            .length,
-        ]),
-      ),
-    [events],
-  );
   const filtersActive = Boolean(
     query || category || date !== "all" || free || nearby || day || from || to,
   );
@@ -678,8 +655,8 @@ export function RegionalHome() {
     );
   return (
     <div className="rl-home">
-      <RegionalHero
-        events={scoped}
+      <RegionalMasthead
+        count={scoped.length}
         isLoading={isLoading}
         cityLabel={cityLabel}
         areaLabel={selectedArea?.name}
@@ -851,8 +828,11 @@ export function RegionalHome() {
           </div>
         )}
       </div>
-      {!isError && (
-        <CityBrowse events={events} selected={city} onSelect={selectPlace} />
+      {!filtersActive && (
+        <RegionalRecommendations events={scoped} isLoading={isLoading} />
+      )}
+      {!filtersActive && !isError && (
+        <Regional56Feature events={events} initialCity={city} />
       )}
       {!filtersActive && !isError && (
         <WeeklySelection
@@ -865,40 +845,6 @@ export function RegionalHome() {
           events={scoped}
           onSelect={(value) => update({ kategoria: value }, true)}
         />
-      )}
-      {!filtersActive && !city && (
-        <section
-          className="rl-container rl-areas"
-          aria-labelledby="rl-areas-heading"
-        >
-          <div>
-            <span className="rl-eyebrow">VÁROSON TÚL IS</span>
-            <h2 id="rl-areas-heading">Programok térségenként</h2>
-            <Link href="/varosok">
-              Települések böngészése <ArrowUpRight size={17} />
-            </Link>
-          </div>
-          <div className="rl-area-tiles">
-            {REGION_AREAS.map((item, index) => (
-              <button
-                key={item.slug}
-                aria-pressed={area === item.slug}
-                onClick={() => {
-                  selectArea(area === item.slug ? "" : item.slug, true);
-                }}
-                className={`rl-area-tile rl-area-tile-${index}`}
-                style={{ "--area-color": item.color } as CSSProperties}
-              >
-                <span className="rl-area-number">0{index + 1}</span>
-                <strong>{item.shortName}</strong>
-                <span>
-                  {isLoading ? "…" : (areaCounts.get(item.slug) ?? 0)} program{" "}
-                  <ArrowUpRight size={19} />
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
       )}
       <section
         className="rl-container rl-browse"
@@ -1046,6 +992,20 @@ export function RegionalHome() {
           </div>
         )}
       </section>
+      {!isError && (
+        <section className="rs-places" aria-labelledby="rs-places-heading">
+          <div className="rl-container rl-section-title">
+            <div>
+              <span className="rl-eyebrow">VÁROSOK ÉS HELYSZÍNEK</span>
+              <h2 id="rs-places-heading">Hol keresel programot?</h2>
+            </div>
+            <Link href="/helyszinek">
+              Helyszínek <MapPin size={17} />
+            </Link>
+          </div>
+          <CityBrowse events={events} selected={city} onSelect={selectPlace} />
+        </section>
+      )}
       <section className="rl-submit-section rl-container">
         <div className="rl-submit-icon">
           <Ticket size={42} />

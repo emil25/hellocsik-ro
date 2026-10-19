@@ -4,10 +4,11 @@ The original HelloCsík stays at /. The separate regional router and brand live 
 
 ## Discovery and geography
 
-- Compact regional heading, a dominant event poster with date, town, entry information and details, and two secondary recommendations. Manual navigation changes the featured events; contained images keep the complete poster visible.
+- A full-width yellow photographic masthead introduces the portal, with time shortcuts and a seasonal feature teaser. Event-poster recommendations sit below the search instead of being the opening hero. Manual navigation changes the featured events; contained images keep the complete poster visible.
 - A Hello-family wordmark, matching header/footer and separate regional page/share metadata and favicon. Classic HelloCsík branding remains intact.
-- A quick city strip shows current event counts and opens shareable city pages. Topic tiles filter the results by category.
-- Weekly editorial mosaic, a contrasting weekend band and area tiles. No left sidebar; the compact search bar expands extra filters inline.
+- City navigation and venue links sit below the main results in a distinct green band. The pale area tiles have been removed from the homepage; areas remain accessible in the directory and extra search filters. Saturated topic tiles filter results by category.
+- Weekly editorial mosaic and a contrasting blue weekend band. No left sidebar; the compact search bar expands extra filters inline.
+- The 2026 October 23 anniversary has a separate burgundy/cream editorial placement with real event links, city tabs, an expand control and official sources. It expires after October 23 and excludes unrelated or stale events. It is editorial, not a paid promotion. The public source posters are retained under public/events/.
 - Full results start with eight cards and load eight more on demand. Curated sections are replaced by results when filters are active. Filter shortcuts use a results anchor after the layout changes.
 - URL-preserved search, category, explicit free entry, date presets, custom interval and sorting.
 - /varos/:slug and /terseg/:area are shareable inside the regional prefix.
