@@ -661,6 +661,7 @@ export function RegionalHome() {
     <div className="rl-home">
       <RegionalMasthead
         count={scoped.length}
+        events={scoped}
         isLoading={isLoading}
         cityLabel={cityLabel}
         areaLabel={selectedArea?.name}
