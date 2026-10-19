@@ -43,21 +43,23 @@ export function RegionalBrand() {
     <Link
       href="/"
       className="rp-brand"
-      aria-label="Programtér – Székelyföld főoldal"
+      aria-label="Hello Székelyföld – főoldal"
     >
       <span className="rp-brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 40 40" fill="none">
+        <svg viewBox="0 0 48 48" fill="none">
           <path
-            d="M10 5h11c8 0 14 6 14 13S29 31 21 31h-3v6H8V5Z"
-            fill="currentColor"
+            d="M32 7a19 19 0 1 0 9 16"
+            stroke="currentColor"
+            strokeWidth="5.5"
+            strokeLinecap="round"
           />
-          <path d="m18 12 10 6-10 6V12Z" fill="#fffaf3" />
-          <circle cx="5" cy="8" r="4" fill="#fac54c" />
+          <circle cx="24" cy="24" r="8" fill="#f19b2c" />
+          <circle cx="39" cy="10" r="5" fill="#f19b2c" />
         </svg>
       </span>
       <span>
-        program<span>tér</span>
-        <small>SZÉKELYFÖLD</small>
+        hello<span>székelyföld</span>
+        <small>PROGRAMOK · HELYEK · ESEMÉNYEK</small>
       </span>
     </Link>
   );
@@ -152,7 +154,7 @@ function RegionalFooter() {
               HelloCsík – csíki programok <ArrowUpRight size={15} />
             </Link>
           </div>
-          <nav aria-label="Programtér lábléc">
+          <nav aria-label="Hello Székelyföld lábléc">
             <h2>Programot keresel?</h2>
             <Link href="/">Összes esemény</Link>
             <Link href="/naptar">Programnaptár</Link>
@@ -169,7 +171,7 @@ function RegionalFooter() {
           </nav>
         </div>
         <div className="rp-footer-bottom">
-          <span>© {new Date().getFullYear()} Programtér · Székelyföld</span>
+          <span>© {new Date().getFullYear()} Hello Székelyföld</span>
           <span>Az eseménybeküldés ingyenes. Csak a kiemelés fizetős.</span>
           <Link href="~/admin">
             Admin <ArrowUpRight size={13} />
@@ -197,7 +199,7 @@ export function RegionalLayout({ children }: { children: ReactNode }) {
       "/forrasok": "Források és frissítés",
     };
     if (!/^\/(?:esemeny|varos|terseg)\//.test(location))
-      document.title = `${titles[location] ?? "Székelyföld programjai"} – Programtér`;
+      document.title = `${titles[location] ?? "Székelyföld programjai"} – Hello Székelyföld`;
   }, [location]);
   useEffect(() => {
     const meta = document.querySelector('meta[name="description"]');

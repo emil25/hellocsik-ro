@@ -10,5 +10,5 @@ export function RegionalPortalProvider({ children }: { children: ReactNode }) {
 
 export function usePortal() {
   const regional = useContext(PortalContext);
-  return { regional, name: regional ? "Programtér" : "HelloCsík" };
+  return { regional, name: regional ? "Hello Székelyföld" : "HelloCsík" };
 }

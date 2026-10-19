@@ -40,14 +40,14 @@ export default defineConfig({
         const origin = new URL(process.env.PUBLIC_SITE_URL || process.env.URL || "https://hellocsik-ro.netlify.app").origin;
         const description = "Koncertek, színház, fesztiválok és közösségi programok Székelyföldön. Keress város, időpont és kategória szerint. Ingyenes eseménybeküldés.";
         const html = (await readFile(path.join(output, "index.html"), "utf8"))
-          .replace(/<title>[^<]*<\/title>/, "<title>Programtér – Székelyföld programjai</title>")
+          .replace(/<title>[^<]*<\/title>/, "<title>Hello Székelyföld – Székelyföld programjai</title>")
           .replace(/<meta name="description"[^>]*>/, `<meta name="description" content="${description}" />`)
           .replace(/<meta name="keywords"[^>]*>/, '<meta name="keywords" content="Székelyföld, programok, események, koncertek, színház, fesztiválok" />')
-          .replace(/<meta name="author"[^>]*>/, '<meta name="author" content="Programtér" />')
+          .replace(/<meta name="author"[^>]*>/, '<meta name="author" content="Hello Székelyföld" />')
           .replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${origin}/szekelyfold/" />`)
           .replace(/<meta (?:property|name)="(?:og:[^"]*|twitter:[^"]*)"[^>]*>/g, "")
-          .replace(/href="\/favicon.svg"/, 'href="/programter-mark.svg"')
-          .replace("</head>", `<meta property="og:title" content="Programtér – Székelyföld programjai" /><meta property="og:description" content="${description}" /><meta property="og:site_name" content="Programtér" /><meta property="og:url" content="${origin}/szekelyfold/" /><meta property="og:type" content="website" /><meta property="og:locale" content="hu_HU" /></head>`);
+          .replace(/href="\/favicon.svg"/, 'href="/hello-szekelyfold-mark.svg"')
+          .replace("</head>", `<meta property="og:title" content="Hello Székelyföld – Székelyföld programjai" /><meta property="og:description" content="${description}" /><meta property="og:site_name" content="Hello Székelyföld" /><meta property="og:url" content="${origin}/szekelyfold/" /><meta property="og:type" content="website" /><meta property="og:locale" content="hu_HU" /></head>`);
         await mkdir(path.join(output, "szekelyfold"), { recursive: true });
         await writeFile(path.join(output, "szekelyfold/index.html"), html);
       },

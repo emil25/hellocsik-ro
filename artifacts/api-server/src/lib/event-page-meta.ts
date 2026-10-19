@@ -20,7 +20,7 @@ function safeImageUrl(value: string, origin: string) {
 
 /** Facebook reads the initial HTML without running our React application. */
 export function renderEventPageMeta(html: string, event: PublicEventPreview | null, origin: string, regional = false) {
-  const brand = regional ? "Programtér" : "HelloCsík";
+  const brand = regional ? "Hello Székelyföld" : "HelloCsík";
   const prefix = regional ? "/szekelyfold" : "";
   const title = event ? `${event.title} – ${brand}` : `Esemény nem található – ${brand}`;
   const description = event
@@ -42,7 +42,8 @@ export function renderEventPageMeta(html: string, event: PublicEventPreview | nu
       "twitter:image": image, "twitter:image:alt": event?.title ?? brand,
     }).map(([key, value]) => `<meta name="${key}" content="${escapeHtml(value)}" />`),
   ];
-  return html.replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, "")
+  return (regional ? html.replace(/href="\/favicon.svg"/, 'href="/hello-szekelyfold-mark.svg"') : html)
+    .replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, "")
     .replace(/<meta\b[^>]*(?:name|property)=["'](?:description|robots|og:[^"']*|twitter:[^"']*)["'][^>]*>/gi, "")
     .replace(/<link\b[^>]*rel=["']canonical["'][^>]*>/gi, "")
     .replace("</head>", () => `${tags.join("\n    ")}\n  </head>`);

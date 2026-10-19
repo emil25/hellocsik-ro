@@ -5,13 +5,18 @@ import {
   ArrowRight,
   ArrowUpRight,
   CalendarDays,
+  Clock3,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   MapPin,
+  Music2,
+  Drama,
+  Palette,
+  Users,
+  Compass,
   Search,
   SlidersHorizontal,
-  Sparkles,
   Ticket,
   X,
 } from "lucide-react";
@@ -77,14 +82,12 @@ function PlaceOptions() {
 function StoryCard({
   event,
   kind = "side",
-  index = 0,
 }: {
   event: RegionEvent;
-  kind?: "main" | "side" | "weekend";
-  index?: number;
+  kind?: "side" | "weekend";
 }) {
   return (
-    <article className={`rl-story rl-story-${kind} rl-story-${index}`}>
+    <article className={`rl-story rl-story-${kind}`}>
       <Link href={`/esemeny/${event.id}`} className="rl-story-link">
         <div className="rl-story-image">
           <RegionalPoster event={event} priority={kind !== "weekend"} />
@@ -101,11 +104,6 @@ function StoryCard({
             {cityForEvent(event)?.name ?? event.location}
           </p>
           <h3>{event.title}</h3>
-          {kind === "main" && (
-            <span className="rl-story-details">
-              Részletek <ArrowUpRight size={17} />
-            </span>
-          )}
           {kind === "weekend" && (
             <span className="rl-story-price">
               {getEventPriceLabel(event)} <ArrowUpRight size={18} />
@@ -136,9 +134,10 @@ function RegionalHero({
     const sorted = sortDiscoveryEvents(events).sort(
       (a, b) =>
         Number(isPaid(b)) - Number(isPaid(a)) ||
-        Number(b.featured) - Number(a.featured) ||
         Number(Date.parse(a.startDate) < Date.now()) -
-          Number(Date.parse(b.startDate) < Date.now()),
+          Number(Date.parse(b.startDate) < Date.now()) ||
+        Number(b.featured) - Number(a.featured) ||
+        Date.parse(a.startDate) - Date.parse(b.startDate),
     );
     const opening: RegionEvent[] = [],
       towns = new Set<string>();
@@ -159,52 +158,35 @@ function RegionalHero({
   }, [events]);
   useEffect(() => setActive(0), [events]);
   const current = active % Math.max(1, picks.length),
-    main = picks[current],
-    left = picks.length > 1 ? picks[(current + 1) % picks.length] : undefined,
-    right = picks.length > 2 ? picks[(current + 2) % picks.length] : undefined;
+    main = picks[current];
+  const others = [1, 2].flatMap((offset) =>
+    picks.length > offset ? [picks[(current + offset) % picks.length]] : [],
+  );
   return (
     <section className="rl-hero" aria-labelledby="rl-hero-heading">
-      <span className="rl-hero-orbit rl-orbit-one" aria-hidden="true" />
-      <span className="rl-hero-orbit rl-orbit-two" aria-hidden="true" />
-      <div className="rl-hero-top rl-container">
-        <span className="rl-eyebrow">
-          <i /> SZÉKELYFÖLD · PROGRAMTÉR
-        </span>
-        <Link href="/naptar">
-          Programnaptár <CalendarDays size={16} />
-        </Link>
-      </div>
-      <div
-        className={`rl-hero-heading${(cityLabel ?? areaLabel ?? "").length > 15 ? " rl-long-heading" : ""}`}
-      >
-        <h1 id="rl-hero-heading">
-          {cityLabel ?? areaLabel ?? "Székelyföld"}
-          <span>
-            programjai<span className="rl-heading-dot">.</span>
+      <div className="rl-hero-heading rl-container">
+        <div>
+          <span className="rl-eyebrow">
+            <i /> HELLO SZÉKELYFÖLD
           </span>
-        </h1>
+          <h1 id="rl-hero-heading">
+            {cityLabel
+              ? `${cityLabel} programjai`
+              : areaLabel
+                ? `${areaLabel} programjai`
+                : "Székelyföldi programok"}
+          </h1>
+        </div>
         <div className="rl-hero-shortcuts">
-          <button
-            onClick={() => {
-              onDate("today");
-            }}
-          >
-            Ma <ArrowUpRight size={15} />
-          </button>
-          <button
-            onClick={() => {
-              onDate("weekend");
-            }}
-          >
-            Hétvégén <ArrowUpRight size={15} />
-          </button>
-          <button onClick={goToPrograms}>
-            Minden program <ArrowDown size={15} />
-          </button>
+          <button onClick={() => onDate("today")}>Ma</button>
+          <button onClick={() => onDate("weekend")}>Hétvégén</button>
+          <Link href="/naptar">
+            <CalendarDays size={16} /> Naptár
+          </Link>
         </div>
       </div>
       <div
-        className={`rl-stage rl-container${!right ? " rl-stage-small" : ""}`}
+        className={`rl-feature-grid rl-container${!others.length ? " rl-feature-single" : ""}`}
       >
         {isLoading ? (
           <div className="rl-hero-loading" aria-label="Képes ajánló betöltése">
@@ -214,29 +196,47 @@ function RegionalHero({
           </div>
         ) : main ? (
           <>
-            {left && (
-              <div className="rl-stage-left">
-                <StoryCard event={left} index={1} />
-                <span className="rl-floating-note">
-                  <MapPin size={15} />
-                  {cityForEvent(left)?.name ?? "Székelyföld"}
+            <article className="rl-feature" key={main.id}>
+              <Link href={`/esemeny/${main.id}`} className="rl-feature-image">
+                <RegionalPoster event={main} priority />
+                <span className="rl-feature-label">
+                  {isPaid(main) ? "Kiemelt · hirdetés" : "Az ajánlóból"}
                 </span>
-              </div>
-            )}
-            <div className="rl-stage-main" key={main.id}>
-              <StoryCard event={main} kind="main" />
-            </div>
-            {right && (
-              <div className="rl-stage-right">
-                <div className="rl-stage-stamp" aria-hidden="true">
-                  <Sparkles size={24} />
-                  <span>
-                    PROGRAM
-                    <br />
-                    AJÁNLÓ
+                <span className="rl-feature-date">
+                  <CalendarDays size={15} />
+                  {programDate(main)}
+                </span>
+              </Link>
+              <div className="rl-feature-copy">
+                <div>
+                  <p>
+                    <MapPin size={14} />
+                    {cityForEvent(main)?.name ?? main.location}
+                    <span>·</span>
+                    <Clock3 size={14} />
+                    {formatTime(main.startDate)}
+                  </p>
+                  <h2>
+                    <Link href={`/esemeny/${main.id}`}>{main.title}</Link>
+                  </h2>
+                  <span className="rl-feature-price">
+                    {getEventPriceLabel(main)}
                   </span>
                 </div>
-                <StoryCard event={right} index={2} />
+                <Link
+                  href={`/esemeny/${main.id}`}
+                  className="rl-feature-button"
+                >
+                  Részletek <ArrowUpRight size={19} />
+                </Link>
+              </div>
+              <FavoriteButton eventId={main.id} className="rl-story-save" />
+            </article>
+            {others.length > 0 && (
+              <div className="rl-feature-side">
+                {others.map((event) => (
+                  <StoryCard key={event.id} event={event} />
+                ))}
               </div>
             )}
           </>
@@ -250,28 +250,167 @@ function RegionalHero({
           </div>
         )}
       </div>
-      {picks.length > 1 && (
-        <div className="rl-hero-controls">
+      <div className="rl-hero-bottom rl-container">
+        <button className="rl-all-programs" onClick={goToPrograms}>
+          Minden program <ArrowDown size={15} />
+        </button>
+        {picks.length > 1 && (
+          <div className="rl-hero-controls" aria-label="Képes ajánló lapozása">
+            <button
+              onClick={() =>
+                setActive((value) => (value - 1 + picks.length) % picks.length)
+              }
+              aria-label="Előző kiemelt program"
+            >
+              <ChevronLeft size={19} />
+            </button>
+            <span>
+              {String(current + 1).padStart(2, "0")}
+              <i /> {String(picks.length).padStart(2, "0")}
+            </span>
+            <button
+              onClick={() => setActive((value) => (value + 1) % picks.length)}
+              aria-label="Következő kiemelt program"
+            >
+              <ChevronRight size={19} />
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function CityBrowse({
+  events,
+  selected,
+  onSelect,
+}: {
+  events: RegionEvent[];
+  selected: string;
+  onSelect: (slug: string) => void;
+}) {
+  const places = REGION_PLACES.map((place) => ({
+    ...place,
+    count: events.filter((event) => cityForEvent(event)?.slug === place.slug)
+      .length,
+  }))
+    .filter((place) => place.count > 0)
+    .sort((a, b) => Number(b.city) - Number(a.city) || b.count - a.count)
+    .slice(0, 6);
+  if (!places.length) return null;
+  return (
+    <section
+      className="rl-cities-strip rl-container"
+      aria-label="Gyors városválasztó"
+    >
+      <span>
+        <MapPin size={18} /> Hol?
+      </span>
+      <div className="rl-city-pills">
+        <button aria-pressed={!selected} onClick={() => onSelect("")}>
+          Mindenhol
+        </button>
+        {places.map((place) => (
           <button
-            onClick={() =>
-              setActive((value) => (value - 1 + picks.length) % picks.length)
-            }
-            aria-label="Előző kiemelt program"
+            key={place.slug}
+            aria-pressed={selected === place.slug}
+            onClick={() => onSelect(place.slug)}
           >
-            <ChevronLeft size={19} />
+            {place.name}
+            <span>{place.count}</span>
           </button>
-          <span>
-            {String(current + 1).padStart(2, "0")}
-            <i /> {String(picks.length).padStart(2, "0")}
-          </span>
-          <button
-            onClick={() => setActive((value) => (value + 1) % picks.length)}
-            aria-label="Következő kiemelt program"
-          >
-            <ChevronRight size={19} />
-          </button>
+        ))}
+      </div>
+      <Link href="/varosok" aria-label="Minden város és település">
+        Összes <ArrowUpRight size={16} />
+      </Link>
+    </section>
+  );
+}
+
+function CategoryBrowse({
+  events,
+  onSelect,
+}: {
+  events: RegionEvent[];
+  onSelect: (category: string) => void;
+}) {
+  const groups = [
+    {
+      slug: "koncert",
+      name: "Koncertek",
+      icon: Music2,
+      color: "#f6e8d5",
+      ink: "#8f5429",
+    },
+    {
+      slug: "szinhaz",
+      name: "Színház és előadások",
+      icon: Drama,
+      color: "#ece9f7",
+      ink: "#645092",
+    },
+    {
+      slug: "kiallitas",
+      name: "Kiállítások",
+      icon: Palette,
+      color: "#e1f0eb",
+      ink: "#33765f",
+    },
+    {
+      slug: "kozosseg",
+      name: "Közösségi programok",
+      icon: Users,
+      color: "#f6e5e5",
+      ink: "#a25966",
+    },
+    {
+      slug: "program",
+      name: "További programok",
+      icon: Compass,
+      color: "#e5edf3",
+      ink: "#3d6c88",
+    },
+  ]
+    .map((group) => ({
+      ...group,
+      count: events.filter(
+        (event) => (event.category?.slug ?? "program") === group.slug,
+      ).length,
+    }))
+    .filter((group) => group.count > 0);
+  if (!groups.length) return null;
+  return (
+    <section
+      className="rl-themes rl-container"
+      aria-labelledby="rl-themes-heading"
+    >
+      <div className="rl-section-title">
+        <div>
+          <span className="rl-eyebrow">TÉMÁK SZERINT</span>
+          <h2 id="rl-themes-heading">Milyen program érdekel?</h2>
         </div>
-      )}
+      </div>
+      <div className="rl-theme-grid">
+        {groups.map(({ slug, name, icon: Icon, count, color, ink }) => (
+          <button
+            key={slug}
+            onClick={() => onSelect(slug)}
+            style={
+              { "--theme-color": color, "--theme-ink": ink } as CSSProperties
+            }
+          >
+            <span className="rl-theme-icon">
+              <Icon size={26} strokeWidth={1.6} />
+            </span>
+            <strong>{name}</strong>
+            <span>
+              {count} program <ArrowUpRight size={17} />
+            </span>
+          </button>
+        ))}
+      </div>
     </section>
   );
 }
@@ -359,15 +498,8 @@ function WeeklySelection({
           <div className="rl-container rl-weekend-layout">
             <div className="rl-weekend-intro">
               <span className="rl-eyebrow">PÉNTEK · SZOMBAT · VASÁRNAP</span>
-              <h2 id="rl-weekend-heading">
-                A hétvége
-                <br />
-                <em>programjai.</em>
-              </h2>
-              <p>
-                Koncert, kirándulás, színház vagy közös program — nézd meg,
-                miből választhatsz.
-              </p>
+              <h2 id="rl-weekend-heading">Hétvégi ajánló</h2>
+              <p>{weekendChoices.length} program péntektől vasárnapig.</p>
               <button
                 onClick={() => {
                   onDate("weekend");
@@ -375,18 +507,10 @@ function WeeklySelection({
               >
                 Mutasd a hétvégét <ArrowUpRight size={20} />
               </button>
-              <span className="rl-weekend-doodle" aria-hidden="true">
-                ↗
-              </span>
             </div>
             <div className="rl-weekend-cards">
-              {weekend.map((event, index) => (
-                <StoryCard
-                  key={event.id}
-                  event={event}
-                  kind="weekend"
-                  index={index}
-                />
+              {weekend.map((event) => (
+                <StoryCard key={event.id} event={event} kind="weekend" />
               ))}
             </div>
           </div>
@@ -543,7 +667,7 @@ export function RegionalHome() {
     return undefined;
   }, [search, city, area, isLoading]);
   useEffect(() => {
-    document.title = `${cityLabel ? `${cityLabel} programjai` : (selectedArea?.name ?? "Székelyföld programjai")} – Programtér`;
+    document.title = `${cityLabel ? `${cityLabel} programjai` : (selectedArea?.name ?? "Székelyföld programjai")} – Hello Székelyföld`;
   }, [cityLabel, selectedArea]);
   if ((slug && !cityLabel) || (routeArea && !selectedArea))
     return (
@@ -727,10 +851,19 @@ export function RegionalHome() {
           </div>
         )}
       </div>
+      {!isError && (
+        <CityBrowse events={events} selected={city} onSelect={selectPlace} />
+      )}
       {!filtersActive && !isError && (
         <WeeklySelection
           events={scoped}
           onDate={(value) => setDate(value, true)}
+        />
+      )}
+      {!filtersActive && !isError && (
+        <CategoryBrowse
+          events={scoped}
+          onSelect={(value) => update({ kategoria: value }, true)}
         />
       )}
       {!filtersActive && !city && (

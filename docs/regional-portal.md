@@ -1,11 +1,13 @@
-# Programtér – regional portal
+# Hello Székelyföld – regional portal
 
 The original HelloCsík stays at /. The separate regional router and brand live under /szekelyfold/.
 
 ## Discovery and geography
 
-- Large central heading and a three-poster hero with manual navigation; contained images keep the complete poster visible.
-- Weekly editorial mosaic, a separate weekend feature and horizontal area tiles. No left sidebar; the compact search bar expands extra filters inline.
+- Compact regional heading, a dominant event poster with date, town, entry information and details, and two secondary recommendations. Manual navigation changes the featured events; contained images keep the complete poster visible.
+- A Hello-family wordmark, matching header/footer and separate regional page/share metadata and favicon. Classic HelloCsík branding remains intact.
+- A quick city strip shows current event counts and opens shareable city pages. Topic tiles filter the results by category.
+- Weekly editorial mosaic, a contrasting weekend band and area tiles. No left sidebar; the compact search bar expands extra filters inline.
 - Full results start with eight cards and load eight more on demand. Curated sections are replaced by results when filters are active. Filter shortcuts use a results anchor after the layout changes.
 - URL-preserved search, category, explicit free entry, date presets, custom interval and sorting.
 - /varos/:slug and /terseg/:area are shareable inside the regional prefix.
