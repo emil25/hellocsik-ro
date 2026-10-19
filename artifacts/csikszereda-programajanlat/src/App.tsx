@@ -25,9 +25,14 @@ import { RegionalLayout } from "@/components/RegionalPortal";
 import { RegionalHome, RegionalCitiesPage, RegionalSourcesPage } from "@/components/RegionalDiscovery";
 import { RegionalPortalProvider } from "@/lib/portal";
 import { RegionalPosterWall } from "@/components/RegionalPosterWall";
+import HelloSzekelyfoldHome from "@/pages/hello-szekelyfold";
 
 function ClassicHomeRoute() {
   return <div className="flex flex-col min-h-screen"><Navbar /><main className="flex-grow pt-16"><Home initialDesign="classic" /></main><Footer /></div>;
+}
+
+function NewRegionalHomeRoute() {
+  return <RegionalPortalProvider><HelloSzekelyfoldHome /></RegionalPortalProvider>;
 }
 
 function CityEventsRoute({ params }: { params: { slug?: string } }) {
@@ -80,6 +85,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/admin" component={AdminPage} />
+      <Route path="/hello-szekelyfold" component={NewRegionalHomeRoute} />
       <Route path="/szekelyfold" nest><RegionalRouter /></Route>
       <Route path="/programok" component={ProgramokPortal} />
       <Route path="/plakatfal" component={ScenePortal} />
