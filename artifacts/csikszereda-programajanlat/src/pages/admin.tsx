@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2, XCircle, Trash2, Crown, EyeOff,
   LogOut, RefreshCw, Clock, CalendarCheck, AlertCircle, Settings, Pencil, X,
-  Plus, LayoutDashboard, Star, Upload, ImageIcon, Loader2
+  Plus, LayoutDashboard, Star, Upload, ImageIcon, Loader2, Search
 } from "lucide-react";
 import { Link } from "wouter";
 import { useUpload } from "@workspace/object-storage-web";
@@ -178,7 +178,7 @@ type EventRow = {
   id: number; title: string; description: string; location: string; locationAddress?: string;
   startDate: string; endDate?: string; status: string; featured: boolean; monthHighlight: boolean;
   promotionPlan?: string; promotionStatus?: string;
-  submitterName?: string; submitterEmail?: string; imageUrl: string; ticketUrl?: string;
+  organizerName?: string; submitterName?: string; submitterEmail?: string; imageUrl: string; ticketUrl?: string;
   price?: string; createdAt: string; categoryId?: number; newsLinks?: string[];
   category?: { id: number; name: string; color: string } | null;
 };
@@ -191,7 +191,35 @@ type BannerRow = {
 type Category = { id: number; name: string; color: string; slug: string };
 
 type Tab = "pending" | "published" | "all";
+type AdminDateFilter = "all" | "this-week" | "next-30-days" | "past";
 type Section = "events" | "reports" | "banners";
+
+function normalizeAdminSearch(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("hu-HU");
+}
+
+function isInAdminDateFilter(event: EventRow, filter: AdminDateFilter, now: Date) {
+  if (filter === "all") return true;
+  const startsAt = new Date(event.startDate);
+  const endsAt = new Date(event.endDate || event.startDate);
+  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) return false;
+
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  if (filter === "past") return endsAt < today;
+
+  if (filter === "this-week") {
+    const monday = new Date(today);
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    const nextMonday = new Date(monday);
+    nextMonday.setDate(nextMonday.getDate() + 7);
+    return startsAt < nextMonday && endsAt >= monday;
+  }
+
+  const inThirtyDays = new Date(today);
+  inThirtyDays.setDate(inThirtyDays.getDate() + 30);
+  return startsAt < inThirtyDays && endsAt >= today;
+}
 
 // ─── SHARED FORM FIELDS ───────────────────────────────────────────────────────
 
@@ -957,12 +985,31 @@ export default function AdminPage() {
   // Open the complete list after login so published events are immediately visible.
   // Newly imported submissions still switch this back to the pending queue.
   const [tab, setTab] = useState<Tab>("all");
+  const [eventSearch, setEventSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState<AdminDateFilter>("all");
   const [actionId, setActionId] = useState<number | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [section, setSection] = useState<Section>("events");
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
+
+  const visibleEvents = useMemo(() => {
+    const terms = normalizeAdminSearch(eventSearch.trim()).split(/\s+/).filter(Boolean);
+    const now = new Date();
+    const filtered = events.filter(event => {
+      if (!isInAdminDateFilter(event, dateFilter, now)) return false;
+      if (!terms.length) return true;
+      const searchable = normalizeAdminSearch([
+        event.id, event.title, event.description, event.location, event.locationAddress,
+        event.organizerName, event.submitterName, event.submitterEmail, event.price,
+        event.ticketUrl, event.category?.name, ...(event.newsLinks ?? []),
+      ].filter(Boolean).join(" "));
+      return terms.every(term => searchable.includes(term));
+    });
+    if (dateFilter !== "all") filtered.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    return filtered;
+  }, [events, eventSearch, dateFilter]);
 
   const fetchEvents = useCallback(async (status: Tab) => {
     if (!token) return;
@@ -1180,6 +1227,36 @@ export default function AdminPage() {
           ))}
         </div>
 
+        <div className="mb-5 rounded-2xl border border-card-border bg-card p-3 sm:p-4">
+          <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5 focus-within:ring-2 focus-within:ring-primary/20">
+            <Search className="w-4 h-4 shrink-0 text-muted-foreground" />
+            <input
+              type="search"
+              value={eventSearch}
+              onChange={event => setEventSearch(event.target.value)}
+              placeholder="Keress címre, helyszínre, szervezőre…"
+              aria-label="Esemény keresése cím, helyszín vagy szervező alapján"
+              className="w-full min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            />
+            {eventSearch && <button type="button" onClick={() => setEventSearch("")} className="shrink-0 px-2 text-xs font-semibold text-primary hover:underline">Törlés</button>}
+          </label>
+          <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Időpont</span>
+            {([
+              ["all", "Bármikor"],
+              ["this-week", "Ezen a héten"],
+              ["next-30-days", "Következő 30 nap"],
+              ["past", "Lejárt"],
+            ] as const).map(([value, label]) => (
+              <button key={value} type="button" aria-pressed={dateFilter === value} onClick={() => setDateFilter(value)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${dateFilter === value ? "bg-primary text-white" : "border border-border bg-background text-muted-foreground hover:text-foreground"}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground" aria-live="polite">{visibleEvents.length} találat · {events.length} esemény a kiválasztott fülön</p>
+        </div>
+
         {/* Events list */}
         {loading ? (
           <div className="text-center py-16 text-muted-foreground">Betöltés...</div>
@@ -1188,10 +1265,17 @@ export default function AdminPage() {
             <AlertCircle className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
             <p className="text-muted-foreground">Nincs megjeleníthető esemény ebben a nézetben.</p>
           </div>
+        ) : visibleEvents.length === 0 ? (
+          <div className="text-center py-12 rounded-2xl border border-dashed border-border bg-card">
+            <Search className="w-9 h-9 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="font-semibold text-foreground">Nem találtam ilyen eseményt.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Próbálj másik keresőszót vagy válaszd a „Bármikor” szűrőt.</p>
+            <button type="button" onClick={() => { setEventSearch(""); setDateFilter("all"); }} className="mt-3 rounded-lg px-3 py-2 text-xs font-bold text-primary hover:bg-primary/5">Keresés és szűrők törlése</button>
+          </div>
         ) : (
           <div className="space-y-3">
             <AnimatePresence>
-              {events.map(ev => (
+              {visibleEvents.map(ev => (
                 <motion.div key={ev.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
                   className={`bg-card border rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start ${ev.status === "pending" ? "border-amber-200 bg-amber-50/30" : "border-card-border"}`}>
                   {/* Thumb */}
