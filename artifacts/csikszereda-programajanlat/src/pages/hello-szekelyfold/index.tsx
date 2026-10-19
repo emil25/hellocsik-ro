@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useLocation, useSearch } from "wouter";
-import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Compass, Heart, MapPin, Menu, Plus, Search, X } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Compass, Heart, MapPin, Menu, Plus, Search, X } from "lucide-react";
 import { RegionalPoster } from "@/components/RegionalPortal";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { useFavorites } from "@/hooks/use-favorites";
@@ -53,11 +53,23 @@ function NewHeader({ onHome }: { onHome: () => void }) {
   </header>;
 }
 
-function HeroPoster({ event, index }: { event: RegionEvent; index: number }) {
-  return <Link href={`/szekelyfold/esemeny/${event.id}`} className={`hsx-hero-poster hsx-hero-poster-${index + 1}`} aria-label={`${event.title} – ${cityForEvent(event)?.name ?? event.location}`}>
-    <div className="hsx-hero-poster-art"><RegionalPoster event={event} priority />{promotion(event) && <span className={`hsx-promotion${paid(event) ? " is-paid" : ""}`}>{promotion(event)}</span>}</div>
-    <div className="hsx-hero-poster-caption"><span><MapPin size={12} />{cityForEvent(event)?.name ?? "Székelyföld"}</span><strong>{event.title}</strong><small>{eventDate(event)}<ArrowUpRight size={15} /></small></div>
-  </Link>;
+function EventDeck({ events, loading, error }: { events: RegionEvent[]; loading: boolean; error: boolean }) {
+  const [selected, setSelected] = useState(0);
+  const active = selected % Math.max(1, events.length);
+  function step(direction: number) { setSelected((active + direction + events.length) % events.length); }
+  if (loading) return <div className="hsx-deck-loading" aria-label="Kiemelt események betöltése" />;
+  if (!events.length) return <div className="hsx-deck-empty"><CalendarDays size={40} /><h2>{error ? "Az ajánlók most nem érhetők el." : "Hamarosan új események érkeznek."}</h2><a href="#hsx-programok">Programkereső <ArrowDown size={18} /></a></div>;
+  return <div className="hsx-deck-region" aria-label="Lapozható eseményajánló">
+    <div className="hsx-deck">
+      {events.map((event, index) => <article key={event.id} className={`hsx-deck-panel${active === index ? " is-active" : ""}`} style={{ "--panel-accent": ["#edb85c", "#b5cdb8", "#c5b8d9", "#e2ad9a"][index] } as CSSProperties}>
+        <div className="hsx-deck-image"><RegionalPoster event={event} priority /><span className="hsx-deck-place"><MapPin size={12} />{cityForEvent(event)?.name ?? "Székelyföld"}</span>{promotion(event) && <span className={`hsx-promotion${paid(event) ? " is-paid" : ""}`}>{promotion(event)}</span>}</div>
+        <div className="hsx-deck-copy"><p>{eventDate(event)}</p><h2>{event.title}</h2><div><span>{getEventPriceLabel(event)}</span>{active === index && <Link href={`/szekelyfold/esemeny/${event.id}`}>Megnézem <ArrowUpRight size={18} /></Link>}</div></div>
+        {active !== index && <button type="button" className="hsx-deck-select" onClick={() => setSelected(index)} aria-label={`${event.title} megjelenítése`}><span>{String(index + 1).padStart(2, "0")}<ArrowUpRight size={18} /></span></button>}
+      </article>)}
+    </div>
+    <div className="hsx-deck-bar"><span><b>{String(active + 1).padStart(2, "0")}</b> / {String(events.length).padStart(2, "0")} <i /> Kiemelt programok több városból</span><div><button type="button" onClick={() => step(-1)} aria-label="Előző ajánló"><ChevronLeft size={19} /></button><button type="button" onClick={() => step(1)} aria-label="Következő ajánló"><ChevronRight size={19} /></button></div></div>
+    <div className="hsx-deck-mobile-tabs" aria-label="Válassz ajánlót">{events.map((event, index) => <button type="button" key={event.id} aria-pressed={active === index} onClick={() => setSelected(index)} aria-label={`${event.title} megjelenítése`}><RegionalPoster event={event} /><span>{cityForEvent(event)?.name ?? "Székelyföld"}</span></button>)}</div>
+  </div>;
 }
 
 function NewEventCard({ event }: { event: RegionEvent }) {
@@ -80,7 +92,7 @@ export default function HelloSzekelyfoldHome() {
   const [date, setDate] = useState(periods.some(item => item.value === initial.get("mikor")) ? initial.get("mikor")! : "all");
   const [category, setCategory] = useState("");
   const [collection, setCollection] = useState(false);
-  const [visible, setVisible] = useState(9);
+  const [visible, setVisible] = useState(12);
   const { data: events = [], isLoading, isError, refetch } = usePortalEvents();
 
   useEffect(() => {
@@ -90,13 +102,13 @@ export default function HelloSzekelyfoldHome() {
     meta?.setAttribute("content", "Koncertek, színház, fesztiválok és közösségi események Székelyföldön. Keress város és időpont szerint, és mentsd el a kedvenc programjaidat.");
     return () => { if (original) meta?.setAttribute("content", original); };
   }, []);
-  useEffect(() => setVisible(9), [query, city, date, category, collection]);
+  useEffect(() => setVisible(12), [query, city, date, category, collection]);
 
   const places = useMemo(() => REGION_PLACES.filter(place => events.some(event => cityForEvent(event)?.slug === place.slug)), [events]);
   const categories = useMemo(() => [...new Map(events.filter(event => event.category?.slug).map(event => [event.category!.slug, event.category!])).values()], [events]);
   const anniversary = useMemo(() => october1956Programs(events), [events]);
   const heroEvents = useMemo(() => {
-    const ordered = [...events].sort((a, b) => Number(paid(b)) - Number(paid(a)) || Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || Date.parse(a.startDate) - Date.parse(b.startDate));
+    const ordered = [...events].sort((a, b) => Number(paid(b)) - Number(paid(a)) || Number(Date.parse(a.startDate) < Date.now()) - Number(Date.parse(b.startDate) < Date.now()) || Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || Date.parse(a.startDate) - Date.parse(b.startDate));
     const picked: RegionEvent[] = ordered.filter(paid).slice(0, 4);
     const towns = new Set(picked.map(event => cityForEvent(event)?.slug ?? event.location));
     for (const event of ordered) {
@@ -123,31 +135,28 @@ export default function HelloSzekelyfoldHome() {
   function reset() { setQuery(""); setCity(""); setDate("all"); setCategory(""); setCollection(false); navigate(PAGE, { replace: true }); }
 
   return <div className="hsx-page">
-    <section className="hsx-hero" aria-labelledby="hsx-title">
       <NewHeader onHome={() => { reset(); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
-      <div className="hsx-hero-glow" aria-hidden="true" />
-      <div className="hsx-hero-art" aria-label="Események több székelyföldi településről">{heroEvents.map((event, index) => <HeroPoster key={event.id} event={event} index={index} />)}</div>
-      <div className="hsx-hero-center">
-        <p className="hsx-hero-kicker"><span /> SZÉKELYFÖLDI ESEMÉNYAJÁNLÓ</p>
-        <h1 id="hsx-title">Székelyföldi<br /><span>programajánló.</span></h1>
-        <p className="hsx-hero-description">Koncertek, színház, fesztiválok és közösségi események<br className="hsx-desktop-break" /> több városból, egy helyen.</p>
+    <section className="hsx-hero hsx-wrap" aria-labelledby="hsx-title">
+      <div className="hsx-intro"><div><p className="hsx-eyebrow">HELLO SZÉKELYFÖLD · ESEMÉNYAJÁNLÓ</p><h1 id="hsx-title">Székelyföldi események<span>.</span></h1></div><p>Koncertek, színház, fesztiválok.<br /> {isLoading ? "A programok betöltése…" : isError ? "A programok betöltése átmenetileg szünetel." : <><b>{events.length} aktuális program</b> · {places.length} település</>}</p></div>
+      <EventDeck events={heroEvents} loading={isLoading} error={isError} />
+    </section>
+
+    <main className="hsx-content">
+      <section className="hsx-finder hsx-wrap" aria-label="Programkereső">
+        <div className="hsx-finder-label"><Search size={20} /><span>Programkereső<br /><b>város és dátum szerint</b></span></div>
         <form className="hsx-search" onSubmit={submit} aria-label="Székelyföldi programkereső">
           <label className="hsx-search-query"><Search size={20} /><span><small>Mit keresel?</small><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Program, előadó, helyszín…" aria-label="Program keresése" /></span></label>
           <label><MapPin size={19} /><span><small>Hol?</small><select value={city} onChange={event => setCity(event.target.value)} aria-label="Város kiválasztása"><option value="">Egész Székelyföld</option>{places.map(place => <option key={place.slug} value={place.slug}>{place.name}</option>)}</select></span><ChevronDown size={13} /></label>
           <label><CalendarDays size={19} /><span><small>Mikor?</small><select value={date} onChange={event => setDate(event.target.value)} aria-label="Időpont kiválasztása">{periods.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></span><ChevronDown size={13} /></label>
           <button type="submit">Keresés <ArrowRight size={20} /></button>
         </form>
-        <div className="hsx-hero-shortcuts"><span>Gyorsan keresnél?</span>{periods.filter(item => ["today", "tomorrow", "weekend"].includes(item.value)).map(item => <button key={item.value} type="button" onClick={() => { setDate(item.value); goToResults(); }}>{item.label}<ArrowUpRight size={12} /></button>)}</div>
-      </div>
-      <div className="hsx-hero-bottom"><span><span className="hsx-status-dot" />{isLoading ? "Programok betöltése…" : isError ? "A programok átmenetileg nem érhetők el" : `${events.length} aktuális program · ${places.length} település`}</span><a href="#hsx-programok">Fedezd fel a programokat <ArrowDown size={15} /></a><Link href="/szekelyfold/bekuldese"><Check size={14} /> Ingyenes eseménybeküldés</Link></div>
-    </section>
-
-    <main className="hsx-content">
+      </section>
+      <div className="hsx-city-strip hsx-wrap" aria-label="Programok településenként"><button type="button" aria-pressed={!city} onClick={() => { setCity(""); goToResults(); }}>Egész Székelyföld</button>{places.map(place => <button type="button" key={place.slug} aria-pressed={city === place.slug} onClick={() => { setCity(place.slug); goToResults(); }}>{place.name}<small>{events.filter(event => cityForEvent(event)?.slug === place.slug).length}</small></button>)}</div>
       <section id="hsx-programok" className="hsx-results hsx-wrap" aria-labelledby="hsx-results-title">
-        <div className="hsx-results-heading"><div><p className="hsx-eyebrow">A PROGRAMOK KÖZÖTT</p><h2 id="hsx-results-title">{collection ? "1956-os emlékprogramok" : cityName ? `${cityName} programjai` : "Közelgő események"}</h2><p aria-live="polite">{isLoading ? "Betöltés…" : `${filtered.length} aktuális esemény`}{date !== "all" ? ` · ${periods.find(item => item.value === date)?.label}` : ""}</p></div><Link href="/szekelyfold/naptar" className="hsx-calendar-link"><CalendarDays size={17} /> Naptár nézet <ArrowUpRight size={15} /></Link></div>
+        <div className="hsx-results-heading"><div><p className="hsx-eyebrow">PROGRAMOK ÉS PLAKÁTOK</p><h2 id="hsx-results-title">{collection ? "1956-os emlékprogramok" : cityName ? `${cityName} programjai` : "Minden esemény"}</h2><p aria-live="polite">{isLoading ? "Betöltés…" : `${filtered.length} aktuális esemény`}{date !== "all" ? ` · ${periods.find(item => item.value === date)?.label}` : ""}</p></div><div className="hsx-result-actions"><div className="hsx-date-tabs" aria-label="Gyors időszűrő">{periods.filter(item => ["all", "today", "weekend"].includes(item.value)).map(item => <button key={item.value} type="button" aria-pressed={date === item.value} onClick={() => setDate(item.value)}>{item.value === "all" ? "Bármikor" : item.label}</button>)}</div><Link href="/szekelyfold/naptar" className="hsx-calendar-link"><CalendarDays size={17} /> Naptár <ArrowUpRight size={15} /></Link></div></div>
         <div className="hsx-catalog-controls"><div className="hsx-categories" role="group" aria-label="Programkategóriák"><button type="button" aria-pressed={!category} onClick={() => setCategory("")}>Minden program</button>{categories.map(item => <button type="button" key={item.slug} aria-pressed={category === item.slug} onClick={() => setCategory(item.slug)}><i style={{ background: item.color }} />{item.name}</button>)}</div>{activeFilters && <button type="button" className="hsx-reset" onClick={reset}><X size={14} />Szűrők törlése</button>}</div>
         {isError ? <div className="hsx-empty" role="alert"><h3>Az eseményeket nem sikerült betölteni.</h3><button type="button" onClick={() => refetch()}>Újrapróbálom</button></div> : isLoading ? <div className="hsx-grid hsx-loading" aria-label="Események betöltése">{Array.from({ length: 6 }, (_, index) => <span key={index} />)}</div> : filtered.length ? <div className="hsx-grid">{filtered.slice(0, visible).map(event => <NewEventCard key={event.id} event={event} />)}</div> : <div className="hsx-empty"><Search size={32} /><h3>Erre a keresésre most nincs program.</h3><p>Próbálj másik települést vagy időpontot.</p><button type="button" onClick={reset}>Minden program megmutatása</button></div>}
-        {filtered.length > visible && <button type="button" className="hsx-more" onClick={() => setVisible(value => value + 9)}>További programok <span>{filtered.length - visible}</span><ArrowDown size={16} /></button>}
+        {filtered.length > visible && <button type="button" className="hsx-more" onClick={() => setVisible(value => value + 12)}>További programok <span>{filtered.length - visible}</span><ArrowDown size={16} /></button>}
       </section>
 
       {!activeFilters && anniversary.length > 0 && <section className="hsx-edition hsx-wrap" aria-labelledby="hsx-edition-title"><div className="hsx-edition-art"><img src={CSIK_1956_POSTER_URL} alt="A csíkszeredai 1956-os megemlékezés plakátja" loading="lazy" /></div><div className="hsx-edition-copy"><span>KIEMELT PROGRAMSOROZAT · OKTÓBER 23.</span><h2 id="hsx-edition-title">1956 emlékezete<br />Székelyföldön</h2><p>Megemlékezések, hangversenyek és történelmi programok a 70. évfordulón.</p><button type="button" onClick={() => { setCollection(true); goToResults(); }}>{anniversary.length} emlékprogram <ArrowUpRight size={19} /></button></div></section>}
