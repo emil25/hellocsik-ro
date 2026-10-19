@@ -376,7 +376,7 @@ async function runFirecrawlSync(): Promise<SyncResult> {
       .from(eventsTable),
     db.select().from(categoriesTable),
   ]);
-  const knownEvents = existing as ExistingEvent[];
+  const knownEvents: ExistingEvent[] = existing;
 
   let examined = 0;
   let local = 0;
@@ -539,11 +539,13 @@ async function runVisitHarghitaSync(): Promise<SyncResult> {
         startDate: eventsTable.startDate,
         newsLinks: eventsTable.newsLinks,
         ticketUrl: eventsTable.ticketUrl,
+        location: eventsTable.location,
+        locationAddress: eventsTable.locationAddress,
       })
       .from(eventsTable),
     db.select().from(categoriesTable),
   ]);
-  const knownEvents = existing as ExistingEvent[];
+  const knownEvents: ExistingEvent[] = existing;
   const metadata = new Map(pendingImports.map((event) => [event.id, event]));
   const knownUrls = new Set<string>();
   const knownUrlEventIds = new Map<string, number>();
@@ -762,7 +764,7 @@ async function runRegionalCalendars(): Promise<SyncResult> {
       .from(eventsTable),
     db.select().from(categoriesTable),
   ]);
-  const knownEvents = existing as ExistingEvent[];
+  const knownEvents: ExistingEvent[] = existing;
   const result: SyncResult = {
     source: "Visit Covasna + Visit Mureș",
     examined: 0,
