@@ -1,3 +1,5 @@
+import posterAssets from "./event-poster-assets.json";
+
 export const CSIK_1956_EVENT_ID = 144;
 export const CSIK_1956_FACEBOOK_URL =
   "https://www.facebook.com/events/2101155110767901/";
@@ -10,9 +12,13 @@ type EventPresentation = {
   newsLinks?: string[] | null;
 };
 
-/** Keep the existing Csíkszereda commemoration record and add its new poster/source. */
+/** Prefer optimized local posters and preserve the commemoration's poster/source override. */
 export function withEventPresentation<T extends EventPresentation>(event: T): T {
-  if (Number(event.id) !== CSIK_1956_EVENT_ID) return event;
+  const cachedPoster = event.imageUrl
+    ? (posterAssets as Record<string, string>)[event.imageUrl.split("?")[0]]
+    : undefined;
+  const displayEvent = cachedPoster ? { ...event, imageUrl: cachedPoster } : event;
+  if (Number(event.id) !== CSIK_1956_EVENT_ID) return displayEvent;
 
   const newsLinks = [...(event.newsLinks ?? [])];
   const alreadyHasFacebookEvent = newsLinks.some((item) => {
@@ -29,7 +35,7 @@ export function withEventPresentation<T extends EventPresentation>(event: T): T 
   }
 
   return {
-    ...event,
+    ...displayEvent,
     imageUrl: CSIK_1956_POSTER_URL,
     newsLinks,
   } as T;

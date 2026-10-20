@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useLocation, useSearch } from "wouter";
-import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Compass, Heart, MapPin, Menu, Plus, Search, X } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays, ChevronDown, Compass, Heart, MapPin, Menu, Plus, Search, X } from "lucide-react";
 import { RegionalPoster } from "@/components/RegionalPortal";
+import { RegionalMasthead } from "@/components/RegionalMasthead";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cityForEvent, REGION_PLACES, usePortalEvents, type RegionEvent } from "@/lib/regional-events";
@@ -53,30 +54,11 @@ function NewHeader({ onHome }: { onHome: () => void }) {
   </header>;
 }
 
-function EventDeck({ events, loading, error }: { events: RegionEvent[]; loading: boolean; error: boolean }) {
-  const [selected, setSelected] = useState(0);
-  const active = selected % Math.max(1, events.length);
-  function step(direction: number) { setSelected((active + direction + events.length) % events.length); }
-  if (loading) return <div className="hsx-deck-loading" aria-label="Kiemelt események betöltése" />;
-  if (!events.length) return <div className="hsx-deck-empty"><CalendarDays size={40} /><h2>{error ? "Az ajánlók most nem érhetők el." : "Hamarosan új események érkeznek."}</h2><a href="#hsx-programok">Programkereső <ArrowDown size={18} /></a></div>;
-  return <div className="hsx-deck-region" aria-label="Lapozható eseményajánló">
-    <div className="hsx-deck">
-      {events.map((event, index) => <article key={event.id} className={`hsx-deck-panel${active === index ? " is-active" : ""}`} style={{ "--panel-accent": ["#edb85c", "#b5cdb8", "#c5b8d9", "#e2ad9a"][index] } as CSSProperties}>
-        <div className="hsx-deck-image"><RegionalPoster event={event} priority /><span className="hsx-deck-place"><MapPin size={12} />{cityForEvent(event)?.name ?? "Székelyföld"}</span>{promotion(event) && <span className={`hsx-promotion${paid(event) ? " is-paid" : ""}`}>{promotion(event)}</span>}</div>
-        <div className="hsx-deck-copy"><p>{eventDate(event)}</p><h2>{event.title}</h2><div><span>{getEventPriceLabel(event)}</span>{active === index && <Link href={`/szekelyfold/esemeny/${event.id}`}>Megnézem <ArrowUpRight size={18} /></Link>}</div></div>
-        {active !== index && <button type="button" className="hsx-deck-select" onClick={() => setSelected(index)} aria-label={`${event.title} megjelenítése`}><span>{String(index + 1).padStart(2, "0")}<ArrowUpRight size={18} /></span></button>}
-      </article>)}
-    </div>
-    <div className="hsx-deck-bar"><span><b>{String(active + 1).padStart(2, "0")}</b> / {String(events.length).padStart(2, "0")} <i /> Kiemelt programok több városból</span><div><button type="button" onClick={() => step(-1)} aria-label="Előző ajánló"><ChevronLeft size={19} /></button><button type="button" onClick={() => step(1)} aria-label="Következő ajánló"><ChevronRight size={19} /></button></div></div>
-    <div className="hsx-deck-mobile-tabs" aria-label="Válassz ajánlót">{events.map((event, index) => <button type="button" key={event.id} aria-pressed={active === index} onClick={() => setSelected(index)} aria-label={`${event.title} megjelenítése`}><RegionalPoster event={event} /><span>{cityForEvent(event)?.name ?? "Székelyföld"}</span></button>)}</div>
-  </div>;
-}
-
 function NewEventCard({ event }: { event: RegionEvent }) {
   const source = getEventSource(withEventPresentation(event).newsLinks);
   return <article className="hsx-event" style={{ "--hsx-event-color": event.category?.color ?? "#bb693c" } as CSSProperties}>
     <Link href={`/szekelyfold/esemeny/${event.id}`} className="hsx-event-link">
-      <div className="hsx-event-image"><RegionalPoster event={event} /><span className="hsx-event-category">{event.category?.name ?? "Program"}</span>{promotion(event) && <span className={`hsx-promotion${paid(event) ? " is-paid" : ""}`}>{promotion(event)}</span>}</div>
+      <div className="hsx-event-image"><RegionalPoster event={event} backdrop={false} /><span className="hsx-event-category">{event.category?.name ?? "Program"}</span>{promotion(event) && <span className={`hsx-promotion${paid(event) ? " is-paid" : ""}`}>{promotion(event)}</span>}</div>
       <div className="hsx-event-body"><p className="hsx-event-date"><CalendarDays size={14} />{eventDate(event)}</p><h3>{event.title}</h3><p className="hsx-event-place"><MapPin size={14} />{cityForEvent(event)?.name ?? event.location}</p><p className="hsx-event-source">Forrás: {source.title}</p><div className="hsx-event-bottom"><span>{getEventPriceLabel(event)}</span><span>Részletek <ArrowUpRight size={17} /></span></div></div>
     </Link>
     <FavoriteButton eventId={event.id} className="hsx-event-save" />
@@ -107,17 +89,6 @@ export default function HelloSzekelyfoldHome() {
   const places = useMemo(() => REGION_PLACES.filter(place => events.some(event => cityForEvent(event)?.slug === place.slug)), [events]);
   const categories = useMemo(() => [...new Map(events.filter(event => event.category?.slug).map(event => [event.category!.slug, event.category!])).values()], [events]);
   const anniversary = useMemo(() => october1956Programs(events), [events]);
-  const heroEvents = useMemo(() => {
-    const ordered = [...events].sort((a, b) => Number(paid(b)) - Number(paid(a)) || Number(Date.parse(a.startDate) < Date.now()) - Number(Date.parse(b.startDate) < Date.now()) || Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || Date.parse(a.startDate) - Date.parse(b.startDate));
-    const picked: RegionEvent[] = ordered.filter(paid).slice(0, 4);
-    const towns = new Set(picked.map(event => cityForEvent(event)?.slug ?? event.location));
-    for (const event of ordered) {
-      if (picked.length === 4) break;
-      const town = cityForEvent(event)?.slug ?? event.location;
-      if (!towns.has(town) && !picked.some(item => item.id === event.id)) { picked.push(event); towns.add(town); }
-    }
-    return [...picked, ...ordered.filter(event => !picked.some(item => item.id === event.id))].slice(0, 4);
-  }, [events]);
   const filtered = useMemo(() => sortDiscoveryEvents((collection ? anniversary : events).filter(event => matchesDiscoveryEvent(event, { query, city, date, category }))), [events, anniversary, query, city, date, category, collection]);
   const activeFilters = Boolean(query || city || date !== "all" || category || collection);
   const cityName = REGION_PLACES.find(place => place.slug === city)?.name;
@@ -136,10 +107,7 @@ export default function HelloSzekelyfoldHome() {
 
   return <div className="hsx-page">
       <NewHeader onHome={() => { reset(); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
-    <section className="hsx-hero hsx-wrap" aria-labelledby="hsx-title">
-      <div className="hsx-intro"><div><p className="hsx-eyebrow">HELLO SZÉKELYFÖLD · ESEMÉNYAJÁNLÓ</p><h1 id="hsx-title">Székelyföldi események<span>.</span></h1></div><p>Koncertek, színház, fesztiválok.<br /> {isLoading ? "A programok betöltése…" : isError ? "A programok betöltése átmenetileg szünetel." : <><b>{events.length} aktuális program</b> · {places.length} település</>}</p></div>
-      <EventDeck events={heroEvents} loading={isLoading} error={isError} />
-    </section>
+    <RegionalMasthead events={events} count={events.length} isLoading={isLoading} onDate={value => { setDate(value); goToResults(); }} linkBase="/szekelyfold" />
 
     <main className="hsx-content">
       <section className="hsx-finder hsx-wrap" aria-label="Programkereső">

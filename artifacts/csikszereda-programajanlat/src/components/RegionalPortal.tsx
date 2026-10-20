@@ -230,9 +230,11 @@ export function RegionalLayout({ children }: { children: ReactNode }) {
 export function RegionalPoster({
   event,
   priority = false,
+  backdrop = true,
 }: {
   event: RegionEvent;
   priority?: boolean;
+  backdrop?: boolean;
 }) {
   const displayEvent = withEventPresentation(event);
   const [failed, setFailed] = useState(false);
@@ -265,11 +267,11 @@ export function RegionalPoster({
     );
   return (
     <>
-      <div
+      {backdrop && <div
         className="rp-poster-backdrop"
         aria-hidden="true"
         style={{ backgroundImage: `url(${JSON.stringify(src)})` }}
-      />
+      />}
       <img
         src={src}
         alt={event.title}
