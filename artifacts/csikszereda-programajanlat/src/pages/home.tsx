@@ -3,6 +3,7 @@ import { ProgramFinder } from "@/components/events/ProgramFinder";
 import { CityGuideHero } from "@/components/CityGuideHero";
 import { ActiveSzekelyfold, CloudFestival, CinemaPicks } from "@/components/ReferenceHighlights";
 import { October56Commemoration } from "@/components/October56Commemoration";
+import { AutonomyWatchfires } from "@/components/AutonomyWatchfires";
 import { useQuery } from "@tanstack/react-query";
 import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
 import { motion } from "framer-motion";
@@ -1501,6 +1502,7 @@ export default function Home({ initialDesign }: { initialDesign?: HomeDesign } =
       <ActiveSzekelyfold />
       <CloudFestival />
       <October56Commemoration />
+      <AutonomyWatchfires />
       <CinemaPicks />
       <VenuesSection />
       <AddEventSection />
