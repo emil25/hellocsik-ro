@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { eventInputToISO, toEventInput, eventOccursOnDate, assertEventRange } from "../shared/event-time.mjs";
+import { eventInputToISO, toEventInput, eventOccursOnDate, isSingleDayEventOnDate, assertEventRange } from "../shared/event-time.mjs";
 import { renderEventPageMeta } from "../artifacts/api-server/src/lib/event-page-meta.ts";
 import { normalizeEventDates } from "../artifacts/api-server/src/lib/event-dates.ts";
 import { normalizeSearchText } from "../artifacts/csikszereda-programajanlat/src/lib/search.ts";
@@ -23,6 +23,14 @@ test("unchanged editing preserves the original instant, seconds and repeated DST
     assert.equal(eventInputToISO(toEventInput(original), original), new Date(original).toISOString());
   }
   assert.equal(eventInputToISO("2026-10-25T03:30"), "2026-10-25T00:30:00.000Z");
+});
+
+test("weekly date strip includes only events that start and finish on that local date", () => {
+  assert.equal(isSingleDayEventOnDate({ startDate: "2026-11-01T18:00:00+02:00" }, "2026-11-01"), true);
+  assert.equal(isSingleDayEventOnDate({ startDate: "2026-11-01T18:00:00+02:00", endDate: "2026-11-01T20:00:00+02:00" }, "2026-11-01"), true);
+  assert.equal(isSingleDayEventOnDate({ startDate: "2026-11-01T18:00:00+02:00", endDate: "2026-11-02T10:00:00+02:00" }, "2026-11-01"), false);
+  assert.equal(isSingleDayEventOnDate({ startDate: "2026-10-06T18:00:00+03:00", endDate: "2026-12-31T23:59:59+02:00" }, "2026-11-01"), false);
+  assert.equal(isSingleDayEventOnDate({ startDate: "2026-10-06T18:00:00+03:00", endDate: "2026-12-31T23:59:59+02:00" }, "2026-10-06"), false);
 });
 
 test("invalid dates, DST gaps and reversed date ranges are rejected", () => {

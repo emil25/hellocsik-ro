@@ -4,6 +4,7 @@ import { eq, and, gte, lte, desc, asc, ne, or, isNull } from "drizzle-orm";
 import { requireAdmin } from "../lib/admin-auth";
 import { normalizeEventDates } from "../lib/event-dates";
 import { submissionOptions } from "../../../../shared/event-submission.mjs";
+import { isSingleDayEventOnDate } from "../../../../shared/event-time.mjs";
 import {
   ListEventsQueryParams,
   CreateEventBody,
@@ -196,10 +197,8 @@ router.get("/events/this-week", async (req, res) => {
       const day = new Date(monday);
       day.setDate(monday.getDate() + i);
       const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
-      const nextDay = new Date(day);
-      nextDay.setDate(day.getDate() + 1);
       const dayEvents = rows
-        .filter((r) => r.event.startDate < nextDay && (r.event.endDate ?? r.event.startDate) >= day)
+        .filter((r) => isSingleDayEventOnDate({ startDate: r.event.startDate, endDate: r.event.endDate }, dateStr))
         .map((r) => formatEvent(r.event, r.category, r.organizer));
 
       days.push({

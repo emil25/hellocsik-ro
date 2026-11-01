@@ -67,6 +67,15 @@ export function eventOccursOnDate(event, day) {
   return eventDateKey(start) <= day && eventDateKey(new Date(end.getTime() - 1)) >= day;
 }
 
+/** True only for events whose entire occurrence belongs to the selected local day. */
+export function isSingleDayEventOnDate(event, day) {
+  const start = parseEventDate(event.startDate);
+  if (eventDateKey(start) !== day) return false;
+  if (!event.endDate) return true;
+  const end = parseEventDate(event.endDate);
+  return end <= start || eventDateKey(new Date(end.getTime() - 1)) === day;
+}
+
 export function assertEventRange(start, end) {
   if (end && parseEventDate(end) < parseEventDate(start)) {
     throw new RangeError("A befejezés nem lehet korábbi a kezdésnél.");
