@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, CalendarDays, MapPin, Search, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock3, ExternalLink, LayoutGrid, List, MapPin, Search, SlidersHorizontal } from "lucide-react";
 import { Link } from "wouter";
 import { useListUpcomingEvents, useListCategories } from "@workspace/api-client-react";
 import { EventCard } from "./EventCard";
+import { FavoriteButton } from "./FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCsikArea, isCsikEvent } from "@/lib/csik-events";
 import { normalizeSearchText as normalize } from "@/lib/search";
+import { formatDate, formatTime } from "@/utils/date-format";
+import { getEventPriceLabel } from "@/lib/event-links";
+import { getEventSource } from "@/lib/event-meta";
 
 const AREA_FILTERS = [
   { name: "Csíkszereda", area: "city" },
@@ -18,6 +22,36 @@ const isPromoted = (event: any) => Boolean(
   event.featured || (event.promotionStatus === "paid" && event.promotionPlan !== "free"),
 );
 
+function EventListRow({ event }: { event: any }) {
+  const source = getEventSource(event.newsLinks);
+  const paidPromotion = event.promotionStatus === "paid" && event.promotionPlan !== "free";
+  const date = new Date(event.startDate);
+  const day = new Intl.DateTimeFormat("hu-HU", { day: "2-digit" }).format(date);
+  const month = new Intl.DateTimeFormat("hu-HU", { month: "short" }).format(date).replace(".", "");
+
+  return <article className={`finder-list-row${paidPromotion ? " is-paid" : event.featured ? " is-featured" : ""}`}>
+    <div className="finder-list-date" aria-label={formatDate(event.startDate)}><strong>{day}</strong><span>{month}</span></div>
+    <div className="finder-list-main">
+      <div className="finder-list-kickers">
+        {event.category && <span className="finder-list-category"><i style={{ backgroundColor: event.category.color }} />{event.category.name}</span>}
+        {paidPromotion && <span className="finder-list-promotion">Fizetett kiemelés</span>}
+        {!paidPromotion && event.featured && <span className="finder-list-promotion is-editorial">Kiemelt ajánló</span>}
+      </div>
+      <Link href={`/esemeny/${event.id}`} className="finder-list-title">{event.title}</Link>
+      <div className="finder-list-meta"><span><Clock3 size={14} />{formatTime(event.startDate)}</span><span><MapPin size={14} />{event.location}</span></div>
+      <p className="finder-list-source">Forrás: {source.title}</p>
+    </div>
+    <div className="finder-list-actions">
+      <span className="finder-list-price">{getEventPriceLabel(event)}</span>
+      <div>
+        {event.ticketUrl && <a href={event.ticketUrl} target="_blank" rel="noreferrer" className="finder-list-ticket">Jegyek <ExternalLink size={13} /></a>}
+        <Link href={`/esemeny/${event.id}`} className="finder-list-details">Részletek <ArrowRight size={14} /></Link>
+      </div>
+    </div>
+    <FavoriteButton eventId={event.id} className="finder-list-favorite" />
+  </article>;
+}
+
 export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<number | null>(null);
@@ -26,6 +60,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
   const [city, setCity] = useState<string | null>(null);
   const [visible, setVisible] = useState(12);
   const [showFilters, setShowFilters] = useState(false);
+  const [view, setView] = useState<"cards" | "list">("cards");
   useEffect(() => {
     const applyWeekend = () => { if (window.location.hash === "#hetvege") { setWeekend(true); setDay(""); setShowFilters(true); } };
     applyWeekend();
@@ -80,7 +115,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
     <section id="kozelgo" className="program-finder">
       <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
         <div><p className="discovery-eyebrow">KÖZELGŐ PROGRAMOK</p><h2>Hamarosan Csíkszeredában és környékén</h2></div>
-        <div className="flex gap-4"><button className="flex items-center gap-2 text-sm text-primary" aria-expanded={showFilters} onClick={() => setShowFilters(!showFilters)}><Search size={16} /> Keresés és szűrés</button><Link href="/naptar" className="flex items-center gap-2 text-sm font-semibold text-primary">Naptár nézet <ArrowRight size={16} /></Link></div>
+        <div className="flex flex-wrap items-center gap-4"><button className="flex items-center gap-2 text-sm text-primary" aria-expanded={showFilters} onClick={() => setShowFilters(!showFilters)}><Search size={16} /> Keresés és szűrés</button><div className="finder-view-switch" role="group" aria-label="Programok megjelenítése"><button type="button" aria-pressed={view === "cards"} onClick={() => setView("cards")}><LayoutGrid size={15} /> Kártyák</button><button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}><List size={15} /> Lista</button></div><Link href="/naptar" className="flex items-center gap-2 text-sm font-semibold text-primary">Naptár nézet <ArrowRight size={16} /></Link></div>
       </div>
       {showFilters && <div className="finder-controls">
         <label className="finder-search"><Search size={20} aria-hidden="true" /><Input aria-label="Program, helyszín vagy kulcsszó keresése" placeholder="Koncert, színház, kedvenc helyszín…" value={query} onChange={e => { setQuery(e.target.value); setVisible(12); }} /></label>
@@ -95,7 +130,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
       {eventsQuery.isLoading ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Programok betöltése">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}</div>
         : eventsQuery.isError ? <div className="finder-empty" role="alert"><CalendarDays /><h3>A programokat most nem sikerült betölteni.</h3><p>Próbáld újra egy kicsit később.</p><Button onClick={() => eventsQuery.refetch()}>Újrapróbálom</Button></div>
         : <><p className="text-sm text-muted-foreground mb-5" role="status">{filtered.length} program{events?.length === 100 ? " a következő 100 esemény között" : ""}</p>
-          {filtered.length ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{filtered.slice(0, visible).map((event, index) => <EventCard key={event.id} event={event} index={index} promoted={isPromoted(event)} />)}</div>
+          {filtered.length ? view === "cards" ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{filtered.slice(0, visible).map((event, index) => <EventCard key={event.id} event={event} index={index} promoted={isPromoted(event)} />)}</div> : <div className="finder-list">{filtered.slice(0, visible).map(event => <EventListRow key={event.id} event={event} />)}</div>
             : <div className="finder-empty"><SlidersHorizontal /><h3>{query || category || city || day || weekend ? "Erre most nincs találat." : "Hamarosan új programok érkeznek."}</h3><p>{query || category || city || day || weekend ? "Próbálj másik dátumot vagy tágabb keresést." : "Szervezel valamit? Küldd be a programodat!"}</p>{query || category || city || day || weekend ? <Button variant="outline" onClick={reset}>Szűrők törlése</Button> : <Link href="/bekuldese" className="discovery-primary">Program beküldése <ArrowRight size={16} /></Link>}</div>}
           {filtered.length > visible && <div className="text-center mt-8"><Button variant="outline" onClick={() => setVisible(visible + 12)}>További programok</Button></div>}
         </>}

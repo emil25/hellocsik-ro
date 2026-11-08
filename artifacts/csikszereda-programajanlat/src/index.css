@@ -208,6 +208,48 @@ a:hover .cinema-poster > img { transform: scale(1.035); }
 .cinema-caption p { font-size: .75rem; margin-top: .25rem; }
 .program-finder button { border-radius: 999px; }
 .program-finder h2 { font-size: clamp(1.6rem, 3vw, 2rem); }
+.finder-view-switch { display: inline-flex; align-items: center; gap: 3px; padding: 3px; border: 1px solid #d9e2dc; border-radius: 999px; background: #fff; }
+.finder-view-switch button { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 11px; border: 0; background: transparent; color: #526259; font-size: .78rem; font-weight: 700; }
+.finder-view-switch button[aria-pressed="true"] { background: #173d2d; color: #fff; }
+.finder-view-switch button:focus-visible { outline: 2px solid #d99330; outline-offset: 2px; }
+.finder-list { display: grid; gap: 9px; }
+.finder-list-row { position: relative; display: grid; grid-template-columns: 60px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 14px 50px 14px 14px; border: 1px solid #e3e8e3; border-radius: 16px; background: #fff; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.finder-list-row:hover { border-color: #9fb9a8; box-shadow: 0 8px 24px #173d2d12; transform: translateY(-1px); }
+.finder-list-row.is-featured { border-color: #e9c36b; }
+.finder-list-row.is-paid { border-color: #c9b4ed; background: linear-gradient(100deg, #fff 0%, #fbf9ff 100%); }
+.finder-list-date { display: flex; width: 58px; height: 62px; flex-direction: column; align-items: center; justify-content: center; border-radius: 13px; background: #f1f5f1; color: #183e2e; line-height: 1; }
+.finder-list-date strong { font-size: 1.4rem; letter-spacing: -.05em; }
+.finder-list-date span { margin-top: 5px; color: #738277; font-size: .68rem; font-weight: 800; text-transform: uppercase; }
+.finder-list-main { min-width: 0; }
+.finder-list-kickers { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-bottom: 4px; }
+.finder-list-category, .finder-list-promotion { display: inline-flex; align-items: center; gap: 5px; color: #68786e; font-size: .67rem; font-weight: 700; }
+.finder-list-category i { width: 7px; height: 7px; border-radius: 50%; }
+.finder-list-promotion { color: #6f48a9; }
+.finder-list-promotion.is-editorial { color: #9b6b13; }
+.finder-list-title { display: block; overflow: hidden; color: #18251e; font-size: .98rem; font-weight: 800; line-height: 1.3; text-overflow: ellipsis; }
+.finder-list-title:hover { color: #17633d; }
+.finder-list-meta { display: flex; flex-wrap: wrap; gap: 5px 16px; margin-top: 6px; color: #66776c; font-size: .76rem; }
+.finder-list-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.finder-list-meta svg { flex: 0 0 auto; color: #337458; }
+.finder-list-source { overflow: hidden; margin-top: 4px; color: #89968d; font-size: .65rem; text-overflow: ellipsis; white-space: nowrap; }
+.finder-list-actions { min-width: 120px; padding-left: 12px; text-align: right; }
+.finder-list-price { display: block; margin-bottom: 8px; color: #315d43; font-size: .78rem; font-weight: 700; }
+.finder-list-actions > div { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.finder-list-ticket, .finder-list-details { display: inline-flex; align-items: center; gap: 4px; color: #245b3e; font-size: .75rem; font-weight: 800; white-space: nowrap; }
+.finder-list-ticket { color: #47775b; }
+.finder-list-favorite { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; }
+@media (max-width: 640px) {
+  .finder-view-switch button { min-height: 31px; padding: 0 9px; font-size: .72rem; }
+  .finder-list-row { grid-template-columns: 48px minmax(0, 1fr); align-items: start; gap: 9px 12px; padding: 12px 45px 12px 11px; border-radius: 13px; }
+  .finder-list-date { width: 46px; height: 54px; border-radius: 11px; }
+  .finder-list-date strong { font-size: 1.2rem; }
+  .finder-list-title { font-size: .88rem; }
+  .finder-list-meta { gap: 4px 11px; font-size: .71rem; }
+  .finder-list-source { font-size: .61rem; }
+  .finder-list-actions { grid-column: 2; display: flex; align-items: center; justify-content: space-between; min-width: 0; padding: 0; text-align: left; }
+  .finder-list-price { margin: 0; font-size: .72rem; }
+  .finder-list-actions > div { gap: 10px; }
+}
 @media (max-width: 767px) {
   .active-szekely-section { padding: 3rem 0; }
   .active-szekely-panel { grid-template-columns: 1fr; border-radius: 1.5rem; }
