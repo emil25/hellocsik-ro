@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
-import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2, Database, CalendarPlus, Download, Flag, CheckCircle2, Loader2, Maximize2 } from "lucide-react";
+import { MapPin, Clock, Ticket, Tag, ArrowLeft, ExternalLink, Calendar, Share2, Link2, Database, CalendarPlus, Download, Flag, CheckCircle2, Loader2, Maximize2, Utensils, Coffee, BedDouble, Car } from "lucide-react";
 import { Link } from "wouter";
 import { useGetEvent, getGetEventQueryKey, useListEvents } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -365,6 +365,8 @@ export default function EventDetail() {
           </div>
         </div>
 
+        <NearbyGuide event={event} regional={regional} />
+
         {/* Related news */}
         <RelatedNews newsLinks={(event.newsLinks ?? []).slice(1)} />
 
@@ -382,6 +384,62 @@ export default function EventDetail() {
         )}
       </motion.div>
     </div>
+  );
+}
+
+const nearbySearches = [
+  { title: "Éttermek", query: "étterem", detail: "Hol egyél az esemény előtt vagy után?", Icon: Utensils, tint: "#e7f5ed", color: "#176b45" },
+  { title: "Kávézók", query: "kávézó", detail: "Kávé, sütemény vagy egy nyugodt találkozó.", Icon: Coffee, tint: "#fff3df", color: "#a46113" },
+  { title: "Szálláshelyek", query: "szállás", detail: "Szállodák és vendégházak a közelben.", Icon: BedDouble, tint: "#edf1ff", color: "#4659aa" },
+  { title: "Parkolók", query: "parkoló", detail: "Keress parkolási lehetőséget a helyszín mellett.", Icon: Car, tint: "#f0f2f3", color: "#46515a" },
+];
+
+function NearbyGuide({ event, regional }: { event: { location: string; locationAddress?: string | null }; regional: boolean }) {
+  const rawLocation = [event.locationAddress, event.location].filter(Boolean).join(", ");
+  const cityFallback = regional ? "Székelyföld" : "Csíkszereda";
+  const searchArea = rawLocation
+    ? (!regional && !rawLocation.toLocaleLowerCase("hu").includes("csíkszereda") ? `${rawLocation}, Csíkszereda` : rawLocation)
+    : cityFallback;
+  const destination = encodeURIComponent(searchArea);
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+  const wazeUrl = `https://waze.com/ul?q=${destination}&navigate=yes`;
+
+  return (
+    <section aria-labelledby="nearby-guide-title" className="mt-10 overflow-hidden rounded-[26px] border border-emerald-100 bg-gradient-to-br from-[#f1f8f3] via-white to-[#fff8ec] p-5 shadow-sm sm:p-7">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[.16em] text-primary">A helyszín körül</p>
+          <h2 id="nearby-guide-title" className="mt-2 text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">Hol együnk, hol szálljunk meg?</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">Fedezd fel az esemény közelében található éttermeket, kávézókat, szállásokat és parkolókat.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:flex">
+          <a href={directionsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-95">
+            <MapPin className="h-4 w-4" /> Google Térkép <ExternalLink className="h-3.5 w-3.5 opacity-75" />
+          </a>
+          <a href={wazeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-700 transition hover:border-primary/30 hover:text-primary">
+            <Car className="h-4 w-4" /> Waze <ExternalLink className="h-3.5 w-3.5 opacity-60" />
+          </a>
+        </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {nearbySearches.map(({ title, query, detail, Icon, tint, color }) => {
+          const search = encodeURIComponent(`${query} near ${searchArea}`);
+          const href = `https://www.google.com/maps/search/?api=1&query=${search}`;
+          return (
+            <a key={title} href={href} target="_blank" rel="noopener noreferrer" className="group flex min-h-[148px] flex-col rounded-2xl border border-stone-100 bg-white p-4 shadow-[0_5px_18px_rgba(24,39,30,.04)] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md">
+              <span className="grid h-10 w-10 place-items-center rounded-xl" style={{ backgroundColor: tint, color }}><Icon className="h-5 w-5" /></span>
+              <span className="mt-3 flex items-center justify-between gap-2 font-bold text-stone-800">
+                {title}<ExternalLink className="h-4 w-4 shrink-0 text-stone-300 transition group-hover:text-primary" />
+              </span>
+              <span className="mt-1 text-xs leading-relaxed text-stone-500">{detail}</span>
+              <span className="mt-auto pt-3 text-xs font-bold text-primary">Keresés a térképen ↗</span>
+            </a>
+          );
+        })}
+      </div>
+      <p className="mt-4 text-[11px] leading-relaxed text-stone-400">A térképszolgáltató aktuális helyeket, útvonalakat és nyitvatartást mutat. Az adatok a Google Térképen ellenőrizhetők.</p>
+    </section>
   );
 }
 
