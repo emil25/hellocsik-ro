@@ -12,7 +12,7 @@ const navLinks = [
   { href: "/helyszinek", label: "Helyszínek" },
   { href: "/szervezok", label: "Szervezők" },
   { href: "/arak", label: "Árak" },
-  { href: "/erdekel", label: "Érdekel" },
+  { href: "/erdekel", label: "Kedvencek" },
   { href: "/#hozzaadas", label: "Hozzáadás" },
 ];
 

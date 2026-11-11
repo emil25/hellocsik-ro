@@ -8,9 +8,9 @@ export function FavoriteButton({ eventId, className = "" }: { eventId: number; c
   return (
     <button
       type="button"
-      aria-label={active ? "Eltávolítás az Érdekel listából" : "Mentés az Érdekel listába"}
+      aria-label={active ? "Eltávolítás a kedvencek közül" : "Mentés a kedvencek közé"}
       aria-pressed={active}
-      title={active ? "Mentve az Érdekel listába" : "Érdekel"}
+      title={active ? "Mentve a kedvencek közé" : "Mentés a kedvencek közé"}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();

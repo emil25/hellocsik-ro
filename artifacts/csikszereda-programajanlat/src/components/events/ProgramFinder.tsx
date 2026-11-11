@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, CalendarDays, Clock3, ExternalLink, LayoutGrid, List, MapPin, Search, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock3, ExternalLink, Heart, LayoutGrid, List, MapPin, Search, SlidersHorizontal } from "lucide-react";
 import { Link } from "wouter";
 import { useListUpcomingEvents, useListCategories } from "@workspace/api-client-react";
 import { EventCard } from "./EventCard";
@@ -12,6 +12,7 @@ import { normalizeSearchText as normalize } from "@/lib/search";
 import { formatDate, formatTime } from "@/utils/date-format";
 import { getEventPriceLabel } from "@/lib/event-links";
 import { getEventSource } from "@/lib/event-meta";
+import { useFavorites } from "@/hooks/use-favorites";
 
 const AREA_FILTERS = [
   { name: "Csíkszereda", area: "city" },
@@ -61,6 +62,8 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
   const [visible, setVisible] = useState(12);
   const [showFilters, setShowFilters] = useState(false);
   const [view, setView] = useState<"cards" | "list">("cards");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const { favoriteIds } = useFavorites();
   useEffect(() => {
     const applyWeekend = () => { if (window.location.hash === "#hetvege") { setWeekend(true); setDay(""); setShowFilters(true); } };
     applyWeekend();
@@ -86,12 +89,13 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
       const end = new Date(event.endDate ?? event.startDate);
       return (!category || event.categoryId === category)
         && (!city || getCsikArea(event) === city)
+        && (!favoritesOnly || favoriteIds.includes(event.id))
         && (!query.trim() || normalize(`${event.title} ${event.location} ${event.description}`).includes(normalize(query)))
         && (!from || !until || (start < until && end >= from))
         && (!weekend || (start < monday && end >= saturday));
     }).sort((a, b) => Number(isPromoted(b)) - Number(isPromoted(a)) || Date.parse(a.startDate) - Date.parse(b.startDate));
-  }, [events, query, category, city, day, weekend]);
-  const reset = () => { setQuery(""); setCategory(null); setCity(null); setDay(""); setWeekend(false); setVisible(12); };
+  }, [events, query, category, city, day, weekend, favoritesOnly, favoriteIds]);
+  const reset = () => { setQuery(""); setCategory(null); setCity(null); setDay(""); setWeekend(false); setFavoritesOnly(false); setVisible(12); };
 
   return <>
     {showHero && <section className="discovery-hero">
@@ -124,6 +128,10 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
       </div>}
         <div className="flex flex-wrap gap-2 my-5" aria-label="Programkategóriák">
         <Button size="sm" variant={category === null ? "default" : "outline"} aria-pressed={category === null} onClick={() => { setCategory(null); setVisible(12); }}>Minden program</Button>
+        <Button size="sm" variant={favoritesOnly ? "default" : "outline"} aria-pressed={favoritesOnly} onClick={() => { setFavoritesOnly(!favoritesOnly); setVisible(12); }}>
+          <Heart size={14} fill={favoritesOnly || favoriteIds.length > 0 ? "currentColor" : "none"} />
+          Csak kedvencek <span className="opacity-70">{favoriteIds.length}</span>
+        </Button>
         {AREA_FILTERS.map(item => <Button key={item.area} size="sm" variant={city === item.area ? "default" : "outline"} aria-pressed={city === item.area} onClick={() => { setCity(city === item.area ? null : item.area); setVisible(12); }}>{item.name}<span className="opacity-60">{events?.filter(event => getCsikArea(event) === item.area).length}</span></Button>)}
         {categoriesQuery.data?.categories.filter(item => events?.some(event => event.categoryId === item.id)).map(item => <Button key={item.id} size="sm" variant={category === item.id ? "default" : "outline"} aria-pressed={category === item.id} onClick={() => { setCategory(item.id); setVisible(12); }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />{item.name}<span className="opacity-60">{events?.filter(event => event.categoryId === item.id).length}</span></Button>)}
       </div>
@@ -131,7 +139,7 @@ export function ProgramFinder({ showHero = true }: { showHero?: boolean }) {
         : eventsQuery.isError ? <div className="finder-empty" role="alert"><CalendarDays /><h3>A programokat most nem sikerült betölteni.</h3><p>Próbáld újra egy kicsit később.</p><Button onClick={() => eventsQuery.refetch()}>Újrapróbálom</Button></div>
         : <><p className="text-sm text-muted-foreground mb-5" role="status">{filtered.length} program{events?.length === 100 ? " a következő 100 esemény között" : ""}</p>
           {filtered.length ? view === "cards" ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{filtered.slice(0, visible).map((event, index) => <EventCard key={event.id} event={event} index={index} promoted={isPromoted(event)} />)}</div> : <div className="finder-list">{filtered.slice(0, visible).map(event => <EventListRow key={event.id} event={event} />)}</div>
-            : <div className="finder-empty"><SlidersHorizontal /><h3>{query || category || city || day || weekend ? "Erre most nincs találat." : "Hamarosan új programok érkeznek."}</h3><p>{query || category || city || day || weekend ? "Próbálj másik dátumot vagy tágabb keresést." : "Szervezel valamit? Küldd be a programodat!"}</p>{query || category || city || day || weekend ? <Button variant="outline" onClick={reset}>Szűrők törlése</Button> : <Link href="/bekuldese" className="discovery-primary">Program beküldése <ArrowRight size={16} /></Link>}</div>}
+            : <div className="finder-empty"><SlidersHorizontal /><h3>{query || category || city || day || weekend || favoritesOnly ? "Erre most nincs találat." : "Hamarosan új programok érkeznek."}</h3><p>{favoritesOnly && !favoriteIds.length ? "Még nincs elmentett kedvenced. A kártyákon lévő szívvel tehetsz el programokat." : query || category || city || day || weekend || favoritesOnly ? "Próbálj másik dátumot vagy tágabb szűrést." : "Szervezel valamit? Küldd be a programodat!"}</p>{query || category || city || day || weekend || favoritesOnly ? <Button variant="outline" onClick={reset}>Szűrők törlése</Button> : <Link href="/bekuldese" className="discovery-primary">Program beküldése <ArrowRight size={16} /></Link>}</div>}
           {filtered.length > visible && <div className="text-center mt-8"><Button variant="outline" onClick={() => setVisible(visible + 12)}>További programok</Button></div>}
         </>}
     </section>

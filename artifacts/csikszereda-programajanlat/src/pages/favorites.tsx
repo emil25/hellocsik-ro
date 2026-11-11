@@ -21,7 +21,7 @@ export default function FavoritesPage() {
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-rose-500 mb-3">
                 <Heart className="w-4 h-4" fill="currentColor" /> Saját válogatás
               </div>
-              <h1 className="text-3xl md:text-5xl font-bold text-foreground">Érdekel</h1>
+              <h1 className="text-3xl md:text-5xl font-bold text-foreground">Kedvencek</h1>
               <p className="text-muted-foreground mt-3 max-w-xl">Itt találod az elmentett programokat. A lista ebben a böngészőben marad meg.</p>
             </div>
             {favoriteIds.length > 0 && (

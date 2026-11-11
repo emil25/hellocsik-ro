@@ -9,7 +9,7 @@ import type { ListThisWeekEvents200 } from "@workspace/api-client-react";
 import { motion } from "framer-motion";
 import { MapPin, Clock, ArrowRight, Sparkles, Calendar, ChevronLeft, ChevronRight, Ticket, ExternalLink, Plus, CheckCircle2, Pencil } from "lucide-react";
 import { Link } from "wouter";
-import helloCsikLogo from "@/assets/hellocsik-logo-nobg.png";
+import { FavoriteButton } from "@/components/events/FavoriteButton";
 import {
   useListFeaturedEvents,
   useListThisWeekEvents,
@@ -52,7 +52,9 @@ const STARS = Array.from({ length: 55 }, (_, i) => ({
 
 function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
   const { data, isLoading } = useListFeaturedEvents();
+  const { data: upcomingData, isLoading: isUpcomingLoading } = useListUpcomingEvents({ limit: 100 });
   const events = (data?.events ?? []).filter(isCsikEvent);
+  const upcomingCount = (upcomingData?.events ?? []).filter(isCsikEvent).length;
 
   return (
     <section
@@ -86,24 +88,20 @@ function Hero({ viewSwitch }: { viewSwitch: ReactNode }) {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
         {/* Left: text with staggered entrance */}
         <div>
-          <motion.img
-            src={helloCsikLogo}
-            alt="hellocsík"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.06 }}
-            className="h-16 md:h-20 w-auto mb-6 drop-shadow-lg"
-          />
-
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.18 }}
-            className="inline-flex items-center gap-2 mb-6 px-3.5 py-1.5 rounded-full border border-white/15 bg-white/8"
+            transition={{ duration: 0.5, delay: 0.06 }}
+            className="inline-flex items-center gap-2 mb-6 px-3.5 py-2 rounded-full border border-white/20 bg-white/10 shadow-lg shadow-black/10"
             style={{ backdropFilter: "blur(8px)" }}
+            aria-live="polite"
           >
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-sm shadow-green-400/50" />
-            <span className="text-xs font-semibold text-white/75 uppercase tracking-wider">Csíkszereda és Csík környékének programjai</span>
+            <MapPin className="w-3.5 h-3.5 text-amber-300" />
+            <span className="text-xs font-semibold text-white tracking-wide">Csíkszereda és környéke</span>
+            <span className="w-1 h-1 rounded-full bg-white/55" />
+            <span className="text-xs font-bold text-white">
+              {isUpcomingLoading ? "Programok betöltése…" : `${upcomingCount} közelgő ${upcomingCount === 1 ? "program" : "program"}`}
+            </span>
           </motion.div>
 
           <motion.h1
@@ -303,32 +301,61 @@ function WeeklyCalendar() {
     },
   });
   const { data: catData } = useListCategories();
+  const { data: upcomingData, isLoading: isUpcomingLoading } = useListUpcomingEvents({ limit: 100 });
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedCat, setSelectedCat] = useState<number | null>(null);
+  const [quickFilter, setQuickFilter] = useState<"day" | "all" | "today" | "weekend">("day");
   const days = (data?.days ?? []).map(day => ({ ...day, events: day.events.filter(isCsikEvent) }));
+  const allUpcomingEvents = (upcomingData?.events ?? []).filter(isCsikEvent);
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Bucharest" });
-  const activeDay = selectedDay ?? (weekOffset === 0 ? today : days[0]?.date);
-  const changeWeek = (direction: number) => { setWeekOffset(value => value + direction); setSelectedDay(null); };
+  const firstEventDay = days.find(day => day.events.length > 0)?.date ?? null;
+  const activeDay = selectedDay ?? firstEventDay;
+  const todayEvents = days.find(day => day.date === today)?.events ?? [];
+  const weekendEvents = Array.from(new Map(
+    days
+      .filter(day => day.dayName === "Szo" || day.dayName === "V")
+      .flatMap(day => day.events)
+      .map(event => [event.id, event] as const)
+  ).values());
+  const changeWeek = (direction: number) => {
+    setWeekOffset(value => value + direction);
+    setSelectedDay(null);
+    setSelectedCat(null);
+    setQuickFilter("day");
+  };
   const selectedDayData = days.find(d => d.date === activeDay);
   const categories = catData?.categories ?? [];
 
-  // Count events per category for selected day
-  const catCounts: Record<number, number> = {};
-  let totalCount = 0;
-  if (selectedDayData) {
-    totalCount = selectedDayData.events.length;
-    selectedDayData.events.forEach(ev => {
-      if (ev.categoryId) {
-        catCounts[ev.categoryId] = (catCounts[ev.categoryId] ?? 0) + 1;
-      }
-    });
-  }
+  const chooseQuickFilter = (filter: "all" | "today" | "weekend") => {
+    setQuickFilter(filter);
+    setSelectedCat(null);
+    if (filter === "today") {
+      setWeekOffset(0);
+      setSelectedDay(today);
+    } else {
+      setSelectedDay(null);
+      if (filter === "weekend") setWeekOffset(0);
+    }
+  };
 
-  const filteredDayEvents = selectedDayData
-    ? (selectedCat
-        ? selectedDayData.events.filter(ev => ev.categoryId === selectedCat)
-        : selectedDayData.events)
-    : [];
+  const baseEvents = quickFilter === "all"
+    ? allUpcomingEvents
+    : quickFilter === "today"
+      ? todayEvents
+      : quickFilter === "weekend"
+        ? weekendEvents
+        : selectedDayData?.events ?? [];
+
+  // Count events per category in the active date view.
+  const catCounts: Record<number, number> = {};
+  const totalCount = baseEvents.length;
+  baseEvents.forEach(ev => {
+    if (ev.categoryId) catCounts[ev.categoryId] = (catCounts[ev.categoryId] ?? 0) + 1;
+  });
+
+  const filteredDayEvents = selectedCat
+    ? baseEvents.filter(ev => ev.categoryId === selectedCat)
+    : baseEvents;
   const visibleDayEvents = filteredDayEvents.slice(0, 4);
   const hiddenDayEventCount = Math.max(0, filteredDayEvents.length - visibleDayEvents.length);
 
@@ -350,7 +377,7 @@ function WeeklyCalendar() {
               <Calendar className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-bold text-primary uppercase tracking-widest">Heti naptár</span>
             </div>
-            <h2 className="text-2xl font-bold text-foreground mb-0.5">Mi lesz a héten?</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-0.5">Mikor érsz rá?</h2>
             <p className="text-muted-foreground text-xs">Válassz napot, és nézd meg az aznapi programokat.</p>
           </div>
           <div className="flex items-center gap-1">
@@ -364,39 +391,62 @@ function WeeklyCalendar() {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2 mb-4" role="group" aria-label="Gyors dátumszűrők">
+          {([
+            ["all", "Összes közelgő", allUpcomingEvents.length],
+            ["today", "Ma", todayEvents.length],
+            ["weekend", "Hétvége", weekendEvents.length],
+          ] as const).map(([filter, label, count]) => (
+            <button
+              key={filter}
+              type="button"
+              aria-pressed={quickFilter === filter}
+              onClick={() => chooseQuickFilter(filter)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors ${
+                quickFilter === filter
+                  ? "border-primary bg-primary text-white shadow-sm"
+                  : "border-border bg-card text-foreground hover:border-primary/40 hover:bg-primary/5"
+              }`}
+            >
+              {label}<span className={quickFilter === filter ? "text-white/75" : "text-muted-foreground"}>{filter === "all" && isUpcomingLoading ? "…" : count}</span>
+            </button>
+          ))}
+        </div>
+
         {isError && <p role="alert" className="text-destructive mb-4">A naptár nem tölthető be. Próbáld újra később.</p>}
         {/* Day selector */}
         {isLoading ? (
-          <div className="grid grid-cols-7 gap-1.5 mb-4">
-            {Array.from({length:7}).map((_,i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+          <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0 mb-4">
+            {Array.from({length:7}).map((_,i) => <Skeleton key={i} className="h-20 min-w-[66px] rounded-xl sm:min-w-0" />)}
           </div>
         ) : (
-          <div className="grid grid-cols-7 gap-1.5 mb-4">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible sm:pb-0 mb-4">
             {days.map(day => {
               const isToday = day.date === today;
-              const isActive = day.date === activeDay;
+              const isActive = quickFilter === "day" && day.date === activeDay;
+              const hasEvents = day.events.length > 0;
               const dayNum = new Date(day.date + "T12:00:00").getDate();
               return (
                 <motion.button
                   key={day.date}
-                  onClick={() => setSelectedDay(day.date)}
+                  onClick={() => { setQuickFilter("day"); setSelectedDay(day.date); setSelectedCat(null); }}
                   whileTap={{ scale: 0.96 }}
-                  className={`flex flex-col items-center py-2.5 px-1 rounded-xl border transition-all text-center ${
+                  aria-pressed={isActive}
+                  aria-label={`${day.dayName} ${dayNum}: ${day.events.length ? `${day.events.length} program` : "nincs program"}`}
+                  className={`flex min-w-[66px] sm:min-w-0 flex-col items-center py-2.5 px-1.5 rounded-xl border transition-all text-center ${isToday && !isActive ? "ring-1 ring-primary/20" : ""} ${
                     isActive
                       ? "border-transparent text-white"
                       : "bg-card border-card-border text-foreground hover:border-primary/30"
-                  }`}
+                  } ${!hasEvents ? "opacity-55 hover:opacity-80" : ""}`}
                   style={isActive ? { backgroundColor: "#166534" } : {}}
                 >
                   <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isActive ? "text-white/70" : "text-muted-foreground"}`}>
                     {day.dayName}
                   </span>
                   <span className="text-lg font-bold leading-none">{dayNum}</span>
-                  {day.events.length > 0 && (
-                    <span className={`mt-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-primary/10 text-primary"}`}>
-                      {day.events.length}
-                    </span>
-                  )}
+                  <span className={`mt-1.5 text-[9px] leading-none font-bold ${isActive ? "text-white/85" : hasEvents ? "text-primary" : "text-muted-foreground"}`}>
+                    {hasEvents ? <><span className="sm:hidden">{day.events.length}</span><span className="hidden sm:inline">{day.events.length} program</span></> : "–"}
+                  </span>
                 </motion.button>
               );
             })}
@@ -405,44 +455,54 @@ function WeeklyCalendar() {
 
         {/* Day events */}
         <div className={`bg-muted/35 rounded-xl mb-4 min-h-[64px] ${filteredDayEvents.length > 0 ? "p-3" : "px-5 py-4 flex items-center"}`}>
-          {!selectedDayData || selectedDayData.events.length === 0 ? (
+          {baseEvents.length === 0 ? (
             <p className="text-muted-foreground text-sm w-full text-center">
-              Ezen a napon nincs regisztrált esemény. Próbálj másik napot!
+              {quickFilter === "all" ? "Most nincs közelgő esemény a listában." : quickFilter === "today" ? "Mára nincs meghirdetett esemény." : quickFilter === "weekend" ? "Erre a hétvégére még nincs meghirdetett esemény." : selectedDayData ? "Erre a napra nincs meghirdetett esemény. Próbálj másik napot!" : "Erre a hétre még nincs meghirdetett esemény."}
             </p>
           ) : filteredDayEvents.length === 0 ? (
             <p className="text-muted-foreground text-sm w-full text-center">
-              Nincs ilyen kategóriájú esemény ezen a napon.
+              Nincs esemény ebben a kategóriaszűrésben.
             </p>
           ) : (
-            <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {visibleDayEvents.map(ev => (
-                <Link key={ev.id} href={`/esemeny/${ev.id}`}>
-                  <article className="group relative h-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm hover:-translate-y-1 hover:border-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer">
-                    <span className="event-half-frame" style={{ borderColor: ev.category?.color ?? "#16816c" }} aria-hidden="true" />
-                    <div className="h-1" style={{ backgroundColor: ev.category?.color ?? "#166534" }} />
-                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                      <img src={withEventPresentation(ev).imageUrl} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-                      {ev.category && (
-                        <span className="absolute left-2 bottom-2 text-[9px] font-bold px-2 py-0.5 rounded-full text-white shadow-sm" style={{ backgroundColor: ev.category.color }}>
-                          {ev.category.name}
-                        </span>
-                      )}
-                    </div>
-                    <div className="p-2.5 flex flex-col min-h-[82px]">
-                      <p className="font-bold text-xs text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">{ev.title}</p>
-                      <div className="mt-auto pt-2 space-y-0.5 text-[10px] text-muted-foreground">
-                        <p className="flex items-center gap-1 font-semibold text-foreground"><Clock className="w-3 h-3 text-primary" />{formatTime(ev.startDate)}</p>
-                        <p className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 flex-shrink-0 text-primary" />{ev.location}</p>
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
+            <>
+              <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {visibleDayEvents.map(ev => (
+                  <div key={ev.id} className="relative h-full">
+                    <Link href={`/esemeny/${ev.id}`}>
+                      <article className="group relative h-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm hover:-translate-y-1 hover:border-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer">
+                        <span className="event-half-frame" style={{ borderColor: ev.category?.color ?? "#16816c" }} aria-hidden="true" />
+                        <div className="h-1" style={{ backgroundColor: ev.category?.color ?? "#166534" }} />
+                        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                          <img src={withEventPresentation(ev).imageUrl} alt={ev.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                          <span className="absolute top-2 left-2 rounded-lg border border-white/90 bg-white text-foreground px-2 py-1 shadow-lg shadow-black/25">
+                            <span className="block text-[8px] font-extrabold uppercase leading-none tracking-wide">{formatShortDate(ev.startDate).split(" ")[0].replace(".", "")}</span>
+                            <span className="block text-sm font-black leading-tight">{new Date(ev.startDate).toLocaleDateString("hu-HU", { day: "2-digit", timeZone: "Europe/Bucharest" })}</span>
+                          </span>
+                          {ev.category && (
+                            <span className="absolute left-2 bottom-2 text-[9px] font-bold px-2 py-0.5 rounded-full text-white shadow-sm" style={{ backgroundColor: ev.category.color }}>
+                              {ev.category.name}
+                            </span>
+                          )}
+                        </div>
+                        <div className="p-2.5 flex flex-col min-h-[82px]">
+                          <p className="font-bold text-xs text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">{ev.title}</p>
+                          <div className="mt-auto pt-2 space-y-0.5 text-[10px] text-foreground/85">
+                            <p className="flex items-center gap-1 font-semibold"><Clock className="w-3 h-3 text-primary" />{formatTime(ev.startDate)}</p>
+                            <p className="flex items-center gap-1 truncate font-medium"><MapPin className="w-3 h-3 flex-shrink-0 text-primary" />{ev.location}</p>
+                          </div>
+                        </div>
+                      </article>
+                    </Link>
+                    <FavoriteButton eventId={ev.id} className="absolute right-2 top-2 z-10 h-8 w-8" />
+                  </div>
+                ))}
+              </div>
+              {quickFilter !== "day" && <p className="mt-2 text-center text-[11px] font-semibold text-muted-foreground">{quickFilter === "all" ? "Összes közelgő program" : quickFilter === "today" ? "Mai programok" : "Hétvégi programok"}</p>}
+            </>
           )}
           {hiddenDayEventCount > 0 && (
-            <p className="text-[11px] text-muted-foreground text-center mt-2">+ {hiddenDayEventCount} további program ezen a napon</p>
+            <p className="text-[11px] text-muted-foreground text-center mt-2">+ {hiddenDayEventCount} további {quickFilter === "day" ? "program ezen a napon" : "program ebben a válogatásban"}</p>
           )}
         </div>
 

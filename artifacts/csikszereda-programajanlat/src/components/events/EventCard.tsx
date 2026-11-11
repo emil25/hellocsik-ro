@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Clock, Ticket, ArrowRight, CalendarDays } from "lucide-react";
 import { Link } from "wouter";
-import { formatDate, formatTime } from "@/utils/date-format";
+import { formatShortDate, formatTime } from "@/utils/date-format";
 import { formatRefreshDate, getEventSource } from "@/lib/event-meta";
 import { FavoriteButton } from "@/components/events/FavoriteButton";
 import { getEventPriceLabel } from "@/lib/event-links";
@@ -92,15 +92,19 @@ export function EventCard({ event, index = 0, promoted = Boolean(event.featured)
                 className="relative z-0 h-full w-full object-contain"
               />
             </>}
+            <span className="absolute left-3 top-3 z-[2] min-w-12 rounded-lg border border-white/90 bg-white px-2 py-1 text-center text-foreground shadow-lg shadow-black/30">
+              <span className="block text-[9px] font-extrabold uppercase leading-none tracking-wide text-primary">{new Intl.DateTimeFormat("hu-HU", { month: "short", timeZone: "Europe/Bucharest" }).format(new Date(event.startDate)).replace(".", "")}</span>
+              <span className="block text-base font-black leading-tight">{new Intl.DateTimeFormat("hu-HU", { day: "2-digit", timeZone: "Europe/Bucharest" }).format(new Date(event.startDate))}</span>
+            </span>
             {event.category && (
               <span
-                className={`absolute top-3 text-xs font-semibold px-2.5 py-1 rounded-full text-white shadow ${event.featured ? "left-36" : "left-3"}`}
+                className="absolute left-3 top-[3.8rem] z-[2] text-xs font-semibold px-2.5 py-1 rounded-full text-white shadow-md"
                 style={{ backgroundColor: event.category.color }}
               >
                 {event.category.name}
               </span>
             )}
-            {promoted && <span className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold shadow ${paidPromotion ? "bg-gradient-to-r from-violet-600 to-blue-600 text-white" : "bg-amber-400 text-amber-950"}`}>{promotionLabel}</span>}
+            {promoted && <span className={`absolute bottom-3 left-3 z-[2] rounded-full px-2.5 py-1 text-xs font-bold shadow-md ${paidPromotion ? "bg-gradient-to-r from-violet-600 to-blue-600 text-white" : "bg-amber-400 text-amber-950"}`}>{promotionLabel}</span>}
             {event.price && (
               <span className="absolute bottom-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-background/90 text-foreground shadow flex items-center gap-1">
                 <Ticket className="w-3 h-3" />
@@ -113,11 +117,11 @@ export function EventCard({ event, index = 0, promoted = Boolean(event.featured)
               {event.title}
             </h3>
             <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                 <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>{formatDate(event.startDate)}</span>
+                <span>{formatShortDate(event.startDate)} · {formatTime(event.startDate)}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-sm font-medium text-foreground/85">
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="line-clamp-1">{event.location}</span>
               </div>

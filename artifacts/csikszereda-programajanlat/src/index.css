@@ -217,7 +217,7 @@ a:hover .cinema-poster > img { transform: scale(1.035); }
 .finder-list-row:hover { border-color: #9fb9a8; box-shadow: 0 8px 24px #173d2d12; transform: translateY(-1px); }
 .finder-list-row.is-featured { border-color: #e9c36b; }
 .finder-list-row.is-paid { border-color: #c9b4ed; background: linear-gradient(100deg, #fff 0%, #fbf9ff 100%); }
-.finder-list-date { display: flex; width: 58px; height: 62px; flex-direction: column; align-items: center; justify-content: center; border-radius: 13px; background: #f1f5f1; color: #183e2e; line-height: 1; }
+.finder-list-date { display: flex; width: 58px; height: 62px; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #d6e2d9; border-radius: 13px; background: #fff; color: #183e2e; line-height: 1; box-shadow: 0 3px 10px #102b1b18; }
 .finder-list-date strong { font-size: 1.4rem; letter-spacing: -.05em; }
 .finder-list-date span { margin-top: 5px; color: #738277; font-size: .68rem; font-weight: 800; text-transform: uppercase; }
 .finder-list-main { min-width: 0; }
@@ -228,7 +228,7 @@ a:hover .cinema-poster > img { transform: scale(1.035); }
 .finder-list-promotion.is-editorial { color: #9b6b13; }
 .finder-list-title { display: block; overflow: hidden; color: #18251e; font-size: .98rem; font-weight: 800; line-height: 1.3; text-overflow: ellipsis; }
 .finder-list-title:hover { color: #17633d; }
-.finder-list-meta { display: flex; flex-wrap: wrap; gap: 5px 16px; margin-top: 6px; color: #66776c; font-size: .76rem; }
+.finder-list-meta { display: flex; flex-wrap: wrap; gap: 5px 16px; margin-top: 6px; color: #263a2d; font-size: .8rem; font-weight: 600; }
 .finder-list-meta span { display: inline-flex; align-items: center; gap: 5px; }
 .finder-list-meta svg { flex: 0 0 auto; color: #337458; }
 .finder-list-source { overflow: hidden; margin-top: 4px; color: #89968d; font-size: .65rem; text-overflow: ellipsis; white-space: nowrap; }
